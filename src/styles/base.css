@@ -1,0 +1,243 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-color: var(--color-border) var(--color-background);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 50% -18%, rgba(137, 183, 199, 0.12), transparent 38%),
+    var(--color-background);
+  color: var(--color-text);
+  font-size: var(--font-body-size);
+  line-height: var(--line-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:where(button, input, select, textarea) {
+  color: inherit;
+  font: inherit;
+}
+
+:where(button, [role="button"], a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+:where(button, [role="button"], a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 3px;
+  box-shadow: var(--focus-ring);
+}
+
+:where(button, [role="button"], a)[aria-disabled="true"],
+:where(button, [role="button"]):disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--color-info);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+img,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: var(--color-action);
+  color: var(--color-ink);
+}
+
+.game-shell,
+.game-app,
+#app {
+  position: relative;
+  width: min(100%, var(--viewport-max-width));
+  min-height: max(var(--viewport-design-height), 100svh);
+  margin-inline: auto;
+  overflow: clip;
+  background: var(--color-background);
+  box-shadow: 0 0 0 1px rgba(137, 183, 199, 0.12), 0 24px 80px rgba(0, 0, 0, 0.52);
+  container: game / inline-size;
+  isolation: isolate;
+}
+
+.screen {
+  position: relative;
+  z-index: var(--z-content);
+  display: grid;
+  width: 100%;
+  min-height: max(var(--viewport-design-height), 100svh);
+  overflow: hidden;
+  background: var(--color-background);
+  isolation: isolate;
+}
+
+.screen__content {
+  position: relative;
+  z-index: var(--z-content);
+  min-width: 0;
+  padding-inline: var(--safe-left) var(--safe-right);
+}
+
+.safe-area {
+  padding:
+    var(--safe-top)
+    var(--safe-right)
+    var(--safe-bottom)
+    var(--safe-left);
+}
+
+.safe-area-x {
+  padding-inline: var(--safe-left) var(--safe-right);
+}
+
+.safe-area-top {
+  padding-top: var(--safe-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+.page-title {
+  font-size: var(--font-page);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-page);
+  text-wrap: balance;
+}
+
+.section-title {
+  font-size: var(--font-section);
+  font-weight: var(--weight-semibold);
+  line-height: var(--line-section);
+  text-wrap: balance;
+}
+
+.body-copy {
+  color: var(--color-text);
+  font-size: var(--font-body-size);
+  line-height: var(--line-body);
+}
+
+.utility-copy {
+  color: var(--color-text-muted);
+  font-size: var(--font-utility);
+  line-height: var(--line-utility);
+}
+
+.display-copy {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.data-copy,
+[data-value] {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.scroll-region {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.scroll-region--y {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (min-width: 391px) {
+  body {
+    display: grid;
+    place-items: start center;
+  }
+}
+
+@media (max-height: 639px) {
+  .game-shell,
+  .game-app,
+  #app,
+  .screen {
+    min-height: var(--viewport-design-height);
+  }
+
+  body {
+    overflow-y: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

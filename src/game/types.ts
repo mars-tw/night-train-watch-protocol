@@ -1,0 +1,160 @@
+export type ScreenId = "menu" | "hub" | "carriage" | "route" | "event" | "modules" | "tech" | "result" | "settings";
+export type Phase = "dawn" | "prep" | "route" | "travel" | "night" | "aftermath" | "ending";
+export type ContactStage = "approach" | "warning" | "attack" | "breach" | "resolve";
+export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
+export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
+export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
+
+export interface ResourceState {
+  energy: number;
+  fuel: number;
+  food: number;
+  water: number;
+  parts: number;
+  medicine: number;
+  data: number;
+}
+
+export interface SurvivorState {
+  health: number;
+  stress: number;
+  infection: number;
+  trust: number;
+  sleep: number;
+  wakeups: number;
+}
+
+export interface EnvironmentState {
+  temperature: number;
+  noise: number;
+  visibility: number;
+  hull: number;
+  weight: number;
+}
+
+export interface ModuleDefinition {
+  id: string;
+  name: string;
+  slot: "wall" | "counter" | "window" | "floor" | "door";
+  cost: number;
+  idleDraw: number;
+  activeCost: number;
+  priority: 0 | 1 | 2 | 3;
+  artKey: string;
+  description: string;
+}
+
+export interface ModuleInstance {
+  id: string;
+  definitionId: string;
+  slotId: string;
+  active: boolean;
+  powered: boolean;
+  durability: number;
+  mk: 1 | 2 | 3;
+}
+
+export interface RouteNode {
+  id: string;
+  name: string;
+  kind: "supply" | "story" | "danger" | "safe";
+  distance: number;
+  fuelCost: number;
+  threatLevel: 0 | 1 | 2 | 3;
+  reward: string;
+  eventId: string;
+  scanned?: boolean;
+}
+
+export interface EventChoice {
+  id: string;
+  label: string;
+  cost: string;
+  known: string;
+  deltas: Partial<ResourceState>;
+  survivor?: Partial<SurvivorState>;
+  environment?: Partial<EnvironmentState>;
+  result: string;
+}
+
+export interface GameEvent {
+  id: string;
+  phase: "travel" | "night";
+  title: string;
+  body: string;
+  artKey: string;
+  urgent?: boolean;
+  choices: EventChoice[];
+}
+
+export interface ThreatDefinition {
+  id: string;
+  name: string;
+  anchor: "left-window" | "right-window" | "door" | "roof";
+  counterIds: string[];
+  warningSeconds: number;
+  damage: number;
+  artKey: string;
+}
+
+export interface ThreatContact {
+  id: string;
+  definitionId: string;
+  stage: ContactStage;
+  secondsLeft: number;
+  resolvedBy?: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  at: number;
+  source: string;
+  key: string;
+  before: number;
+  delta: number;
+  after: number;
+}
+
+export interface SettingsState {
+  textScale: 100 | 120 | 140;
+  reducedMotion: boolean;
+  noCountdown: boolean;
+  lowSpeed: boolean;
+  sound: boolean;
+}
+
+export interface RunState {
+  schemaVersion: 1;
+  seed: string;
+  day: number;
+  maxDays: number;
+  phase: Phase;
+  routeId: string;
+  selectedRouteNodeId?: string;
+  activeEventId?: string;
+  activeContact?: ThreatContact;
+  resources: ResourceState;
+  survivor: SurvivorState;
+  environment: EnvironmentState;
+  modules: ModuleInstance[];
+  techOwned: string[];
+  flags: string[];
+  ledger: LedgerEntry[];
+  lastMessage?: string;
+  ended: boolean;
+}
+
+export interface AppState {
+  screen: ScreenId;
+  run: RunState | null;
+  settings: SettingsState;
+  selectedTechId: string;
+  selectedModuleId: string;
+  selectedRouteId: string;
+  saveStatus: "none" | "saved" | "saving" | "recovered" | "error";
+}
+
+export interface Intent {
+  type: string;
+  payload?: Record<string, unknown>;
+}

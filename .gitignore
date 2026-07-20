@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.qa/
+.codex-*/
+.playwright-cli/
+output/
+public/assets/video/raw/
+.env
+.env.*
+!.env.example
+*.docx
+*.zip
+references/ui-mockups/夜行列車_UI視覺稿_v1.1/
+.DS_Store
+Thumbs.db
+

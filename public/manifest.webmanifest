@@ -1,0 +1,15 @@
+{
+  "name": "夜行列車：守夜協定",
+  "short_name": "守夜協定",
+  "description": "離線優先的直式末日列車生存管理遊戲",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090e12",
+  "theme_color": "#090e12",
+  "icons": [
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
