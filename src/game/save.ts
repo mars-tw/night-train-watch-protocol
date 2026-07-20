@@ -10,7 +10,13 @@ function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
   const value = JSON.parse(raw) as RunState;
   if (value.schemaVersion !== 1 || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
-  return value;
+  return {
+    ...value,
+    actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
+    rationMode: value.rationMode ?? "standard",
+    nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
+    outcome: value.outcome ?? (value.ended ? "victory" : "active"),
+  };
 }
 
 function openDatabase(): Promise<IDBDatabase> {

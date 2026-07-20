@@ -1,10 +1,10 @@
-import { EVENTS } from "./game/content";
+import { EVENTS, TECH_NODES } from "./game/content";
 import { AudioService } from "./game/audio";
 import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, EventChoice, ScreenId } from "./game/types";
+import type { AppState, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -42,12 +42,17 @@ export class NightTrainApp {
       case "new-game":
         this.state.run = createRun();
         this.state.screen = "carriage";
+        this.state.carriagePanel = "module";
+        this.state.nightPaused = false;
+        this.state.eventPreview = false;
         this.state.saveStatus = "saving";
         await this.persist();
         break;
       case "continue": {
         const loaded = await this.saveService.load();
         this.state.run = loaded.run;
+        this.state.nightPaused = false;
+        this.state.eventPreview = false;
         this.state.saveStatus = loaded.recovered ? "recovered" : "saved";
         this.state.screen = this.screenForPhase();
         break;
@@ -61,12 +66,20 @@ export class NightTrainApp {
           this.state.run = loaded.run ?? createRun();
         }
         this.state.screen = "hub";
+        this.state.eventPreview = false;
         break;
       case "settings":
         this.state.screen = "settings";
         break;
       case "carriage":
+        if (run?.phase === "route") run.phase = "prep";
         this.state.screen = "carriage";
+        break;
+      case "pause":
+        if (run?.phase === "night" && !this.state.settings.noCountdown) {
+          this.state.nightPaused = !this.state.nightPaused;
+          run.lastMessage = this.state.nightPaused ? "守夜倒數已暫停；方向警報仍保持顯示。" : "守夜倒數繼續。";
+        }
         break;
       case "route":
         if (run && run.phase !== "night") {
@@ -82,7 +95,7 @@ export class NightTrainApp {
         break;
       case "event-preview":
         if (run) {
-          run.activeEventId = "EV004";
+          this.state.eventPreview = true;
           this.state.screen = "event";
         }
         break;
@@ -92,16 +105,20 @@ export class NightTrainApp {
       case "confirm-route":
         if (run && value) {
           this.runService.chooseRoute(run, value);
-          if (run.phase === "travel") this.state.screen = "event";
+          if (run.phase === "travel") {
+            this.state.eventPreview = false;
+            this.state.screen = "event";
+          }
           await this.persist();
         }
         break;
       case "event-choice":
-        if (run && value) {
+        if (run && value && !this.state.eventPreview) {
           const gameEvent = this.runService.getEvent(run);
           const choice = gameEvent?.choices.find((candidate) => candidate.id === value) as EventChoice | undefined;
           if (choice && this.runService.resolveEvent(run, choice)) {
             this.state.screen = "carriage";
+            this.state.nightPaused = false;
             this.startNightTimer();
             if (this.state.settings.sound) this.audio.cue("warning");
             await this.persist();
@@ -113,6 +130,7 @@ export class NightTrainApp {
           const resolved = this.runService.counterThreat(run, value);
           if (resolved) {
             clearInterval(this.nightTimer);
+            this.state.nightPaused = false;
             this.state.screen = "result";
             if (this.state.settings.sound) this.audio.cue("safe");
             await this.persist();
@@ -123,11 +141,38 @@ export class NightTrainApp {
         if (run) {
           this.runService.continueAftermath(run);
           this.state.screen = run.ended ? "result" : "carriage";
+          this.state.carriagePanel = "module";
+          this.state.nightPaused = false;
           await this.persist();
         }
         break;
       case "select-module":
-        if (value) this.state.selectedModuleId = value;
+        if (value) {
+          this.state.selectedModuleId = value;
+          this.state.carriagePanel = "module";
+        }
+        break;
+      case "select-module-category":
+        if (value && ["全部", "防禦", "生產", "生活"].includes(value)) this.state.moduleCategory = value as ModuleCategory;
+        break;
+      case "power":
+        if (run?.phase === "prep") this.state.carriagePanel = "power";
+        break;
+      case "meal":
+        if (run?.phase === "prep") this.state.carriagePanel = "meal";
+        break;
+      case "toggle-module":
+      case "toggle-power":
+        if (run && value) {
+          this.runService.toggleModule(run, value);
+          await this.persist();
+        }
+        break;
+      case "select-ration":
+        if (run && value && ["full", "standard", "strict"].includes(value)) {
+          this.runService.setRation(run, value as RationMode);
+          await this.persist();
+        }
         break;
       case "build-module":
         if (run && value && this.runService.buildModule(run, value)) {
@@ -138,6 +183,13 @@ export class NightTrainApp {
       case "select-tech":
         if (value) this.state.selectedTechId = value;
         break;
+      case "select-tech-branch":
+        if (value && ["能源", "居住", "農業", "防禦", "情報"].includes(value)) {
+          this.state.techBranch = value as TechBranch;
+          const firstNode = TECH_NODES.find((node) => node.branch === value);
+          if (firstNode) this.state.selectedTechId = firstNode.id;
+        }
+        break;
       case "unlock-tech":
         if (run && value) {
           this.runService.unlockTech(run, value);
@@ -146,8 +198,19 @@ export class NightTrainApp {
         break;
       case "harvest":
         if (run) {
-          this.runService.applyResource(run, "food", 2, "module.M003.harvest");
-          run.lastMessage = "收成 2 份葉菜；種植架進入下一輪生長。";
+          this.runService.harvest(run);
+          await this.persist();
+        }
+        break;
+      case "comfort":
+        if (run) {
+          this.runService.comfortPassenger(run);
+          await this.persist();
+        }
+        break;
+      case "repair-hull":
+        if (run) {
+          this.runService.repairCarriage(run);
           await this.persist();
         }
         break;
@@ -182,10 +245,10 @@ export class NightTrainApp {
     const interval = this.state.settings.lowSpeed ? 1333 : 1000;
     this.nightTimer = window.setInterval(() => {
       const run = this.state.run;
-      if (!run || run.phase !== "night" || this.state.settings.noCountdown) return;
+      if (!run || run.phase !== "night" || this.state.settings.noCountdown || this.state.nightPaused) return;
       this.runService.tickNight(run);
       const phaseAfterTick: string = run.phase;
-      if (phaseAfterTick === "aftermath") {
+      if (phaseAfterTick === "aftermath" || phaseAfterTick === "ending") {
         clearInterval(this.nightTimer);
         this.state.screen = "result";
         if (this.state.settings.sound) this.audio.cue("breach");
@@ -222,7 +285,7 @@ export class NightTrainApp {
   }
 
   private render(): void {
-    const activeEvent = this.state.run?.activeEventId ? EVENTS.find((event) => event.id === this.state.run?.activeEventId) : undefined;
+    const activeEvent = this.state.eventPreview ? EVENTS.find((event) => event.id === "EV004") : this.state.run?.activeEventId ? EVENTS.find((event) => event.id === this.state.run?.activeEventId) : undefined;
     this.view.render(this.state, this.hasSave, activeEvent);
     this.renderer.render(this.state);
   }

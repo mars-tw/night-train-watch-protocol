@@ -56,7 +56,55 @@ describe("authoritative run service", () => {
     const before = run.resources.parts;
     expect(service.buildModule(run, target.id)).toBe(true);
     expect(run.resources.parts).toBe(before - target.cost);
+    expect(run.actionPoints).toBe(3);
     expect(run.modules.some((module) => module.definitionId === target.id)).toBe(true);
+  });
+
+  it("turns harvest into a once-per-day AP and water tradeoff", () => {
+    const run = createRun("harvest-loop");
+    const service = new RunService();
+    const before = { ap: run.actionPoints, food: run.resources.food, water: run.resources.water };
+
+    expect(service.harvest(run)).toBe(true);
+    expect(run.actionPoints).toBe(before.ap - 1);
+    expect(run.resources.food).toBe(before.food + 2);
+    expect(run.resources.water).toBe(before.water - 1);
+    expect(service.harvest(run)).toBe(false);
+  });
+
+  it("spends night power and sheds lower-priority modules first", () => {
+    const run = createRun("power-grid");
+    const service = new RunService();
+    run.resources.energy = 5;
+
+    service.beginNight(run);
+
+    expect(run.nightPowerDemand).toBe(4);
+    expect(run.modules.find((module) => module.definitionId === "M002")?.powered).toBe(true);
+    expect(run.modules.find((module) => module.definitionId === "M003")?.powered).toBe(false);
+  });
+
+  it("applies the selected ration plan during dawn settlement", () => {
+    const run = createRun("ration-plan");
+    const service = new RunService();
+    service.setRation(run, "full");
+    const food = run.resources.food;
+    const trust = run.survivor.trust;
+
+    service.finishNight(run);
+
+    expect(run.resources.food).toBe(food - 2);
+    expect(run.survivor.trust).toBe(trust + 3);
+  });
+
+  it("blocks module-dependent counters when their equipment is off", () => {
+    const run = createRun("counter-readiness");
+    const service = new RunService();
+    service.beginNight(run);
+    service.toggleModule(run, "M001");
+
+    expect(service.counterThreat(run, "close-shutter")).toBe(false);
+    expect(run.lastMessage).toContain("未供電");
   });
 
   it("preserves breach sleep damage in the dawn calculation", () => {
@@ -84,6 +132,18 @@ describe("authoritative run service", () => {
     expect(run.activeContact).toBeUndefined();
   });
 
+  it("ends the run when the carriage loses structural integrity", () => {
+    const run = createRun("terminal-hull");
+    const service = new RunService();
+    run.environment.hull = 0;
+
+    service.finishNight(run);
+
+    expect(run.phase).toBe("ending");
+    expect(run.ended).toBe(true);
+    expect(run.outcome).toBe("hull-lost");
+  });
+
   it("uses the GDD threat identifiers for the playable contacts", () => {
     expect(THREATS.map((threat) => threat.id)).toEqual(["T002", "T003"]);
   });
@@ -101,6 +161,9 @@ describe("authoritative run service", () => {
     const run = createRun("seven-night-release");
     const service = new RunService();
     const contacts = new Set<string>();
+    run.resources.fuel = 60;
+    service.toggleModule(run, "M002");
+    service.toggleModule(run, "M003");
 
     while (!run.ended) {
       service.chooseRoute(run, "RN01");
@@ -110,7 +173,7 @@ describe("authoritative run service", () => {
       expect(service.resolveEvent(run, safeChoice)).toBe(true);
       const contactId = run.activeContact!.definitionId;
       contacts.add(contactId);
-      const counter = contactId === "T003" ? "decoy" : "close-shutter";
+      const counter = contactId === "T003" ? "emergency-boost" : "close-shutter";
       expect(service.counterThreat(run, counter)).toBe(true);
       service.continueAftermath(run);
     }

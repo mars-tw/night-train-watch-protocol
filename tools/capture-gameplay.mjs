@@ -33,6 +33,16 @@ await page.waitForTimeout(1800);
 
 await page.getByRole("button", { name: "開始新局" }).click();
 await page.waitForTimeout(2600);
+await page.getByRole("button", { name: /配電/ }).click();
+await page.waitForTimeout(1400);
+await page.getByRole("button", { name: /配餐/ }).click();
+await page.waitForTimeout(1200);
+await page.getByRole("button", { name: /安心餐/ }).click();
+await page.waitForTimeout(1100);
+await page.getByRole("button", { name: "種" }).click();
+await page.waitForFunction(() => document.querySelector(".module-detail h3")?.textContent?.includes("垂直種植架"));
+await page.getByRole("button", { name: /收成 2/ }).click();
+await page.waitForTimeout(1500);
 await page.getByRole("button", { name: /出發/ }).click();
 await page.waitForTimeout(2400);
 await page.getByRole("button", { name: "確認路線" }).click();

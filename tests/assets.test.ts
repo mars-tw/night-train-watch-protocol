@@ -30,6 +30,6 @@ describe("shipping art", () => {
 
   it("bumps the offline cache so installed games receive the motion release", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.2.1-motion');
+    expect(serviceWorker).toContain('night-train-v0.3.0-playability');
   });
 });

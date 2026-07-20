@@ -1,6 +1,11 @@
 export type ScreenId = "menu" | "hub" | "carriage" | "route" | "event" | "modules" | "tech" | "result" | "settings";
 export type Phase = "dawn" | "prep" | "route" | "travel" | "night" | "aftermath" | "ending";
 export type ContactStage = "approach" | "warning" | "attack" | "breach" | "resolve";
+export type RationMode = "full" | "standard" | "strict";
+export type CarriagePanel = "module" | "power" | "meal";
+export type RunOutcome = "active" | "victory" | "hull-lost" | "survivor-lost";
+export type ModuleCategory = "全部" | "防禦" | "生產" | "生活";
+export type TechBranch = "能源" | "居住" | "農業" | "防禦" | "情報";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -129,6 +134,10 @@ export interface RunState {
   day: number;
   maxDays: number;
   phase: Phase;
+  actionPoints: number;
+  rationMode: RationMode;
+  nightPowerDemand: number;
+  outcome: RunOutcome;
   routeId: string;
   selectedRouteNodeId?: string;
   activeEventId?: string;
@@ -151,6 +160,11 @@ export interface AppState {
   selectedTechId: string;
   selectedModuleId: string;
   selectedRouteId: string;
+  carriagePanel: CarriagePanel;
+  nightPaused: boolean;
+  eventPreview: boolean;
+  moduleCategory: ModuleCategory;
+  techBranch: TechBranch;
   saveStatus: "none" | "saved" | "saving" | "recovered" | "error";
 }
 
