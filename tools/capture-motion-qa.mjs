@@ -9,12 +9,14 @@ await mkdir(outputDirectory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-TW" });
 const page = await context.newPage();
-await page.goto(baseUrl, { waitUntil: "networkidle" });
+await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+await page.waitForSelector(".screen--menu");
 await page.evaluate(() => {
   localStorage.clear();
   localStorage.setItem("settings", JSON.stringify({ textScale: 100, reducedMotion: false, noCountdown: false, lowSpeed: false, sound: false }));
 });
-await page.reload({ waitUntil: "networkidle" });
+await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+await page.waitForSelector(".screen--menu");
 await page.screenshot({ path: resolve(outputDirectory, "motion-01-menu.png") });
 
 await page.getByRole("button", { name: "開始新局" }).click();
@@ -44,12 +46,14 @@ await page.screenshot({ path: resolve(outputDirectory, "motion-09-aftermath.png"
 await context.close();
 const reducedContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-TW", reducedMotion: "reduce" });
 const reducedPage = await reducedContext.newPage();
-await reducedPage.goto(baseUrl, { waitUntil: "networkidle" });
+await reducedPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+await reducedPage.waitForSelector(".screen--menu");
 await reducedPage.evaluate(() => {
   localStorage.clear();
   localStorage.setItem("settings", JSON.stringify({ textScale: 100, reducedMotion: true, noCountdown: true, lowSpeed: false, sound: false }));
 });
-await reducedPage.reload({ waitUntil: "networkidle" });
+await reducedPage.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+await reducedPage.waitForSelector(".screen--menu");
 await reducedPage.getByRole("button", { name: "開始新局" }).click();
 await reducedPage.waitForTimeout(500);
 await reducedPage.screenshot({ path: resolve(outputDirectory, "motion-10-reduced-a.png") });
