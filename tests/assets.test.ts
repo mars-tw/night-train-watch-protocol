@@ -27,4 +27,9 @@ describe("shipping art", () => {
     expect(animationCss).toContain("prefers-reduced-motion");
     expect(view).toContain("contact-stage-${contact?.stage");
   });
+
+  it("bumps the offline cache so installed games receive the motion release", () => {
+    const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
+    expect(serviceWorker).toContain('night-train-v0.2.1-motion');
+  });
 });
