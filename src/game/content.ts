@@ -83,7 +83,7 @@ export const EVENTS: GameEvent[] = [
     ],
   },
   {
-    id: "EV031", phase: "travel", title: "破裂暖管", body: "暖氣管線滲出白霧，溫度開始往下掉。", artKey: "event.pipe",
+    id: "EV031", phase: "travel", title: "破裂暖管", body: "暖氣管線滲出白霧，溫度開始往下掉。", artKey: "event.pipe", urgent: true,
     choices: [
       { id: "A", label: "緊急修補", cost: "零件 −2", known: "溫度 +4、噪音 +6", deltas: { parts: -2 }, environment: { temperature: 4, noise: 6 }, result: "金屬束帶止住洩漏，暖風重新流動。" },
       { id: "B", label: "降低負載", cost: "電量 +6", known: "睡眠 −8", deltas: { energy: 6 }, survivor: { sleep: -8 }, result: "你關閉暖氣，替核心電池保留餘裕。" },

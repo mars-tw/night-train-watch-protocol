@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test && npm run build",
-    "capture:video": "node tools/capture-gameplay.mjs"
+    "capture:video": "node tools/capture-gameplay.mjs",
+    "capture:motion": "node tools/capture-motion-qa.mjs"
   },
   "keywords": [
     "game",

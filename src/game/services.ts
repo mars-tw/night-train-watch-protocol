@@ -85,6 +85,10 @@ export class RunService {
   public tickNight(run: RunState): void {
     const contact = run.activeContact;
     if (run.phase !== "night" || !contact || contact.stage === "resolve") return;
+    if (contact.stage === "breach") {
+      this.finishNight(run);
+      return;
+    }
     contact.secondsLeft -= 1;
     if (contact.secondsLeft > 0) {
       if (contact.stage === "approach" && contact.secondsLeft <= 6) contact.stage = "warning";
@@ -98,7 +102,6 @@ export class RunService {
     this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
     this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
     run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
-    this.finishNight(run);
   }
 
   public counterThreat(run: RunState, counterId: string): boolean {

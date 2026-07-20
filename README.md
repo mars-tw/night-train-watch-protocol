@@ -12,10 +12,12 @@
 - IndexedDB current／backup 雙存檔，localStorage 降級，PWA 離線快取。
 - 文字 100／120／140%、減少動態、無倒數、0.75× 守夜與音效開關。
 - 原創車廂、A-07 與威脅圖層均由 runtime 實際載入，不使用攤平的 UI 截圖當遊戲畫面。
+- 動態場景不是裝飾影片：Canvas 即時繪製車身搖晃、窗外雨霧與鐵軌流動、燈火、乘客呼吸；威脅依 Approach／Warning／Attack／Breach 分階段靠近與撞擊。
+- 畫面進場依 03A／03B／05A／05B／08B 稿的資訊層級編排；只在真正換頁時播放，倒數重繪不會反覆觸發。
 
 ## 遊玩影片與畫面
 
-- [21 秒直式遊玩影片（WebM）](public/assets/video/night-train-gameplay.webm)
+- [直式遊玩影片（WebM，包含行車與威脅動態）](public/assets/video/night-train-gameplay.webm)
 - [主選單](public/assets/screenshots/01-main-menu.png)
 - [車廂整備](public/assets/screenshots/02-carriage-prep.png)
 - [路線地圖](public/assets/screenshots/03-route-map.png)

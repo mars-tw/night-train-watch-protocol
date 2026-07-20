@@ -125,7 +125,7 @@ function carriageScreen(state: AppState): string {
         { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
         { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
       ];
-  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"}" data-screen="SCR-CV-${night ? "B" : "A"}">
+  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}">
     ${compactHeader(run, night ? "夜間守望" : "車廂整備", night ? `22:${String(34 + run.day * 2).padStart(2, "0")}` : `剩餘 ${Math.max(2, Math.floor(run.survivor.sleep / 30) + 2)} AP`)}
     <button class="speed-control" type="button" data-action="pause">${night ? "×1" : icons.pause}</button>
     ${environmentPanel(run)}${survivorPanel(run)}
@@ -166,6 +166,7 @@ function eventScreen(state: AppState, event: GameEvent | undefined): string {
     ${compactHeader(run, `第 ${run.day} 日・${event.phase === "night" ? "夜間" : "行車"}`, event.id, "route")}
     <article class="event-card panel">
       <div class="event-art event-art--${event.artKey.replace("event.", "")}" role="img" aria-label="${escapeText(event.title)}事件插圖"><span></span></div>
+      ${event.urgent ? `<div class="event-urgency" role="status"><span>緊急事件</span><strong>警戒</strong></div>` : ""}
       <p class="event-id">${event.id}・${event.phase === "night" ? "夜間" : "行車"}</p>
       <h2>${escapeText(event.title)}</h2><p>${escapeText(event.body)}</p>
       <div class="event-choices">${event.choices.map((choice, index) => `<button class="choice-card ${index === 1 ? "is-selected" : ""}" data-action="event-choice" data-value="${choice.id}"><b>${choice.id}</b><span><strong>${escapeText(choice.label)}</strong><small>${escapeText(choice.cost)}　｜　${escapeText(choice.known)}</small></span></button>`).join("")}</div>
@@ -234,6 +235,7 @@ function settingsScreen(state: AppState): string {
 export class GameView {
   private readonly canvas: HTMLCanvasElement;
   private readonly uiRoot: HTMLDivElement;
+  private previousScreenKey = "";
 
   public constructor(private readonly root: HTMLElement, private readonly onAction: ActionHandler) {
     this.root.innerHTML = `<main class="game-shell"><div class="game-frame"><canvas id="scene-canvas" aria-hidden="true"></canvas><div id="ui-root"></div></div><p class="rotate-notice">請將裝置轉回直式，守護協定需要完整車廂視野。</p></main>`;
@@ -263,7 +265,13 @@ export class GameView {
       settings: () => settingsScreen(state),
     }[state.screen];
     this.uiRoot.innerHTML = screen();
+    const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? ""].join(":");
+    if (screenKey !== this.previousScreenKey) this.uiRoot.querySelector(".screen")?.classList.add("screen-enter");
+    this.previousScreenKey = screenKey;
     this.root.style.setProperty("--text-scale", String(state.settings.textScale / 100));
     this.root.classList.toggle("reduce-motion", state.settings.reducedMotion);
+    this.root.dataset.gameScreen = state.screen;
+    this.root.dataset.phase = state.run?.phase ?? "none";
+    this.root.dataset.contactStage = state.run?.activeContact?.stage ?? "idle";
   }
 }

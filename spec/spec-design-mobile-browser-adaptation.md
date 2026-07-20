@@ -41,6 +41,8 @@ tags: [design, game, mobile-web, pwa, accessibility]
 - **REQ-010**: 存檔必須保留 current 與 backup，包含 schemaVersion，載入 current 失敗時回退 backup。
 - **REQ-011**: 首個版本必須在無網路、無後端、無執行期 AI API 的情況下完成核心流程。
 - **REQ-012**: 正式遊戲必須實際引用專案內的場景、角色、威脅與圖示素材；不得只在 README 或封面展示。
+- **REQ-013**: 固定車廂必須以即時動畫表達列車仍在行進：窗外雨霧與鐵軌位移、車身低幅搖晃、燈火變化與乘客呼吸至少各有一層；不得以靜態背景替代。
+- **REQ-014**: Threat Contact 的 Approach、Warning、Attack、Breach 必須有可辨識的距離、透明度、位移、撞擊與警報差異；Resolve 必須回落，不可只更換倒數文字。
 - **CON-001**: UI 色票固定為背景 `#090E12`、面板 `#192329`、暖色主動作 `#E2A85D`、冷色資訊 `#89B7C7`、安全 `#7EA57A`、危險 `#C2604E`、稀缺 `#E7C970`、正文 `#F5E8D8`、次要文字 `#AAB6BA`。
 - **CON-002**: 關鍵觸控區至少 48×48 logical px；不可逆操作採 350ms 長按或二次確認。第 9 章的 48×48 與第 15 章的 44×44 有衝突時採較嚴格值。
 - **CON-003**: 事件面板在夜間暫停；設備面板把時間縮放為 0.35×。
@@ -103,6 +105,8 @@ interface Intent {
 - **AC-005**: Given 140% 字級、減少動態、無倒數，When 玩家走完第一夜，Then 無文字截斷且核心流程仍可完成。
 - **AC-006**: Given 網路離線，When 重新開啟已安裝 PWA，Then 可載入、續局及完成當夜。
 - **AC-007**: Given正式 Build，When 靜態掃描資產引用，Then 遊戲程式或 CSS 直接引用所有標記為 shipping 的遊戲素材。
+- **AC-008**: Given 390×844 視口且動態未停用，When 比較行車畫面相隔一秒的畫格，Then 窗外天候／軌道與至少一個生活光影層產生可見差異，而 HUD 錨點不位移。
+- **AC-009**: Given 接觸從 Approach 推進至 Attack，When 比較兩階段畫格，Then 威脅尺寸、位置、警報速度及撞擊效果均可辨識；啟用減少動態後則保留靜態紅框、方向與倒數數字。
 
 ## 6. Test Automation Strategy
 

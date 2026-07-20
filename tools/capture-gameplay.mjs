@@ -23,7 +23,7 @@ await page.evaluate(() => {
   localStorage.setItem("settings", JSON.stringify({
     textScale: 100,
     reducedMotion: false,
-    noCountdown: true,
+    noCountdown: false,
     lowSpeed: false,
     sound: false,
   }));
@@ -38,9 +38,8 @@ await page.waitForTimeout(2400);
 await page.getByRole("button", { name: "確認路線" }).click();
 await page.waitForTimeout(2800);
 await page.getByRole("button", { name: /B 先檢測/ }).click();
-await page.waitForTimeout(3600);
-
 const threatText = await page.getByRole("alert").textContent();
+await page.waitForTimeout(threatText?.includes("攀附者") ? 9200 : 7200);
 if (threatText?.includes("攀附者")) {
   await page.getByRole("button", { name: /緊急加速/ }).click();
 } else {

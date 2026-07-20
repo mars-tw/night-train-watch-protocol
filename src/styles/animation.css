@@ -1,0 +1,306 @@
+/* Motion language derived from UI drafts 03A/03B/05A/05B/08B.
+   The carriage stays calm; motion concentrates in the window and threat contact. */
+
+.screen-enter .app-header {
+  animation: hud-drop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.screen-enter :where(.panel, .menu-actions, .brand-lockup) {
+  animation: panel-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.screen-enter .menu-actions {
+  animation-delay: 110ms;
+}
+
+.screen-enter .brand-lockup {
+  animation-name: title-signal;
+  animation-duration: 720ms;
+}
+
+.screen-enter .event-art {
+  animation: event-develop 760ms cubic-bezier(0.16, 1, 0.3, 1) both, event-drift 12s 760ms ease-in-out infinite alternate;
+}
+
+.screen-enter .event-card h2,
+.screen-enter .ending-copy,
+.screen-enter .result-card h1 {
+  animation: copy-reveal 560ms 130ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.screen-enter .choice-card {
+  animation: choice-arrive 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.screen-enter .choice-card:nth-child(1) { animation-delay: 150ms; }
+.screen-enter .choice-card:nth-child(2) { animation-delay: 210ms; }
+.screen-enter .choice-card:nth-child(3) { animation-delay: 270ms; }
+
+.brand-rails i {
+  animation: rail-signal 2.8s ease-in-out infinite;
+}
+
+.brand-rails i:nth-child(2) { animation-delay: 120ms; }
+.brand-rails i:nth-child(3) { animation-delay: 240ms; }
+
+.scene-hotspots button {
+  animation: hotspot-scan 2.6s ease-in-out infinite;
+}
+
+.scene-hotspots button:nth-child(2) { animation-delay: 340ms; }
+.scene-hotspots button:nth-child(3) { animation-delay: 680ms; }
+
+.route-map path,
+.tech-tree path {
+  animation: route-flow 8s linear infinite;
+}
+
+.route-node.is-selected,
+.tech-node.is-selected {
+  animation: selected-node 2.2s ease-in-out infinite;
+}
+
+.event-art {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-size: 110% auto;
+  animation: event-drift 12s ease-in-out infinite alternate;
+}
+
+.event-art::before,
+.event-art::after,
+.event-art span {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.event-art::before {
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 28%, rgba(137, 183, 199, 0.18) 48%, transparent 68%);
+  transform: translateX(-120%);
+  animation: scan-sweep 5.8s ease-in-out infinite;
+}
+
+.event-art::after {
+  z-index: 2;
+  inset: 0;
+  border: 1px solid rgba(226, 168, 93, 0.24);
+  border-radius: inherit;
+  box-shadow: inset 0 -30px 38px rgba(9, 14, 18, 0.68);
+}
+
+.event-art span {
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-info);
+  box-shadow: 34px 12px rgba(137, 183, 199, 0.5), 76px -8px rgba(137, 183, 199, 0.42), 146px 18px rgba(137, 183, 199, 0.45), 216px -5px rgba(137, 183, 199, 0.38), 284px 14px rgba(137, 183, 199, 0.42);
+  opacity: 0.65;
+  animation: event-particles 3.4s linear infinite;
+}
+
+.event-art--water-tower span,
+.event-art--pipe span {
+  top: 28%;
+  left: 8%;
+  width: 84%;
+  height: 48%;
+  border-radius: 999px;
+  background: rgba(211, 226, 228, 0.12);
+  filter: blur(8px);
+  box-shadow: none;
+  animation: steam-drift 3.8s ease-in-out infinite;
+}
+
+.event-art--battery span,
+.event-art--radio span,
+.event-art--signal span {
+  top: 18%;
+  right: 12%;
+  left: auto;
+  background: var(--color-danger);
+  box-shadow: 0 0 0 5px rgba(194, 96, 78, 0.13), 0 0 32px 12px rgba(194, 96, 78, 0.38);
+  animation: warning-beacon 1.5s ease-in-out infinite;
+}
+
+.event-urgency {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-danger);
+  border-radius: 999px;
+  background: rgba(194, 96, 78, 0.16);
+  color: #f1b7a9;
+  font-size: 11px;
+}
+
+.event-urgency strong {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--color-danger) 0 76%, rgba(194, 96, 78, 0.18) 76% 100%);
+  color: #fff;
+  font-size: 9px;
+  animation: warning-beacon 1.2s ease-in-out infinite;
+}
+
+.screen--event.is-urgent .event-card {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 1px rgba(194, 96, 78, 0.18), 0 18px 44px rgba(0, 0, 0, 0.54);
+}
+
+.threat-alert {
+  transform-origin: 50% 50%;
+  animation: threat-alert 1.1s ease-in-out infinite;
+}
+
+.contact-stage-attack .threat-alert,
+.contact-stage-breach .threat-alert {
+  animation-duration: 520ms;
+}
+
+.contact-stage-warning .emergency-actions button:first-child,
+.contact-stage-attack .emergency-actions button:first-child {
+  animation: action-ready 1.5s ease-in-out infinite;
+}
+
+.toast-message {
+  animation: toast-signal 3.4s ease-in-out infinite;
+}
+
+.screen-enter .ring-meter {
+  animation: ring-arrive 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.screen-enter .ring-meter:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+@keyframes hud-drop {
+  from { opacity: 0; transform: translateY(-18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes title-signal {
+  0% { opacity: 0; filter: blur(8px); transform: translate(-50%, -10px); }
+  58% { opacity: 1; filter: blur(0); }
+  100% { transform: translate(-50%, 0); }
+}
+
+@keyframes event-develop {
+  from { opacity: 0; filter: contrast(1.8) brightness(0.5); transform: scale(1.07); }
+  to { opacity: 1; filter: contrast(1) brightness(1); transform: scale(1); }
+}
+
+@keyframes copy-reveal {
+  from { opacity: 0; letter-spacing: 0.18em; transform: translateY(12px); }
+  to { opacity: 1; letter-spacing: normal; transform: translateY(0); }
+}
+
+@keyframes choice-arrive {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rail-signal {
+  0%, 70%, 100% { opacity: 0.56; }
+  82% { opacity: 1; box-shadow: -22px 0 var(--color-action), 22px 0 var(--color-action); }
+}
+
+@keyframes hotspot-scan {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(226, 168, 93, 0); }
+  45% { box-shadow: 0 0 0 8px rgba(226, 168, 93, 0.11), 0 0 22px rgba(226, 168, 93, 0.32); }
+}
+
+@keyframes route-flow {
+  to { stroke-dashoffset: -88; }
+}
+
+@keyframes selected-node {
+  0%, 100% { outline-offset: 3px; }
+  50% { outline-color: rgba(226, 168, 93, 0.42); outline-offset: 8px; }
+}
+
+@keyframes event-drift {
+  from { background-position: 48% 25%; }
+  to { background-position: 54% 30%; }
+}
+
+@keyframes scan-sweep {
+  0%, 52% { transform: translateX(-120%); }
+  80%, 100% { transform: translateX(120%); }
+}
+
+@keyframes event-particles {
+  from { left: -10%; top: 0; }
+  to { left: 6%; top: 108%; }
+}
+
+@keyframes steam-drift {
+  0%, 100% { opacity: 0.28; transform: translate(-8%, 12%) scaleX(0.86); }
+  50% { opacity: 0.72; transform: translate(8%, -18%) scaleX(1.08); }
+}
+
+@keyframes warning-beacon {
+  0%, 100% { opacity: 0.45; transform: scale(0.88); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes threat-alert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(194, 96, 78, 0); transform: translateX(-50%) scale(1); }
+  50% { box-shadow: 0 0 0 8px rgba(194, 96, 78, 0.12), 0 0 28px rgba(194, 96, 78, 0.42); transform: translateX(-50%) scale(1.018); }
+}
+
+@keyframes action-ready {
+  0%, 100% { border-color: var(--color-action); box-shadow: none; }
+  50% { border-color: #ffe0ab; box-shadow: 0 0 18px rgba(226, 168, 93, 0.28); }
+}
+
+@keyframes toast-signal {
+  0%, 100% { border-left-color: var(--color-info); }
+  50% { border-left-color: var(--color-action); }
+}
+
+@keyframes ring-arrive {
+  from { opacity: 0; transform: rotate(-18deg) scale(0.74); }
+  to { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-rails i,
+  .scene-hotspots button,
+  .route-map path,
+  .tech-tree path,
+  .route-node.is-selected,
+  .tech-node.is-selected,
+  .event-art,
+  .event-art::before,
+  .event-art span,
+  .event-urgency strong,
+  .threat-alert,
+  .emergency-actions button,
+  .toast-message {
+    animation: none !important;
+  }
+}
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation: none !important;
+  scroll-behavior: auto !important;
+}

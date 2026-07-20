@@ -3,6 +3,7 @@ import "./styles/base.css";
 import "./styles/components.css";
 import "./styles/screens.css";
 import "./styles/integration.css";
+import "./styles/animation.css";
 import { NightTrainApp } from "./app";
 
 const root = document.querySelector<HTMLElement>("#app");

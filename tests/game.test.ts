@@ -69,6 +69,21 @@ describe("authoritative run service", () => {
     expect(run.phase).toBe("aftermath");
   });
 
+  it("holds the breach stage for one visible simulation tick before aftermath", () => {
+    const run = createRun("visible-breach");
+    const service = new RunService();
+    service.beginNight(run);
+    run.activeContact!.secondsLeft = 1;
+
+    service.tickNight(run);
+    expect(run.phase).toBe("night");
+    expect(run.activeContact?.stage).toBe("breach");
+
+    service.tickNight(run);
+    expect(run.phase).toBe("aftermath");
+    expect(run.activeContact).toBeUndefined();
+  });
+
   it("uses the GDD threat identifiers for the playable contacts", () => {
     expect(THREATS.map((threat) => threat.id)).toEqual(["T002", "T003"]);
   });
