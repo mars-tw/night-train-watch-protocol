@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MODULES, THREATS } from "../src/game/content";
+import { EVENTS, MODULES, ROUTE_EVENT_POOLS, THREATS } from "../src/game/content";
 import { createRun } from "../src/game/model";
 import { createRng } from "../src/game/rng";
 import { RunService } from "../src/game/services";
@@ -71,5 +71,37 @@ describe("authoritative run service", () => {
 
   it("uses the GDD threat identifiers for the playable contacts", () => {
     expect(THREATS.map((threat) => threat.id)).toEqual(["T002", "T003"]);
+  });
+
+  it("ships the twelve-module GDD catalogue", () => {
+    expect(MODULES).toHaveLength(12);
+  });
+
+  it("makes every authored event reachable from a route rotation", () => {
+    const reachable = new Set(Object.values(ROUTE_EVENT_POOLS).flat());
+    expect(reachable).toEqual(new Set(EVENTS.map((event) => event.id)));
+  });
+
+  it("rotates both threats and completes the full seven-night route", () => {
+    const run = createRun("seven-night-release");
+    const service = new RunService();
+    const contacts = new Set<string>();
+
+    while (!run.ended) {
+      service.chooseRoute(run, "RN01");
+      const event = service.getEvent(run);
+      if (!event) throw new Error("Expected a route event");
+      const safeChoice = event.choices.find((choice) => Object.values(choice.deltas).every((delta) => (delta ?? 0) >= 0)) ?? event.choices.at(-1)!;
+      expect(service.resolveEvent(run, safeChoice)).toBe(true);
+      const contactId = run.activeContact!.definitionId;
+      contacts.add(contactId);
+      const counter = contactId === "T003" ? "decoy" : "close-shutter";
+      expect(service.counterThreat(run, counter)).toBe(true);
+      service.continueAftermath(run);
+    }
+
+    expect(run.day).toBe(7);
+    expect(run.phase).toBe("ending");
+    expect(contacts).toEqual(new Set(["T002", "T003"]));
   });
 });

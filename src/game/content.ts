@@ -16,6 +16,12 @@ export const MODULES: ModuleDefinition[] = [
   { id: "M004", name: "感測器網", slot: "door", cost: 6, idleDraw: 2, activeCost: 2, priority: 2, artKey: "module.sensor", description: "提前發現窗、門與車頂接觸。" },
   { id: "M005", name: "醫療櫃", slot: "counter", cost: 5, idleDraw: 0, activeCost: 3, priority: 3, artKey: "module.medical", description: "提高藥品效果並提供隔離工具。" },
   { id: "M006", name: "誘餌廣播", slot: "door", cost: 4, idleDraw: 0, activeCost: 6, priority: 2, artKey: "module.decoy", description: "延遲接觸，但會提高後續噪音。" },
+  { id: "M007", name: "核心電池", slot: "floor", cost: 8, idleDraw: 0, activeCost: 0, priority: 3, artKey: "module.core-battery", description: "提高車廂配電的安全餘裕與緊急輸出。" },
+  { id: "M008", name: "備用電池組", slot: "floor", cost: 6, idleDraw: 0, activeCost: 0, priority: 2, artKey: "module.backup-battery", description: "主電路中斷時維持必要設備運作。" },
+  { id: "M009", name: "工作台", slot: "counter", cost: 5, idleDraw: 1, activeCost: 2, priority: 1, artKey: "module.workbench", description: "修復模組並降低後續建造所需零件。" },
+  { id: "M010", name: "雨水收集器", slot: "window", cost: 5, idleDraw: 0, activeCost: 1, priority: 1, artKey: "module.rain-collector", description: "雨夜後回收可過濾的飲用水。" },
+  { id: "M011", name: "鐵板窗", slot: "window", cost: 6, idleDraw: 0, activeCost: 0, priority: 3, artKey: "module.plate-window", description: "被動承受窗側衝擊，但會降低能見度。" },
+  { id: "M012", name: "車外陷阱", slot: "door", cost: 7, idleDraw: 0, activeCost: 4, priority: 2, artKey: "module.trap", description: "在接觸進入攻擊階段前削弱威脅。" },
 ];
 
 export const ROUTE_NODES: RouteNode[] = [
@@ -23,6 +29,12 @@ export const ROUTE_NODES: RouteNode[] = [
   { id: "RN02", name: "廢棄水塔", kind: "supply", distance: 10, fuelCost: 5, threatLevel: 2, reward: "水、濾芯", eventId: "EV004" },
   { id: "RN03", name: "備用電池", kind: "danger", distance: 12, fuelCost: 6, threatLevel: 3, reward: "電量、重量", eventId: "EV006" },
 ];
+
+export const ROUTE_EVENT_POOLS: Record<string, string[]> = {
+  RN01: ["EV001", "EV012", "EV024"],
+  RN02: ["EV004", "EV020", "EV031"],
+  RN03: ["EV006", "EV040"],
+};
 
 export const EVENTS: GameEvent[] = [
   {

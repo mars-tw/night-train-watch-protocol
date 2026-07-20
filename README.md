@@ -6,22 +6,23 @@
 
 ## 目前可玩內容
 
-- 完整三夜垂直切片：整備 → 路線 → 行車事件 → 夜襲 → 黎明結算 → 結局。
+- 完整七夜旅程：整備 → 路線 → 行車事件 → 夜襲 → 黎明結算 → 結局。
 - 8 個核心畫面與 A/B 狀態：主選單、局外中心、車廂、路線、事件、模組、科技、結算。
-- 8 個資料驅動事件、3 條路線、6 個模組、5 個科技節點、2 種夜間威脅。
+- 8 個資料驅動事件、3 條路線、12 個模組、5 個科技節點、2 種交替夜間威脅。
 - IndexedDB current／backup 雙存檔，localStorage 降級，PWA 離線快取。
 - 文字 100／120／140%、減少動態、無倒數、0.75× 守夜與音效開關。
 - 原創車廂、A-07 與威脅圖層均由 runtime 實際載入，不使用攤平的 UI 截圖當遊戲畫面。
 
 ## 遊玩影片與畫面
 
-- [28 秒直式遊玩影片（WebM）](public/assets/video/night-train-gameplay.webm)
+- [21 秒直式遊玩影片（WebM）](public/assets/video/night-train-gameplay.webm)
 - [主選單](public/assets/screenshots/01-main-menu.png)
 - [車廂整備](public/assets/screenshots/02-carriage-prep.png)
 - [路線地圖](public/assets/screenshots/03-route-map.png)
 - [EV004 廢棄水塔](public/assets/screenshots/04-event-water-tower.png)
+- [T002 敲窗者接觸](public/assets/screenshots/08-night-knocker.png)
 - [黎明結算](public/assets/screenshots/06-dawn-result.png)
-- [三夜結局](public/assets/screenshots/07-ending.png)
+- [七夜結局](public/assets/screenshots/07-ending.png)
 
 ## 本機執行
 
@@ -61,4 +62,3 @@ npm run capture:video
 - 原始 GDD、ZIP 與 16 張參考視覺稿不包含在公開儲存庫中。
 
 參與開發前請閱讀 [CONTRIBUTING.md](CONTRIBUTING.md) 與 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-

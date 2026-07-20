@@ -61,7 +61,7 @@ function menuScreen(state: AppState, hasSave: boolean): string {
     </div>
     ${statusPill({ ...state, saveStatus: hasSave ? state.saveStatus === "recovered" ? "recovered" : "saved" : "none" })}
     <nav class="menu-actions" aria-label="主選單">
-      ${button(hasSave ? "continue" : "new-game", hasSave ? "繼續守夜" : "開始新局", { primary: true, icon: icons.play, detail: hasSave ? "灰霧線・標準難度" : "三夜垂直切片" })}
+      ${button(hasSave ? "continue" : "new-game", hasSave ? "繼續守夜" : "開始新局", { primary: true, icon: icons.play, detail: hasSave ? "灰霧線・標準難度" : "七夜完整旅程" })}
       ${button("new-game", hasSave ? "開始新局" : "繼續遊戲", { icon: icons.plus, disabled: !hasSave })}
       ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}
       ${button("settings", "設定與無障礙", { icon: icons.settings })}
@@ -78,7 +78,7 @@ function hubScreen(state: AppState): string {
     ${compactHeader(run, "局外中心", "守護協定與列車藍圖", "menu")}
     <div class="protocol-data pill"><span>協定資料</span><strong>${run.resources.data}</strong></div>
     <article class="blueprint-card panel">
-      <div class="section-heading"><span>列車藍圖</span><small>垂直切片配置</small></div>
+      <div class="section-heading"><span>列車藍圖</span><small>七夜旅程配置</small></div>
       <div class="train-blueprint" aria-label="列車配置進度">${["核心", "臥鋪", "工坊", "溫室", "貨艙"].map((label, index) => `<span class="${index < milestones ? "is-owned" : "is-locked"}"><i></i>${label}</span>`).join("")}</div>
       <div class="milestone-row"><span>下一里程碑：科技 3</span><b>${run.techOwned.length}/3</b></div>
     </article>
@@ -114,6 +114,17 @@ function carriageScreen(state: AppState): string {
   const night = run.phase === "night";
   const threat = THREATS.find((candidate) => candidate.id === run.activeContact?.definitionId);
   const contact = run.activeContact;
+  const counterActions = threat?.id === "T003"
+    ? [
+        { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+        { id: "decoy", icon: "◎", label: "誘餌廣播", cost: "E 6" },
+        { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+      ]
+    : [
+        { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+        { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
+        { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+      ];
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"}" data-screen="SCR-CV-${night ? "B" : "A"}">
     ${compactHeader(run, night ? "夜間守望" : "車廂整備", night ? `22:${String(34 + run.day * 2).padStart(2, "0")}` : `剩餘 ${Math.max(2, Math.floor(run.survivor.sleep / 30) + 2)} AP`)}
     <button class="speed-control" type="button" data-action="pause">${night ? "×1" : icons.pause}</button>
@@ -125,11 +136,7 @@ function carriageScreen(state: AppState): string {
       <button data-action="select-module" data-value="M001" style="--x:84%;--y:38%">窗</button>
     </div>` : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", true], ["暖氣", true], ["溫室", false], ["照明", false]].map(([label, on]) => `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${on ? "ON" : "OFF"}</b></div>`).join("")}</div>` : ""}
-    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>
-      <button data-action="counter" data-value="close-shutter"><b>${icons.shield}</b><span>關閉百葉</span><small>E 8</small></button>
-      <button data-action="counter" data-value="shock-window"><b>${icons.shock}</b><span>窗框電擊</span><small>E 12</small></button>
-      <button data-action="counter" data-value="emergency-boost"><b>${icons.boost}</b><span>緊急加速</span><small>F 4</small></button>
-    </div></div>` : `<div class="module-detail panel"><h3>${escapeText(MODULES.find((module) => module.id === state.selectedModuleId)?.name ?? "垂直種植架")} Mk I</h3><p>狀態正常　｜　點擊設備查看詳細資料</p><div><button data-action="harvest">收成 2</button><button data-action="toggle-module">停用</button></div></div>
+    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => `<button data-action="counter" data-value="${action.id}"><b>${action.icon}</b><span>${action.label}</span><small>${action.cost}</small></button>`).join("")}</div></div>` : `<div class="module-detail panel"><h3>${escapeText(MODULES.find((module) => module.id === state.selectedModuleId)?.name ?? "垂直種植架")} Mk I</h3><p>狀態正常　｜　點擊設備查看詳細資料</p><div><button data-action="harvest">收成 2</button><button data-action="toggle-module">停用</button></div></div>
     <nav class="carriage-dock panel">
       <button data-action="modules"><span>${icons.build}</span>建造</button><button data-action="power"><span>${icons.power}</span>配電</button><button data-action="meal"><span>${icons.meal}</span>配餐</button><button class="is-primary" data-action="route"><span>${icons.route}</span>出發</button>
     </nav>`}
@@ -208,7 +215,7 @@ function resultScreen(state: AppState): string {
       <h2>${ending ? "達成條件" : "資源變化"}</h2>
       <div class="result-list">${ending ? `<div><span>信任</span><strong>${run.survivor.trust}/100</strong></div><div><span>感染</span><strong>${run.survivor.infection}/100</strong></div><div><span>終局選擇</span><strong>拒絕舊協定</strong></div>` : recent.map((entry) => `<div><span>${escapeText(LEDGER_LABELS[entry.key] ?? entry.key)}</span><strong class="${entry.delta < 0 ? "is-negative" : "is-positive"}">${formatSigned(entry.delta)}</strong><small>${escapeText(entry.source)}</small></div>`).join("")}</div>
       <p class="aftermath-note">${escapeText(run.lastMessage)}</p>
-      ${button(ending ? "hub" : "next-day", ending ? "返回局外中心" : finalNight ? "查看路線結局" : `進入第 ${run.day + 1} 日整備`, { primary: true, icon: ending ? icons.hub : icons.play, detail: finalNight ? "完成三夜守望" : `協定資料 +${ending ? 4 : 1}` })}
+      ${button(ending ? "hub" : "next-day", ending ? "返回局外中心" : finalNight ? "查看路線結局" : `進入第 ${run.day + 1} 日整備`, { primary: true, icon: ending ? icons.hub : icons.play, detail: finalNight ? `完成 ${run.maxDays} 夜守望` : `協定資料 +${ending ? 4 : 1}` })}
     </article>
   </section>`;
 }

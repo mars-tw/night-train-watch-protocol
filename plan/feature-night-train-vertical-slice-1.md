@@ -1,5 +1,5 @@
 ---
-goal: 依 GDD v1.1 與 16 張 UI 視覺稿完成夜行列車手機瀏覽器垂直切片
+goal: 依 GDD v1.1 與 16 張 UI 視覺稿完成夜行列車七夜手機瀏覽器版本
 version: 1.0.0
 date_created: 2026-07-20
 last_updated: 2026-07-20
@@ -16,12 +16,12 @@ tags: [feature, game, mobile-web, pwa, open-source]
 
 ## 1. Requirements & Constraints
 
-- **REQ-001**: 完成三夜垂直切片與八個核心畫面 A/B 狀態。
+- **REQ-001**: 完成七夜旅程與八個核心畫面 A/B 狀態。
 - **REQ-002**: 所有畫面依 360×640 邏輯座標與既有 UI Token 實作。
 - **REQ-003**: shipping 素材必須被遊戲 runtime 實際引用。
 - **CON-001**: 遊戲 runtime 完全離線且不得包含 OpenAI、xAI 或其他服務金鑰。
 - **CON-002**: GDD 數值集中於 TypeScript 資料定義，不硬編碼於 UI。
-- **GUD-001**: 先完成可驗證的三夜垂直切片，再擴張至七夜 MVP。
+- **GUD-001**: 先完成可驗證的七夜旅程，再擴張事件與科技內容量。
 - **PAT-001**: DOM/CSS UI + Canvas 場景 + 權威服務層 + IndexedDB 雙存檔。
 
 ## 2. Implementation Steps
@@ -38,14 +38,14 @@ tags: [feature, game, mobile-web, pwa, open-source]
 
 ### Implementation Phase 2
 
-- GOAL-002: 實作資料驅動的三夜核心模擬。
+- GOAL-002: 實作資料驅動的七夜核心模擬。
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
 | TASK-004 | 在 `src/game/` 實作 PhaseStateMachine、RunService 與固定 seed RNG streams。 | ✅ | 2026-07-20 |
 | TASK-005 | 實作 ResourceService、PowerGrid、ModuleService、Ledger 與睡眠結算。 | ✅ | 2026-07-20 |
 | TASK-006 | 實作 ThreatDirector 五階段接觸、兩個威脅與三項緊急反制。 | ✅ | 2026-07-20 |
-| TASK-007 | 實作 EventService、八個事件、路線節點與三夜腳本。 | ✅ | 2026-07-20 |
+| TASK-007 | 實作 EventService、八個事件、路線節點與七夜輪替腳本。 | ✅ | 2026-07-20 |
 | TASK-008 | 實作 current／backup IndexedDB 存檔與 localStorage 降級。 | ✅ | 2026-07-20 |
 
 ### Implementation Phase 3
@@ -97,7 +97,7 @@ tags: [feature, game, mobile-web, pwa, open-source]
 
 ## 6. Testing
 
-- **TEST-001**: 固定 seed 的三夜模擬可重播且 Ledger 完全一致。
+- **TEST-001**: 固定 seed 的七夜模擬可重播且 Ledger 完全一致。
 - **TEST-002**: 電力過載、斷載優先級、接觸階段與反制成本符合 GDD。
 - **TEST-003**: 八個畫面 A/B 狀態可由 Debug query 到達。
 - **TEST-004**: current 存檔損壞時從 backup 復原。
@@ -110,7 +110,7 @@ tags: [feature, game, mobile-web, pwa, open-source]
 - **RISK-001**: 參考稿場景是構圖參考而非正式授權資產；以原創分層素材替換並保存來源。
 - **RISK-002**: 產圖模型可能無法穩定輸出真正分層素材；必要時以遮罩、裁切與 Canvas 合成處理。
 - **RISK-003**: iOS 背景中斷可能造成狀態遺失；在 visibilitychange、pagehide 與 phase transition 寫入雙存檔。
-- **ASSUMPTION-001**: 首個公開版本以三夜垂直切片為完成基線，架構與資料可延伸至七夜 MVP。
+- **ASSUMPTION-001**: 首個公開版本以七夜完整旅程為完成基線，架構與資料可延伸更多事件與路線。
 - **ASSUMPTION-002**: 所有 API 圖像生成只在開發機執行，成品檔案以靜態資產發布。
 
 ## 8. Related Specifications / Further Reading

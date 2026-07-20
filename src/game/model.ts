@@ -14,7 +14,7 @@ export function createRun(seed = `${Date.now()}`): RunState {
     schemaVersion: 1,
     seed,
     day: 1,
-    maxDays: 3,
+    maxDays: 7,
     phase: "prep",
     routeId: "R01",
     resources: { energy: 75, fuel: 40, food: 5, water: 6, parts: 8, medicine: 1, data: 0 },

@@ -1,5 +1,5 @@
-import { BALANCE, EVENTS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
-import { chooseSeeded } from "./rng";
+import { BALANCE, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
+import { createRng } from "./rng";
 import type { EnvironmentKey, EventChoice, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
@@ -40,7 +40,8 @@ export class RunService {
       return;
     }
     run.selectedRouteNodeId = node.id;
-    run.activeEventId = node.eventId;
+    const eventPool = ROUTE_EVENT_POOLS[node.id] ?? [node.eventId];
+    run.activeEventId = eventPool[(run.day - 1) % eventPool.length] ?? node.eventId;
     run.phase = "travel";
     run.lastMessage = `已鎖定 ${node.name}，預計消耗燃料 ${node.fuelCost}。`;
   }
@@ -68,7 +69,9 @@ export class RunService {
   }
 
   public beginNight(run: RunState): void {
-    const threat = chooseSeeded(THREATS, run.seed, `threat:${run.day}`);
+    const orderRng = createRng(run.seed, "threat-order");
+    const offset = Math.floor(orderRng() * THREATS.length);
+    const threat = THREATS[(offset + run.day - 1) % THREATS.length] ?? THREATS[0]!;
     run.phase = "night";
     run.activeContact = {
       id: `contact-${run.day}`,
