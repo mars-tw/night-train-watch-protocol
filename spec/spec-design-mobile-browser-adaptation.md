@@ -1,8 +1,8 @@
 ---
 title: 夜行列車：守夜協定手機瀏覽器改編規格
-version: 1.0.0
+version: 1.1.0
 date_created: 2026-07-20
-last_updated: 2026-07-20
+last_updated: 2026-07-21
 owner: mars-tw
 tags: [design, game, mobile-web, pwa, accessibility]
 ---
@@ -46,6 +46,9 @@ tags: [design, game, mobile-web, pwa, accessibility]
 - **REQ-015**: 每日整備提供由前夜睡眠決定的 3–5 AP；收成、安撫、維修及建造必須驗證並消耗 AP，同一日不可無限重複收益。
 - **REQ-016**: 入夜時必須結算啟用模組的真實耗電；能源不足依 P3 → P1 保留高優先設備，反制按鈕需反映設備與資源是否可用。
 - **REQ-017**: 配餐必須在黎明消耗食物／飲水並改變睡眠、壓力與信任；健康或車體歸零必須進入具失敗原因與重新開始入口的終局。
+- **REQ-018**: 整備畫面必須可切換臥室、武器物資、工坊情報、溫室、廚房儲藏五節車廂；五者須使用不同場景配置並提供安撫、維修／防禦、零件回收、種植、烹飪等不同可見操作。
+- **REQ-019**: 可移動小物只能吸附到具語意的相容槽位；空間需同時以綠色／紅色、文字與圖樣表示可放、不相容、已占用，無效放置不得改寫保存位置。
+- **REQ-020**: 溫室必須提供兩個可見作物槽；作物經播種、每日灌溉、種植架夜間供電及兩夜成長後才成熟，收成須消耗 1 AP 並依作物產生實際食物／壓力效果。
 - **CON-001**: UI 色票固定為背景 `#090E12`、面板 `#192329`、暖色主動作 `#E2A85D`、冷色資訊 `#89B7C7`、安全 `#7EA57A`、危險 `#C2604E`、稀缺 `#E7C970`、正文 `#F5E8D8`、次要文字 `#AAB6BA`。
 - **CON-002**: 關鍵觸控區至少 48×48 logical px；不可逆操作採 350ms 長按或二次確認。第 9 章的 48×48 與第 15 章的 44×44 有衝突時採較嚴格值。
 - **CON-003**: 事件面板在夜間暫停；設備面板把時間縮放為 0.35×。
@@ -74,8 +77,17 @@ tags: [design, game, mobile-web, pwa, accessibility]
 type Phase = "dawn" | "prep" | "route" | "travel" | "night" | "aftermath";
 type ContactStage = "approach" | "warning" | "attack" | "breach" | "resolve";
 
+interface CropPlot {
+  id: "plot-a" | "plot-b";
+  cropId?: "lettuce" | "tomato" | "herb";
+  stage: 0 | 1 | 2 | 3;
+  plantedDay?: number;
+  wateredDay?: number;
+  dryDays: number;
+}
+
 interface RunState {
-  schemaVersion: 1;
+  schemaVersion: 2;
   seed: string;
   day: number;
   maxDays: number;
@@ -85,6 +97,8 @@ interface RunState {
   survivor: { health: number; stress: number; infection: number; trust: number; sleep: number };
   environment: { temperature: number; noise: number; visibility: number; hull: number; weight: number };
   modules: ModuleInstance[];
+  decorations: DecorationPlacement[];
+  crops: CropPlot[];
   contacts: ThreatContact[];
   flags: string[];
   ledger: LedgerEntry[];
@@ -110,9 +124,11 @@ interface Intent {
 - **AC-007**: Given正式 Build，When 靜態掃描資產引用，Then 遊戲程式或 CSS 直接引用所有標記為 shipping 的遊戲素材。
 - **AC-008**: Given 390×844 視口且動態未停用，When 比較行車畫面相隔一秒的畫格，Then 窗外天候／軌道與至少一個生活光影層產生可見差異，而 HUD 錨點不位移。
 - **AC-009**: Given 接觸從 Approach 推進至 Attack，When 比較兩階段畫格，Then 威脅尺寸、位置、警報速度及撞擊效果均可辨識；啟用減少動態後則保留靜態紅框、方向與倒數數字。
-- **AC-010**: Given 新局 5 AP，When 玩家完成一次收成，Then AP −1、飲水 −1、食物 +2，且本日收成按鈕停用。
+- **AC-010**: Given 新局 5 AP 與空作物槽，When 玩家播種葉萵苣，Then AP −1、飲水 −1，且場景顯示 Stage 1；連續兩個「當日已灌溉且 M003 夜間供電」的黎明後顯示 Stage 3，收成再扣 1 AP 並增加食物 2。
 - **AC-011**: Given 只有 5 電量且三個起始模組啟用，When 進入夜晚，Then P3 暖氣保持供電、低優先設備斷載且 HUD 顯示實際耗電。
 - **AC-012**: Given 守夜倒數正在運作，When 玩家暫停並等待一秒，Then 秒數不變；繼續後秒數再次推進。
+- **AC-013**: Given 任一小物已選取，When 玩家查看五節車廂的 15 個槽位，Then 相容與不相容狀態可見；放到不相容或已占用槽時保存位置不變，放到相容空槽時精準吸附且重載後保留。
+- **AC-014**: Given 390×844 視口，When 玩家切換五節車廂並執行各自主要操作，Then 背景 art key、功能面板、熱區與結果提示均隨車廂改變，且不存在被面板遮住的啟用按鈕。
 
 ## 6. Test Automation Strategy
 

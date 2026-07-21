@@ -1,10 +1,42 @@
-import type { DecorationId, GameEvent, ModuleDefinition, RouteNode, ThreatDefinition } from "./types";
+import type { CarriageId, CropId, DecorationId, GameEvent, ModuleDefinition, RouteNode, ThreatDefinition } from "./types";
 
-export const DECORATIONS: Array<{ id: DecorationId; name: string; asset: string; defaultX: number; defaultY: number; size: number }> = [
-  { id: "lantern", name: "黃銅燈", asset: "./assets/art/decor/lantern.png", defaultX: 34, defaultY: 45, size: 58 },
-  { id: "radio", name: "短波機", asset: "./assets/art/decor/radio.png", defaultX: 68, defaultY: 25, size: 74 },
-  { id: "toolbox", name: "工具箱", asset: "./assets/art/decor/toolbox.png", defaultX: 24, defaultY: 74, size: 72 },
-  { id: "fern", name: "蕨盆栽", asset: "./assets/art/decor/fern.png", defaultX: 84, defaultY: 68, size: 68 },
+export const CARRIAGES: Array<{ id: CarriageId; name: string; short: string; role: string; art: string; signature: string }> = [
+  { id: "sleep", name: "臥室車廂", short: "眠", role: "休息／士氣", art: "./assets/art/carriage-sleep.png", signature: "床舖、書架與私人物品" },
+  { id: "defense", name: "武器物資車廂", short: "防", role: "防禦／儲備", art: "./assets/art/carriage-defense.png", signature: "補給架、工具牆與強化窗" },
+  { id: "workshop", name: "工坊情報車廂", short: "工", role: "維修／情報", art: "./assets/art/carriage-workshop.png", signature: "電台、地圖與維修工作檯" },
+  { id: "greenhouse", name: "溫室車廂", short: "植", role: "農業／水源", art: "./assets/art/carriage-greenhouse.png", signature: "兩座可生長的水培槽" },
+  { id: "kitchen", name: "廚房儲藏車廂", short: "炊", role: "烹飪／配餐", art: "./assets/art/carriage-kitchen.png", signature: "爐具、濾水與食品架" },
+];
+
+export const DECORATION_SLOTS: Array<{ id: string; carriageId: CarriageId; name: string; kind: string; x: number; y: number; accepts: DecorationId[] }> = [
+  { id: "sleep-hook", carriageId: "sleep", name: "床頭掛鉤", kind: "掛鉤", x: 18, y: 34, accepts: ["lantern"] },
+  { id: "sleep-bedside", carriageId: "sleep", name: "床邊桌面", kind: "檯面", x: 70, y: 54, accepts: ["lantern", "radio", "fern"] },
+  { id: "sleep-low-shelf", carriageId: "sleep", name: "低層置物架", kind: "層架", x: 19, y: 72, accepts: ["radio", "toolbox"] },
+  { id: "defense-rail", carriageId: "defense", name: "工具牆滑軌", kind: "牆面", x: 18, y: 43, accepts: ["toolbox"] },
+  { id: "defense-bench", carriageId: "defense", name: "物資檢整檯", kind: "檯面", x: 19, y: 67, accepts: ["lantern", "radio", "toolbox"] },
+  { id: "defense-floor", carriageId: "defense", name: "床下貨位", kind: "地面", x: 79, y: 80, accepts: ["toolbox"] },
+  { id: "workshop-radio", carriageId: "workshop", name: "電台層架", kind: "層架", x: 19, y: 34, accepts: ["radio"] },
+  { id: "workshop-bench", carriageId: "workshop", name: "維修工作檯", kind: "檯面", x: 20, y: 64, accepts: ["radio", "toolbox"] },
+  { id: "workshop-bay", carriageId: "workshop", name: "零件低櫃", kind: "地面", x: 18, y: 80, accepts: ["toolbox"] },
+  { id: "greenhouse-shelf", carriageId: "greenhouse", name: "植栽層架", kind: "牆面", x: 18, y: 50, accepts: ["fern"] },
+  { id: "greenhouse-sill", carriageId: "greenhouse", name: "窗邊托盤", kind: "窗台", x: 78, y: 43, accepts: ["fern", "lantern"] },
+  { id: "greenhouse-counter", carriageId: "greenhouse", name: "水培工作檯", kind: "檯面", x: 19, y: 76, accepts: ["lantern", "toolbox"] },
+  { id: "kitchen-hook", carriageId: "kitchen", name: "炊具掛鉤", kind: "掛鉤", x: 18, y: 38, accepts: ["lantern"] },
+  { id: "kitchen-counter", carriageId: "kitchen", name: "備餐檯面", kind: "檯面", x: 20, y: 64, accepts: ["lantern", "radio", "toolbox"] },
+  { id: "kitchen-basket", carriageId: "kitchen", name: "低層籃架", kind: "層架", x: 18, y: 79, accepts: ["fern", "toolbox"] },
+];
+
+export const DECORATIONS: Array<{ id: DecorationId; name: string; asset: string; defaultSlotId: string; size: number }> = [
+  { id: "lantern", name: "黃銅燈", asset: "./assets/art/decor/lantern.png", defaultSlotId: "sleep-hook", size: 58 },
+  { id: "radio", name: "短波機", asset: "./assets/art/decor/radio.png", defaultSlotId: "workshop-radio", size: 74 },
+  { id: "toolbox", name: "工具箱", asset: "./assets/art/decor/toolbox.png", defaultSlotId: "defense-bench", size: 72 },
+  { id: "fern", name: "蕨盆栽", asset: "./assets/art/decor/fern.png", defaultSlotId: "greenhouse-sill", size: 68 },
+];
+
+export const CROPS: Array<{ id: CropId; name: string; days: number; yield: number; benefit: string }> = [
+  { id: "lettuce", name: "葉萵苣", days: 2, yield: 2, benefit: "成熟後食物 +2" },
+  { id: "tomato", name: "矮株番茄", days: 2, yield: 3, benefit: "成熟後食物 +3" },
+  { id: "herb", name: "香草組", days: 2, yield: 1, benefit: "食物 +1、壓力 −4" },
 ];
 
 export const BALANCE = {

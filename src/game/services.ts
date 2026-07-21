@@ -1,6 +1,7 @@
-import { BALANCE, DECORATIONS, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
+import { BALANCE, CROPS, DECORATIONS, DECORATION_SLOTS, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
+import { createDecorationPlacements } from "./model";
 import { createRng } from "./rng";
-import type { DecorationId, EnvironmentKey, EventChoice, RationMode, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
+import type { CropId, CropPlotId, DecorationId, EnvironmentKey, EventChoice, RationMode, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -35,19 +36,36 @@ export function counterReadiness(run: RunState, counterId: string): { available:
 }
 
 export class RunService {
-  public moveDecoration(run: RunState, id: DecorationId, x: number, y: number): boolean {
+  public moveDecoration(run: RunState, id: DecorationId, slotId: string): boolean {
     const placement = run.decorations.find((item) => item.id === id);
     const definition = DECORATIONS.find((item) => item.id === id);
+    const slot = DECORATION_SLOTS.find((item) => item.id === slotId);
     if (!placement || !definition) return false;
-    placement.x = Math.round(Math.min(92, Math.max(8, x)) * 10) / 10;
-    placement.y = Math.round(Math.min(92, Math.max(8, y)) * 10) / 10;
-    run.lastMessage = `${definition.name}已移到新位置；放開手指即自動保存。`;
+    if (!slot) {
+      run.lastMessage = `${definition.name}沒有吸附到放置槽；請放到標示的掛鉤、檯面或層架。`;
+      return false;
+    }
+    if (!slot.accepts.includes(id)) {
+      run.lastMessage = `${slot.name}不適合${definition.name}；紅色斜線槽不能放置。`;
+      return false;
+    }
+    const occupied = run.decorations.find((item) => item.id !== id && item.slotId === slot.id);
+    if (occupied) {
+      const occupiedName = DECORATIONS.find((item) => item.id === occupied.id)?.name ?? "其他物件";
+      run.lastMessage = `${slot.name}已放置${occupiedName}；請先移到別的槽位。`;
+      return false;
+    }
+    placement.carriageId = slot.carriageId;
+    placement.slotId = slot.id;
+    placement.x = slot.x;
+    placement.y = slot.y;
+    run.lastMessage = `${definition.name}已吸附到${slot.name}；位置已自動保存。`;
     return true;
   }
 
   public resetDecorations(run: RunState): void {
-    run.decorations = DECORATIONS.map((item) => ({ id: item.id, x: item.defaultX, y: item.defaultY }));
-    run.lastMessage = "四件小物已回到起始位置。";
+    run.decorations = createDecorationPlacements();
+    run.lastMessage = "四件小物已回到各自相容的車廂槽位。";
   }
 
   public applyResource(run: RunState, key: ResourceKey, delta: number, source: string): boolean {
@@ -204,6 +222,7 @@ export class RunService {
       run.lastMessage = "灰霧線完成。新的路線資料已寫入守護協定。";
       return;
     }
+    const cropReport = this.advanceCrops(run);
     run.day += 1;
     run.phase = "prep";
     run.actionPoints = run.survivor.sleep >= 75 ? 5 : run.survivor.sleep >= 45 ? 4 : 3;
@@ -211,7 +230,7 @@ export class RunService {
     run.selectedRouteNodeId = undefined;
     run.survivor.wakeups = 0;
     run.activeEventId = undefined;
-    run.lastMessage = `第 ${run.day} 日整備開始。昨夜睡眠將影響今日行動。`;
+    run.lastMessage = `${cropReport} 第 ${run.day} 日整備開始。昨夜睡眠將影響今日行動。`;
   }
 
   public buildModule(run: RunState, definitionId: string): boolean {
@@ -266,26 +285,113 @@ export class RunService {
     run.lastMessage = `今夜配餐改為${labels[mode]}；效果會在黎明結算。`;
   }
 
-  public harvest(run: RunState): boolean {
+  public plantCrop(run: RunState, plotId: CropPlotId, cropId: CropId): boolean {
     if (run.phase !== "prep") {
-      run.lastMessage = "列車行進中無法收成。";
+      run.lastMessage = "列車行進中無法播種。";
       return false;
     }
-    const flag = `harvested-${run.day}`;
     const module = run.modules.find((instance) => instance.definitionId === "M003");
-    if (!module?.active || run.flags.includes(flag)) {
-      run.lastMessage = run.flags.includes(flag) ? "本日作物已收成。" : "垂直種植架目前停用。";
+    const plot = run.crops.find((item) => item.id === plotId);
+    const crop = CROPS.find((item) => item.id === cropId);
+    if (!module?.active || !plot || !crop) {
+      run.lastMessage = "垂直種植架未排入供電，無法播種。";
       return false;
     }
-    if (run.actionPoints < 1 || run.resources.water < 1 || run.resources.food >= BALANCE.max.food) {
-      run.lastMessage = run.actionPoints < 1 ? "行動點不足。" : run.resources.water < 1 ? "飲水不足，無法灌溉收成。" : "食物儲存已滿。";
+    if (plot.cropId) {
+      run.lastMessage = "這個作物槽已有植物。";
+      return false;
+    }
+    if (run.actionPoints < 1 || run.resources.water < 1) {
+      run.lastMessage = run.actionPoints < 1 ? "播種需要 1 AP。" : "播種與首次灌溉需要 1 份水。";
       return false;
     }
     run.actionPoints -= 1;
-    this.applyResource(run, "water", -1, "prep.harvest.water");
-    this.applyResource(run, "food", 2, "prep.harvest.food");
+    this.applyResource(run, "water", -1, `crop.${cropId}.plant`);
+    plot.cropId = cropId;
+    plot.stage = 1;
+    plot.plantedDay = run.day;
+    plot.wateredDay = run.day;
+    plot.dryDays = 0;
+    run.lastMessage = `${crop.name}已播入${plotId === "plot-a" ? "上層" : "下層"}槽；今夜供電後進入成長期。`;
+    return true;
+  }
+
+  public waterCrops(run: RunState): boolean {
+    const growing = run.crops.filter((plot) => plot.cropId && plot.stage < 3);
+    if (run.phase !== "prep" || growing.length === 0) {
+      run.lastMessage = growing.length === 0 ? "目前沒有需要灌溉的作物。" : "列車行進中無法灌溉。";
+      return false;
+    }
+    if (growing.every((plot) => plot.wateredDay === run.day)) {
+      run.lastMessage = "兩個作物槽今日水量充足。";
+      return false;
+    }
+    if (!this.applyResource(run, "water", -1, "crop.rack.water")) {
+      run.lastMessage = "飲水不足，水培循環無法啟動。";
+      return false;
+    }
+    for (const plot of growing) plot.wateredDay = run.day;
+    run.lastMessage = "水培架已灌溉；今晚需保持 3 電量供應才能生長。";
+    return true;
+  }
+
+  public harvestCrop(run: RunState, plotId: CropPlotId): boolean {
+    const plot = run.crops.find((item) => item.id === plotId);
+    const crop = CROPS.find((item) => item.id === plot?.cropId);
+    if (run.phase !== "prep" || !plot || !crop || plot.stage < 3) {
+      run.lastMessage = "作物尚未成熟，不能收成。";
+      return false;
+    }
+    if (run.actionPoints < 1 || run.resources.food >= BALANCE.max.food) {
+      run.lastMessage = run.actionPoints < 1 ? "收成需要 1 AP。" : "食物儲存已滿。";
+      return false;
+    }
+    run.actionPoints -= 1;
+    const foodBefore = run.resources.food;
+    this.applyResource(run, "food", crop.yield, `crop.${crop.id}.harvest`);
+    const harvestedFood = run.resources.food - foodBefore;
+    if (crop.id === "herb") this.applySurvivor(run, "stress", -4, "crop.herb.comfort");
+    plot.cropId = undefined;
+    plot.stage = 0;
+    plot.plantedDay = undefined;
+    plot.wateredDay = undefined;
+    plot.dryDays = 0;
+    run.lastMessage = `${crop.name}已收成：食物 +${harvestedFood}${crop.id === "herb" ? "、壓力 −4" : ""}。`;
+    return true;
+  }
+
+  public collectWorkshopScrap(run: RunState): boolean {
+    const flag = `workshop-scrap-${run.day}`;
+    if (run.phase !== "prep" || run.flags.includes(flag) || run.actionPoints < 1) {
+      run.lastMessage = run.flags.includes(flag) ? "今天的可用零件已整理完畢。" : "整理零件需要 1 AP。";
+      return false;
+    }
+    run.actionPoints -= 1;
+    this.applyResource(run, "parts", 1, "workshop.scrap");
+    this.applyEnvironment(run, "noise", 4, "workshop.scrap");
     run.flags.push(flag);
-    run.lastMessage = "消耗 1 AP 與 1 飲水，收成 2 份葉菜。";
+    run.lastMessage = "工坊回收完成：零件 +1、噪音 +4。";
+    return true;
+  }
+
+  public cookHotMeal(run: RunState): boolean {
+    const flag = `hot-meal-${run.day}`;
+    if (run.phase !== "prep" || run.flags.includes(flag) || run.actionPoints < 1) {
+      run.lastMessage = run.flags.includes(flag) ? "今天已準備過熱食。" : "烹飪需要 1 AP。";
+      return false;
+    }
+    if (run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2) {
+      run.lastMessage = "熱食需要食物 1、水 1、電量 2。";
+      return false;
+    }
+    run.actionPoints -= 1;
+    this.applyResource(run, "food", -1, "kitchen.hot-meal.food");
+    this.applyResource(run, "water", -1, "kitchen.hot-meal.water");
+    this.applyResource(run, "energy", -2, "kitchen.hot-meal.energy");
+    this.applySurvivor(run, "stress", -8, "kitchen.hot-meal.stress");
+    this.applySurvivor(run, "sleep", 10, "kitchen.hot-meal.sleep");
+    run.flags.push(flag);
+    run.lastMessage = "熱食完成：壓力 −8、睡眠 +10。";
     return true;
   }
 
@@ -349,6 +455,34 @@ export class RunService {
 
   public getThreat(contact?: ThreatContact) {
     return THREATS.find((threat) => threat.id === contact?.definitionId);
+  }
+
+  private advanceCrops(run: RunState): string {
+    const hydroponics = run.modules.find((instance) => instance.definitionId === "M003");
+    const growing = run.crops.filter((plot) => plot.cropId && plot.stage < 3);
+    if (growing.length === 0) return "水培槽目前空置。";
+    let advanced = 0;
+    let withered = 0;
+    for (const plot of growing) {
+      if (hydroponics?.active && hydroponics.powered && plot.wateredDay === run.day) {
+        plot.stage = Math.min(3, plot.stage + 1) as 0 | 1 | 2 | 3;
+        plot.dryDays = 0;
+        advanced += 1;
+      } else {
+        plot.dryDays += 1;
+        if (plot.dryDays >= 2) {
+          plot.cropId = undefined;
+          plot.stage = 0;
+          plot.plantedDay = undefined;
+          plot.wateredDay = undefined;
+          plot.dryDays = 0;
+          withered += 1;
+        }
+      }
+    }
+    if (withered > 0) return `${withered} 個作物槽因連續缺水或斷電枯萎。`;
+    if (advanced > 0) return `${advanced} 個作物槽完成一夜生長。`;
+    return "作物因缺水或種植架斷電而停止生長。";
   }
 
   private settleNightPower(run: RunState): string {

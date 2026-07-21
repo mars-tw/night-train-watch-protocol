@@ -1,6 +1,6 @@
 {
   "name": "night-train-watch-protocol",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": false,
   "type": "module",
   "description": "夜行列車：守夜協定－依 GDD v1.1 製作的離線優先手機瀏覽器生存管理遊戲",

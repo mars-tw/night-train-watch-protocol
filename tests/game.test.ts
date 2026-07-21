@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EVENTS, MODULES, ROUTE_EVENT_POOLS, THREATS } from "../src/game/content";
+import { CARRIAGES, DECORATION_SLOTS, EVENTS, MODULES, ROUTE_EVENT_POOLS, THREATS } from "../src/game/content";
 import { createRun } from "../src/game/model";
 import { createRng } from "../src/game/rng";
 import { RunService } from "../src/game/services";
@@ -60,27 +60,62 @@ describe("authoritative run service", () => {
     expect(run.modules.some((module) => module.definitionId === target.id)).toBe(true);
   });
 
-  it("turns harvest into a once-per-day AP and water tradeoff", () => {
-    const run = createRun("harvest-loop");
+  it("runs the visible two-night sow, water, grow, and harvest loop", () => {
+    const run = createRun("crop-loop");
     const service = new RunService();
     const before = { ap: run.actionPoints, food: run.resources.food, water: run.resources.water };
 
-    expect(service.harvest(run)).toBe(true);
+    expect(service.plantCrop(run, "plot-a", "lettuce")).toBe(true);
     expect(run.actionPoints).toBe(before.ap - 1);
-    expect(run.resources.food).toBe(before.food + 2);
     expect(run.resources.water).toBe(before.water - 1);
-    expect(service.harvest(run)).toBe(false);
+    expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 1, wateredDay: 1 });
+
+    run.phase = "aftermath";
+    service.continueAftermath(run);
+    expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 2 });
+    expect(service.waterCrops(run)).toBe(true);
+    run.phase = "aftermath";
+    service.continueAftermath(run);
+    expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 3 });
+
+    expect(service.harvestCrop(run, "plot-a")).toBe(true);
+    expect(run.resources.food).toBe(before.food + 2);
+    expect(run.crops[0]).toMatchObject({ stage: 0, dryDays: 0 });
+    expect(run.crops[0]?.cropId).toBeUndefined();
   });
 
-  it("moves, clamps, and resets visible carriage decorations", () => {
+  it("allows prep sowing when the rack is scheduled after a previously shed night", () => {
+    const run = createRun("crop-recovery");
+    const service = new RunService();
+    const rack = run.modules.find((module) => module.definitionId === "M003")!;
+    rack.active = true;
+    rack.powered = false;
+
+    expect(service.plantCrop(run, "plot-b", "herb")).toBe(true);
+    expect(run.crops[1]).toMatchObject({ cropId: "herb", stage: 1, wateredDay: 1 });
+  });
+
+  it("snaps decorations to compatible visible slots and rejects invalid placement", () => {
     const run = createRun("decor-loop");
     const service = new RunService();
 
     expect(run.decorations).toHaveLength(4);
-    expect(service.moveDecoration(run, "radio", 150, -20)).toBe(true);
-    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ x: 92, y: 8 });
+    expect(service.moveDecoration(run, "radio", "workshop-bench")).toBe(true);
+    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ carriageId: "workshop", slotId: "workshop-bench", x: 20, y: 64 });
+    expect(service.moveDecoration(run, "toolbox", "workshop-bench")).toBe(false);
+    expect(run.lastMessage).toContain("已放置短波機");
+    expect(service.moveDecoration(run, "fern", "workshop-bench")).toBe(false);
+    expect(run.lastMessage).toContain("不適合");
+    expect(service.moveDecoration(run, "radio", "sleep-bedside")).toBe(true);
+    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ carriageId: "sleep", slotId: "sleep-bedside", x: 70, y: 54 });
     service.resetDecorations(run);
-    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ x: 68, y: 25 });
+    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ carriageId: "workshop", slotId: "workshop-radio", x: 19, y: 34 });
+  });
+
+  it("ships five distinct carriage configurations with three authored placement slots each", () => {
+    expect(CARRIAGES.map((carriage) => carriage.id)).toEqual(["sleep", "defense", "workshop", "greenhouse", "kitchen"]);
+    expect(new Set(CARRIAGES.map((carriage) => carriage.art)).size).toBe(5);
+    for (const carriage of CARRIAGES) expect(DECORATION_SLOTS.filter((slot) => slot.carriageId === carriage.id)).toHaveLength(3);
   });
 
   it("repairs breach damage and charges both AP and parts", () => {

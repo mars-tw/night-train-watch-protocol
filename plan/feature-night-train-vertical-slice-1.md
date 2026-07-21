@@ -1,8 +1,8 @@
 ---
 goal: 依 GDD v1.1 與 16 張 UI 視覺稿完成夜行列車七夜手機瀏覽器版本
-version: 1.0.0
+version: 1.1.0
 date_created: 2026-07-20
-last_updated: 2026-07-20
+last_updated: 2026-07-21
 owner: mars-tw
 status: 'Completed'
 tags: [feature, game, mobile-web, pwa, open-source]
@@ -71,6 +71,18 @@ tags: [feature, game, mobile-web, pwa, open-source]
 | TASK-016 | 重新製作遊玩截圖與至少 20 秒的手機遊玩影片。 | ✅ | 2026-07-20 |
 | TASK-017 | 加入 README、LICENSE、CONTRIBUTING、THIRD_PARTY_NOTICES、資產來源與產圖 prompt manifest。 | ✅ | 2026-07-20 |
 | TASK-018 | 初始化 Git、推送公開 GitHub repo、啟用 Actions 與 Pages，確認線上離線續局。 | ✅ | 2026-07-20 |
+
+### Implementation Phase 5
+
+- GOAL-005: 把靜態佈置與單一車廂擴充為具相容槽位、五車廂差異及完整農業循環的 v0.5.0。
+
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-019 | 依 GDD 配置臥室、武器物資、工坊情報、溫室與廚房儲藏五節車廂，並以五張 GPT 場景圖與五組操作面板實際切換。 | ✅ | 2026-07-21 |
+| TASK-020 | 實作五節車廂共 15 個相容放置槽、占用檢查、點放、拖曳吸附、無效回復與 schema v1 → v2 存檔遷移。 | ✅ | 2026-07-21 |
+| TASK-021 | 產生三種作物四階段 GPT 素材，實作兩槽播種、灌溉、M003 夜間供電、兩夜成長、枯萎與收成收益。 | ✅ | 2026-07-21 |
+| TASK-022 | 以 390×844 真實瀏覽器稽核 48 種操作、360 項斷言；逐狀態檢查所有啟用按鈕的中心命中，修正維修熱區、占用槽位、模組 Grid 與配電面板遮擋。 | ✅ | 2026-07-21 |
+| TASK-023 | 更新開源預覽圖、遊玩影片、資產 prompt manifest、README、單元測試與 PWA v0.5.0 快取。 | ✅ | 2026-07-21 |
 
 ## 3. Alternatives
 

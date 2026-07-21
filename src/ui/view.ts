@@ -1,4 +1,4 @@
-import { DECORATIONS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
+import { CARRIAGES, CROPS, DECORATIONS, DECORATION_SLOTS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
 import { counterReadiness, getNightPowerDemand } from "../game/services";
 import type { AppState, GameEvent, RunState } from "../game/types";
 import { escapeText, formatSigned } from "./dom";
@@ -109,19 +109,64 @@ function survivorPanel(run: RunState): string {
   </aside>`;
 }
 
-function modulePrepPanel(state: AppState, run: RunState): string {
-  const definition = MODULES.find((module) => module.id === state.selectedModuleId) ?? MODULES[2]!;
-  const instance = run.modules.find((module) => module.definitionId === definition.id);
-  const harvested = run.flags.includes(`harvested-${run.day}`);
-  const comforted = run.flags.includes(`comforted-${run.day}`);
-  const specialAction = definition.id === "M003"
-    ? `<button data-action="harvest" ${harvested || run.actionPoints < 1 || run.resources.water < 1 ? "disabled" : ""}>${harvested ? "已收成" : "收成 2"}<small>1 AP・水 1</small></button>`
-    : definition.id === "M002"
-      ? `<button data-action="comfort" ${comforted || run.actionPoints < 1 ? "disabled" : ""}>${comforted ? "已安撫" : "安撫 A-07"}<small>1 AP・壓力 −8</small></button>`
-      : definition.id === "M001"
-        ? `<button data-action="repair-hull" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}>${run.environment.hull >= 100 ? "車體完整" : "維修車體"}<small>2 AP・零件 2</small></button>`
-        : "";
-  return `<div class="module-detail prep-control-panel panel"><div class="prep-panel-heading"><h3>${escapeText(definition.name)} Mk ${instance?.mk ?? "—"}</h3><b class="module-state ${instance?.active ? "is-on" : ""}">${instance ? instance.active ? "排程 ON" : "排程 OFF" : "未安裝"}</b></div><p>今夜耗電 ${definition.activeCost} E　｜　優先級 P${definition.priority}　｜　${escapeText(definition.description)}</p><div>${specialAction}${instance ? `<button data-action="toggle-module" data-value="${definition.id}">${instance.active ? "停用" : "啟用"}<small>${instance.active ? "釋放今夜負載" : "排入今夜供電"}</small></button>` : `<button data-action="modules">前往建造<small>零件 ${definition.cost}・2 AP</small></button>`}</div></div>`;
+function cropAsset(cropId: string, stage: number): string {
+  return `./assets/art/crops/${cropId}-${Math.min(3, Math.max(0, stage))}.png`;
+}
+
+function farmPanel(state: AppState, run: RunState): string {
+  const growing = run.crops.filter((plot) => plot.cropId && plot.stage < 3);
+  const needsWater = growing.some((plot) => plot.wateredDay !== run.day);
+  const plots = run.crops.map((plot) => {
+    const crop = CROPS.find((item) => item.id === plot.cropId);
+    const stageLabel = !crop ? "空槽" : plot.stage === 3 ? "成熟" : plot.stage === 2 ? "成長中" : "幼苗";
+    const action = !crop ? "plant-crop" : plot.stage === 3 ? "harvest-crop" : "water-crops";
+    const value = !crop ? `${plot.id}:${state.selectedCropId}` : plot.stage === 3 ? plot.id : undefined;
+    const selectedCrop = CROPS.find((item) => item.id === state.selectedCropId)!;
+    const label = !crop ? `播種${selectedCrop.name}` : plot.stage === 3 ? `收成${crop.name}` : plot.wateredDay === run.day ? "已灌溉" : "灌溉";
+    const disabled = Boolean(crop && plot.stage < 3 && plot.wateredDay === run.day);
+    return `<article class="farm-plot ${plot.stage === 3 ? "is-ready" : ""}">
+      <img src="${cropAsset(crop?.id ?? state.selectedCropId, crop ? plot.stage : 0)}" alt="">
+      <div><strong>${plot.id === "plot-a" ? "上層槽" : "下層槽"}・${stageLabel}</strong><small>${crop ? crop.name : "選擇作物後播種"}${plot.dryDays ? `・缺水 ${plot.dryDays} 夜` : ""}</small></div>
+      <button data-action="${action}" ${value ? `data-value="${value}"` : ""} ${disabled ? "disabled" : ""}>${label}</button>
+    </article>`;
+  }).join("");
+  return `<section class="farm-panel prep-control-panel panel" aria-label="水培種植控制台">
+    <div class="prep-panel-heading"><h3>兩槽水培循環</h3><strong>3 E／夜</strong></div>
+    <div class="crop-picker">${CROPS.map((crop) => `<button class="${state.selectedCropId === crop.id ? "is-selected" : ""}" data-action="select-crop" data-value="${crop.id}" aria-pressed="${state.selectedCropId === crop.id}"><img src="${cropAsset(crop.id, 3)}" alt=""><span>${crop.name}</span></button>`).join("")}</div>
+    <div class="farm-plot-grid">${plots}</div>
+    <button class="water-rack" data-action="water-crops" ${growing.length === 0 || !needsWater || run.resources.water < 1 ? "disabled" : ""}>灌溉全部生長槽 <small>水 −1・不耗 AP</small></button>
+  </section>`;
+}
+
+function carriageFeaturePanel(state: AppState, run: RunState): string {
+  const carriage = CARRIAGES.find((item) => item.id === state.activeCarriageId)!;
+  if (carriage.id === "greenhouse") return farmPanel(state, run);
+  const content = {
+    sleep: {
+      metric: `壓力 ${run.survivor.stress}・信任 ${run.survivor.trust}`,
+      copy: "整理床舖並播放低音量白噪音，換取今晚更穩定的睡眠。",
+      action: `<button data-action="comfort" ${run.flags.includes(`comforted-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}>${run.flags.includes(`comforted-${run.day}`) ? "今日已安撫" : "安撫 A-07"}<small>1 AP・壓力 −8・信任 +2</small></button>`,
+    },
+    defense: {
+      metric: `車體 ${run.environment.hull}%・零件 ${run.resources.parts}`,
+      copy: "檢查強化窗與物資固定帶；破口後可在此消耗零件修復。",
+      action: `<button data-action="repair-hull" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}>${run.environment.hull >= 100 ? "車體完整" : "維修車體"}<small>2 AP・零件 2・車體 +14</small></button>`,
+    },
+    workshop: {
+      metric: `零件 ${run.resources.parts}・噪音 ${run.environment.noise}`,
+      copy: "從損壞線路與舊機箱整理可用零件，但敲打聲會提高夜間風險。",
+      action: `<button data-action="workshop-scrap" ${run.flags.includes(`workshop-scrap-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}>${run.flags.includes(`workshop-scrap-${run.day}`) ? "今日已整理" : "整理回收零件"}<small>1 AP・零件 +1・噪音 +4</small></button>`,
+    },
+    kitchen: {
+      metric: `食物 ${run.resources.food}・水 ${run.resources.water}`,
+      copy: "把食物、水與電力換成熱食，立即降低壓力並提高睡眠。",
+      action: `<button data-action="cook-meal" ${run.flags.includes(`hot-meal-${run.day}`) || run.actionPoints < 1 || run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2 ? "disabled" : ""}>${run.flags.includes(`hot-meal-${run.day}`) ? "今日已烹飪" : "烹煮熱食"}<small>1 AP・食 1・水 1・電 2</small></button>`,
+    },
+  }[carriage.id];
+  return `<section class="carriage-feature prep-control-panel panel" aria-label="${carriage.name}功能">
+    <div class="prep-panel-heading"><h3>${carriage.name}</h3><strong>${content.metric}</strong></div>
+    <p>${content.copy}</p><div class="feature-action">${content.action}</div>
+  </section>`;
 }
 
 function powerPrepPanel(run: RunState): string {
@@ -143,24 +188,61 @@ function mealPrepPanel(run: RunState): string {
 }
 
 function decorationLayer(state: AppState, run: RunState, night: boolean): string {
+  const activeSlots = DECORATION_SLOTS.filter((slot) => slot.carriageId === state.activeCarriageId);
   const items = DECORATIONS.map((decoration) => {
-    const placement = run.decorations.find((item) => item.id === decoration.id) ?? { id: decoration.id, x: decoration.defaultX, y: decoration.defaultY };
+    const placement = run.decorations.find((item) => item.id === decoration.id);
+    if (!placement || placement.carriageId !== state.activeCarriageId) return "";
     const style = `--x:${placement.x}%;--y:${placement.y}%;--decor-size:${decoration.size}px`;
-    if (night || !state.decorating) return `<span class="decor-item ${night ? "decor-item--night" : "decor-item--display"}" data-decor-id="${decoration.id}" data-decoration-x="${placement.x}" data-decoration-y="${placement.y}" style="${style}" aria-hidden="true"><img src="${decoration.asset}" alt=""></span>`;
-    return `<button class="decor-item ${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" data-decor-id="${decoration.id}" data-decoration-x="${placement.x}" data-decoration-y="${placement.y}" style="${style}" aria-label="移動${decoration.name}"><img src="${decoration.asset}" alt="" draggable="false"><span aria-hidden="true">拖</span></button>`;
+    if (night || !state.decorating) return `<span class="decor-item ${night ? "decor-item--night" : "decor-item--display"}" data-decor-id="${decoration.id}" data-decoration-slot="${placement.slotId}" style="${style}" aria-hidden="true"><img src="${decoration.asset}" alt=""></span>`;
+    return `<button class="decor-item ${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" data-decor-id="${decoration.id}" data-decoration-slot="${placement.slotId}" style="${style}" aria-label="移動${decoration.name}"><img src="${decoration.asset}" alt="" draggable="false"><span aria-hidden="true">拖</span></button>`;
   }).join("");
+  const slots = state.decorating ? activeSlots.map((slot) => {
+    const compatible = slot.accepts.includes(state.selectedDecorationId);
+    const occupied = run.decorations.find((placement) => placement.slotId === slot.id && placement.id !== state.selectedDecorationId);
+    const selectedHere = run.decorations.some((placement) => placement.id === state.selectedDecorationId && placement.slotId === slot.id);
+    const classes = ["decor-slot", compatible ? "is-valid" : "is-invalid", occupied ? "is-occupied" : "", selectedHere ? "is-current" : ""].filter(Boolean).join(" ");
+    const stateLabel = selectedHere ? "目前位置" : occupied ? `已放${DECORATIONS.find((item) => item.id === occupied.id)?.name ?? "物件"}` : compatible ? "可放" : "不相容";
+    return `<button class="${classes}" type="button" data-action="place-decoration" data-value="${state.selectedDecorationId}:${slot.id}" data-slot-id="${slot.id}" data-slot-x="${slot.x}" data-slot-y="${slot.y}" style="--x:${slot.x}%;--y:${slot.y}%" aria-label="${slot.name}，${stateLabel}" ${selectedHere || occupied ? "disabled" : ""}><span>${slot.kind}</span><small>${slot.name}<b>${stateLabel}</b></small></button>`;
+  }).join("") : "";
   return `<div class="carriage-decor-layer ${state.decorating ? "is-editing" : ""}" aria-label="可移動車廂小物">
-    ${state.decorating ? `<div class="decor-drop-zones" aria-hidden="true"><i>左側層架</i><i>床邊桌面</i><i>右側設備</i></div><p class="decor-instruction">按住小物拖曳・放開自動保存</p>` : ""}
-    ${items}
+    ${state.decorating ? `<p class="decor-instruction">綠色可放・紅色不相容・放開吸附</p>${slots}` : ""}${items}
   </div>`;
 }
 
-function decorationTray(state: AppState): string {
+function decorationTray(state: AppState, run: RunState): string {
+  const active = CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)!;
   return `<section class="decor-tray prep-control-panel panel" aria-label="車廂佈置工具">
-    <div class="prep-panel-heading"><h3>車廂佈置</h3><strong>自由拖曳</strong></div>
-    <div class="decor-picker">${DECORATIONS.map((decoration) => `<button class="${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" aria-pressed="${state.selectedDecorationId === decoration.id}"><img src="${decoration.asset}" alt=""><span>${decoration.name}</span></button>`).join("")}</div>
+    <div class="prep-panel-heading"><h3>${active.name}佈置</h3><strong>槽位吸附</strong></div>
+    <div class="decor-picker">${DECORATIONS.map((decoration) => { const placement = run.decorations.find((item) => item.id === decoration.id); const location = CARRIAGES.find((carriage) => carriage.id === placement?.carriageId)?.short ?? "—"; return `<button class="${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" aria-pressed="${state.selectedDecorationId === decoration.id}"><img src="${decoration.asset}" alt=""><span>${decoration.name}</span><small>目前：${location}</small></button>`; }).join("")}</div>
     <div class="decor-tray-actions"><button type="button" data-action="reset-decor">重設位置</button><button class="is-primary" type="button" data-action="finish-decor">完成佈置</button></div>
   </section>`;
+}
+
+function carriageSelector(state: AppState): string {
+  return `<nav class="carriage-selector panel" aria-label="切換五種車廂">${CARRIAGES.map((carriage) => `<button class="${state.activeCarriageId === carriage.id ? "is-selected" : ""}" data-action="select-carriage" data-value="${carriage.id}" aria-pressed="${state.activeCarriageId === carriage.id}"><span>${carriage.short}</span><small>${carriage.name.replace("車廂", "")}</small></button>`).join("")}</nav>`;
+}
+
+function cropSceneLayer(state: AppState, run: RunState): string {
+  if (state.activeCarriageId !== "greenhouse" || state.decorating) return "";
+  const positions = [{ x: 18, y: 47 }, { x: 19, y: 73 }];
+  return `<div class="crop-scene-layer" aria-label="可操作水培槽">${run.crops.map((plot, index) => {
+    const crop = CROPS.find((item) => item.id === plot.cropId);
+    const action = !crop ? "plant-crop" : plot.stage === 3 ? "harvest-crop" : "water-crops";
+    const value = !crop ? `${plot.id}:${state.selectedCropId}` : plot.stage === 3 ? plot.id : undefined;
+    const label = !crop ? `${plot.id === "plot-a" ? "上層" : "下層"}空槽，播種${CROPS.find((item) => item.id === state.selectedCropId)?.name}` : plot.stage === 3 ? `${crop.name}成熟，點擊收成` : `${crop.name}${plot.wateredDay === run.day ? "已灌溉" : "需要灌溉"}`;
+    return `<button class="crop-scene-plot stage-${plot.stage}" data-action="${action}" ${value ? `data-value="${value}"` : ""} style="--x:${positions[index]?.x ?? 18}%;--y:${positions[index]?.y ?? 60}%" aria-label="${label}"><img src="${cropAsset(crop?.id ?? state.selectedCropId, crop ? plot.stage : 0)}" alt=""><span>${plot.stage === 3 ? "收" : !crop ? "種" : plot.wateredDay === run.day ? "✓" : "水"}</span></button>`;
+  }).join("")}</div>`;
+}
+
+function carriageHotspots(state: AppState): string {
+  if (state.decorating || state.carriagePanel !== "module" || state.activeCarriageId === "greenhouse") return "";
+  const hotspot = {
+    sleep: `<button data-action="comfort" style="--x:56%;--y:61%" aria-label="安撫 A-07">撫</button>`,
+    defense: `<button data-action="toggle-module" data-value="M001" style="--x:84%;--y:39%" aria-label="切換防護百葉">百</button><button data-action="repair-hull" style="--x:19%;--y:52%" aria-label="維修車體">修</button>`,
+    workshop: `<button data-action="workshop-scrap" style="--x:20%;--y:63%" aria-label="整理回收零件">整</button>`,
+    kitchen: `<button data-action="cook-meal" style="--x:20%;--y:64%" aria-label="烹煮熱食">煮</button>`,
+  }[state.activeCarriageId];
+  return `<div class="scene-hotspots" aria-label="${CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)?.name}設備熱區">${hotspot}</div>`;
 }
 
 function carriageScreen(state: AppState): string {
@@ -169,7 +251,8 @@ function carriageScreen(state: AppState): string {
   const night = run.phase === "night";
   const threat = THREATS.find((candidate) => candidate.id === run.activeContact?.definitionId);
   const contact = run.activeContact;
-  const prepPanel = state.carriagePanel === "power" ? powerPrepPanel(run) : state.carriagePanel === "meal" ? mealPrepPanel(run) : modulePrepPanel(state, run);
+  const prepPanel = state.carriagePanel === "power" ? powerPrepPanel(run) : state.carriagePanel === "meal" ? mealPrepPanel(run) : carriageFeaturePanel(state, run);
+  const activeCarriage = CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)!;
   const counterActions = threat?.id === "T003"
     ? [
         { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
@@ -181,19 +264,16 @@ function carriageScreen(state: AppState): string {
         { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
         { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
       ];
-  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}">
-    ${compactHeader(run, night ? "夜間守望" : "車廂整備", night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `剩餘 ${run.actionPoints} AP`)}
+  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}">
+    ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
     <button class="speed-control" type="button" data-action="pause" ${night && !state.settings.noCountdown ? "" : "disabled"} aria-label="${!night ? "整備階段時間已暫停" : state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}">${night ? state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "×1" : icons.pause}</button>
-    ${environmentPanel(run)}${survivorPanel(run)}
+    ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
     ${decorationLayer(state, run, night)}
+    ${!night ? cropSceneLayer(state, run) : ""}
     ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
-    ${!night && !state.decorating ? `<div class="scene-hotspots" aria-label="車廂設備熱區">
-      <button data-action="select-module" data-value="M003" style="--x:20%;--y:47%">種</button>
-      <button data-action="select-module" data-value="M002" style="--x:52%;--y:62%">床</button>
-      <button data-action="select-module" data-value="M001" style="--x:84%;--y:38%">窗</button>
-    </div>` : ""}
+    ${!night ? carriageHotspots(state) : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", "M001"], ["暖氣", "M002"], ["溫室", "M003"], ["感測器", "M004"]].map(([label, moduleId]) => { const module = run.modules.find((instance) => instance.definitionId === moduleId); const on = Boolean(module?.active && module.powered); return `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${module ? on ? "ON" : "OFF" : "—"}</b></div>`; }).join("")}</div>` : ""}
-    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state) : prepPanel}
+    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state, run) : prepPanel}
     <nav class="carriage-dock panel">
       <button data-action="modules"><span>${icons.build}</span>建造</button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power"><span>${icons.power}</span>配電</button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal"><span>${icons.meal}</span>配餐</button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate"><span>◇</span>佈置</button><button class="is-primary" data-action="route"><span>${icons.route}</span>出發<small>${run.actionPoints} AP</small></button>
     </nav>`}
@@ -299,7 +379,7 @@ export class GameView {
   private readonly canvas: HTMLCanvasElement;
   private readonly uiRoot: HTMLDivElement;
   private previousScreenKey = "";
-  private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean } | null = null;
+  private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean; nearestSlotId?: string } | null = null;
   private suppressDecorClick = false;
 
   public constructor(private readonly root: HTMLElement, private readonly onAction: ActionHandler) {
@@ -318,7 +398,7 @@ export class GameView {
     this.uiRoot.addEventListener("pointerdown", (event) => this.startDecorDrag(event));
     this.uiRoot.addEventListener("pointermove", (event) => this.moveDecorDrag(event));
     this.uiRoot.addEventListener("pointerup", (event) => this.finishDecorDrag(event));
-    this.uiRoot.addEventListener("pointercancel", () => { this.decorDrag = null; });
+    this.uiRoot.addEventListener("pointercancel", () => this.cancelDecorDrag());
   }
 
   public getCanvas(): HTMLCanvasElement {
@@ -343,6 +423,19 @@ export class GameView {
     drag.y = Math.min(92, Math.max(8, ((event.clientY - drag.bounds.top) / drag.bounds.height) * 100));
     drag.target.style.setProperty("--x", `${drag.x}%`);
     drag.target.style.setProperty("--y", `${drag.y}%`);
+    let nearest: { element: HTMLElement; distance: number } | undefined;
+    for (const element of this.uiRoot.querySelectorAll<HTMLElement>(".decor-slot[data-slot-id]")) {
+      const rect = element.getBoundingClientRect();
+      const distance = Math.hypot(event.clientX - (rect.left + rect.width / 2), event.clientY - (rect.top + rect.height / 2));
+      if (!nearest || distance < nearest.distance) nearest = { element, distance };
+      element.classList.remove("is-targeted");
+    }
+    if (nearest && nearest.distance <= 96) {
+      nearest.element.classList.add("is-targeted");
+      drag.nearestSlotId = nearest.element.dataset.slotId;
+    } else {
+      drag.nearestSlotId = undefined;
+    }
     event.preventDefault();
   }
 
@@ -353,10 +446,17 @@ export class GameView {
     if (drag.moved) {
       this.suppressDecorClick = true;
       window.setTimeout(() => { this.suppressDecorClick = false; }, 0);
-      this.onAction("move-decoration", `${drag.id}:${drag.x.toFixed(1)}:${drag.y.toFixed(1)}`);
+      this.onAction("move-decoration", `${drag.id}:${drag.nearestSlotId ?? "invalid"}`);
     }
+    this.uiRoot.querySelectorAll(".decor-slot.is-targeted").forEach((slot) => slot.classList.remove("is-targeted"));
     this.decorDrag = null;
     event.preventDefault();
+  }
+
+  private cancelDecorDrag(): void {
+    this.decorDrag?.target.classList.remove("is-dragging");
+    this.uiRoot.querySelectorAll(".decor-slot.is-targeted").forEach((slot) => slot.classList.remove("is-targeted"));
+    this.decorDrag = null;
   }
 
   public render(state: AppState, hasSave: boolean, activeEvent?: GameEvent): void {
@@ -372,7 +472,7 @@ export class GameView {
       settings: () => settingsScreen(state),
     }[state.screen];
     this.uiRoot.innerHTML = screen();
-    const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? ""].join(":");
+    const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? "", state.activeCarriageId].join(":");
     if (screenKey !== this.previousScreenKey) this.uiRoot.querySelector(".screen")?.classList.add("screen-enter");
     this.previousScreenKey = screenKey;
     this.root.style.setProperty("--text-scale", String(state.settings.textScale / 100));

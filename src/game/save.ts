@@ -1,5 +1,6 @@
 import type { RunState, SettingsState } from "./types";
-import { createDecorationPlacements } from "./model";
+import { DECORATION_SLOTS } from "./content";
+import { createCropPlots, createDecorationPlacements } from "./model";
 
 const DB_NAME = "night-train-save";
 const STORE_NAME = "snapshots";
@@ -9,15 +10,26 @@ const SETTINGS_KEY = "settings";
 
 function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
-  const value = JSON.parse(raw) as RunState;
-  if (value.schemaVersion !== 1 || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  const value = JSON.parse(raw) as RunState & { schemaVersion: number };
+  if (![1, 2].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  const defaults = createDecorationPlacements();
+  const decorations = defaults.map((fallback) => {
+    const saved = Array.isArray(value.decorations) ? value.decorations.find((item) => item.id === fallback.id) : undefined;
+    if (!saved) return fallback;
+    if (saved.slotId && saved.carriageId) return saved;
+    const compatible = DECORATION_SLOTS.filter((slot) => slot.accepts.includes(fallback.id));
+    const closest = compatible.sort((a, b) => Math.hypot(a.x - saved.x, a.y - saved.y) - Math.hypot(b.x - saved.x, b.y - saved.y))[0];
+    return closest ? { id: fallback.id, carriageId: closest.carriageId, slotId: closest.id, x: closest.x, y: closest.y } : fallback;
+  });
   return {
     ...value,
+    schemaVersion: 2,
     actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
     rationMode: value.rationMode ?? "standard",
     nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
     outcome: value.outcome ?? (value.ended ? "victory" : "active"),
-    decorations: Array.isArray(value.decorations) && value.decorations.length > 0 ? value.decorations : createDecorationPlacements(),
+    decorations,
+    crops: Array.isArray(value.crops) && value.crops.length === 2 ? value.crops : createCropPlots(),
   };
 }
 
