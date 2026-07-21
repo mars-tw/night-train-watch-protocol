@@ -16,3 +16,6 @@ The generated images in `public/assets/art/` are released under CC BY 4.0 with a
 
 The original UI reference images are not embedded in these assets. Layout, token and interaction decisions were reimplemented as native HTML/CSS/Canvas based on the supplied specification.
 
+## Open-source gameplay previews
+
+The repository commits the browser-captured gameplay previews under `public/assets/screenshots/`. Files `09-repaired-carriage.png`, `10-route-preview.png`, and `11-module-preview.png` were captured from the v0.3.1 runtime at a 390×844 viewport by `tools/audit-buttons.mjs`. They document the playable repair loop and the read-only route/module preview states; they are not detached mockups.

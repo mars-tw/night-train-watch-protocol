@@ -30,6 +30,12 @@
 - [黎明結算](public/assets/screenshots/06-dawn-result.png)
 - [七夜結局](public/assets/screenshots/07-ending.png)
 
+以下三張是 v0.3.1 全按鈕實機稽核直接截取的 390×844 遊戲畫面，已隨開源專案提交，不是另外製作的概念稿：
+
+| 破口後維修 | 局外路線預覽 | 起始藍圖預覽 |
+|---|---|---|
+| ![破口後維修](public/assets/screenshots/09-repaired-carriage.png) | ![局外路線預覽](public/assets/screenshots/10-route-preview.png) | ![起始藍圖預覽](public/assets/screenshots/11-module-preview.png) |
+
 ## 本機執行
 
 需要 Node.js 20 或更新版本。
@@ -55,6 +61,12 @@ npm run capture:video
 
 ```bash
 npm run capture:playability
+```
+
+全按鈕手機瀏覽器稽核（36 種操作、局外預覽、存檔不變性與破口維修）：
+
+```bash
+npm run audit:buttons
 ```
 
 ## 技術結構

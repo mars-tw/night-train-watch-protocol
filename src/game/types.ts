@@ -163,6 +163,8 @@ export interface AppState {
   carriagePanel: CarriagePanel;
   nightPaused: boolean;
   eventPreview: boolean;
+  routePreview: boolean;
+  modulePreview: boolean;
   moduleCategory: ModuleCategory;
   techBranch: TechBranch;
   saveStatus: "none" | "saved" | "saving" | "recovered" | "error";

@@ -87,9 +87,9 @@ function hubScreen(state: AppState): string {
       ${button("tech", "科技樹", { icon: icons.tech, detail: "新規則與藍圖", className: "hub-card is-selected" })}
       ${button("route", "路線選擇", { icon: icons.route, detail: "灰霧線", className: "hub-card" })}
       ${button("event-preview", "事件圖鑑", { icon: "記", detail: "已發現 3/8", className: "hub-card" })}
-      ${button("carriage", "起始藍圖", { icon: icons.build, detail: "溫室臥鋪", className: "hub-card" })}
+      ${button("modules-preview", "起始藍圖", { icon: icons.build, detail: "查看模組，不消耗資源", className: "hub-card" })}
     </div>
-    <nav class="bottom-nav">${["中心", "路線", "科技", "圖鑑"].map((label, index) => `<button data-action="${["hub", "route", "tech", "event-preview"][index]}" class="${index === 0 ? "is-selected" : ""}"><span>${[icons.hub, icons.route, icons.tech, "記"][index]}</span>${label}</button>`).join("")}</nav>
+    <nav class="bottom-nav">${["中心", "路線", "科技", "圖鑑"].map((label, index) => `<button data-action="${["hub", "route", "tech", "event-preview"][index]}" class="${index === 0 ? "is-selected" : ""}" ${index === 0 ? 'disabled aria-current="page"' : ""}><span>${[icons.hub, icons.route, icons.tech, "記"][index]}</span>${label}</button>`).join("")}</nav>
   </section>`;
 }
 
@@ -162,7 +162,7 @@ function carriageScreen(state: AppState): string {
       ];
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}">
     ${compactHeader(run, night ? "夜間守望" : "車廂整備", night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `剩餘 ${run.actionPoints} AP`)}
-    <button class="speed-control" type="button" data-action="pause" ${night ? "" : "disabled"} aria-label="${night ? state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數" : "整備階段時間已暫停"}">${night ? state.nightPaused ? icons.play : "×1" : icons.pause}</button>
+    <button class="speed-control" type="button" data-action="pause" ${night && !state.settings.noCountdown ? "" : "disabled"} aria-label="${!night ? "整備階段時間已暫停" : state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}">${night ? state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "×1" : icons.pause}</button>
     ${environmentPanel(run)}${survivorPanel(run)}
     ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
     ${!night ? `<div class="scene-hotspots" aria-label="車廂設備熱區">
@@ -184,13 +184,13 @@ function routeScreen(state: AppState): string {
   if (!run) return "";
   const selected = ROUTE_NODES.find((node) => node.id === state.selectedRouteId) ?? ROUTE_NODES[0];
   return `<section class="screen screen--route" data-screen="SCR-RM-${run.techOwned.includes("I1") ? "B" : "A"}">
-    ${compactHeader(run, "路線規劃", "灰霧線・第 1 區段", "carriage")}
+    ${compactHeader(run, state.routePreview ? "路線圖鑑" : "路線規劃", state.routePreview ? "局外預覽・不會消耗燃料" : "灰霧線・第 1 區段", state.routePreview ? "hub" : "carriage")}
     <div class="route-map panel">
       <svg viewBox="0 0 336 400" role="img" aria-label="路線節點圖"><path d="M42 320 C90 270 98 220 156 198 S252 156 292 70"/><path d="M42 320 C130 340 228 326 292 270"/><path d="M156 198 C200 206 232 240 292 270"/></svg>
       ${ROUTE_NODES.map((node, index) => `<button class="route-node route-node--${node.kind} ${state.selectedRouteId === node.id ? "is-selected" : ""}" style="--x:${[12, 46, 83][index]}%;--y:${[78, 47, 18][index]}%" data-action="select-route" data-value="${node.id}"><span>${node.kind === "danger" ? "!" : node.kind === "supply" ? "+" : "◇"}</span><small>${node.name}</small></button>`).join("")}
       <div class="route-legend"><span>◆ 補給</span><span>◇ 故事</span><span>! 危險</span></div>
     </div>
-    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selected.fuelCost}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", run.resources.fuel < selected.fuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: run.resources.fuel >= selected.fuelCost, icon: icons.route, disabled: run.resources.fuel < selected.fuelCost })}</article>` : ""}
+    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selected.fuelCost}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", state.routePreview ? "局外預覽" : run.resources.fuel < selected.fuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && run.resources.fuel >= selected.fuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || run.resources.fuel < selected.fuelCost })}</article>` : ""}
   </section>`;
 }
 
@@ -217,10 +217,10 @@ function modulesScreen(state: AppState): string {
   const visibleModules = state.moduleCategory === "全部" ? MODULES : MODULES.filter((module) => moduleCategory(module.id) === state.moduleCategory);
   const selected = visibleModules.find((module) => module.id === state.selectedModuleId) ?? visibleModules[0];
   return `<section class="screen screen--modules" data-screen="SCR-MD-A">
-    ${compactHeader(run, "建造與模組", `整備・${run.actionPoints} AP・${run.resources.parts} 零件`, "carriage")}
+    ${compactHeader(run, state.modulePreview ? "列車起始藍圖" : "建造與模組", state.modulePreview ? "局外預覽・不會消耗資源" : `整備・${run.actionPoints} AP・${run.resources.parts} 零件`, state.modulePreview ? "hub" : "carriage")}
     <div class="bottom-sheet panel"><span class="drag-handle"></span><div class="category-tabs">${["全部", "防禦", "生產", "生活"].map((category) => `<button class="${state.moduleCategory === category ? "is-selected" : ""}" data-action="select-module-category" data-value="${category}">${category}</button>`).join("")}</div>
       <div class="module-grid">${visibleModules.map((module) => `<button class="module-card ${module.id === selected?.id ? "is-selected" : ""}" data-action="select-module" data-value="${module.id}"><span>${module.slot === "window" ? icons.shield : module.slot === "floor" ? "暖" : module.slot === "wall" ? "芽" : "器"}</span><strong>${module.name}</strong><small>${module.slot}・零件 ${module.cost}</small></button>`).join("")}</div>
-      ${selected ? `<article class="selected-module"><div><strong>${selected.name}</strong><small>${selected.description}</small></div><p>耗電 ${selected.activeCost}　｜　優先級 P${selected.priority}　｜　零件 ${selected.cost}・2 AP</p>${button("build-module", run.modules.some((module) => module.definitionId === selected.id) ? "已安裝" : run.actionPoints < 2 ? "AP 不足" : "確認建造", { value: selected.id, primary: !run.modules.some((module) => module.definitionId === selected.id) && run.actionPoints >= 2, icon: icons.build, disabled: run.resources.parts < selected.cost || run.actionPoints < 2 || run.modules.some((module) => module.definitionId === selected.id) })}</article>` : ""}
+      ${selected ? `<article class="selected-module"><div><strong>${selected.name}</strong><small>${selected.description}</small></div><p>耗電 ${selected.activeCost}　｜　優先級 P${selected.priority}　｜　零件 ${selected.cost}・2 AP</p>${button("build-module", state.modulePreview ? "局外預覽" : run.modules.some((module) => module.definitionId === selected.id) ? "已安裝" : run.resources.parts < selected.cost ? "零件不足" : run.actionPoints < 2 ? "AP 不足" : "確認建造", { value: selected.id, primary: !state.modulePreview && !run.modules.some((module) => module.definitionId === selected.id) && run.resources.parts >= selected.cost && run.actionPoints >= 2, icon: icons.build, detail: state.modulePreview ? "回到遊戲整備後才能建造" : undefined, disabled: state.modulePreview || run.resources.parts < selected.cost || run.actionPoints < 2 || run.modules.some((module) => module.definitionId === selected.id) })}</article>` : ""}
     </div>
   </section>`;
 }
@@ -229,6 +229,9 @@ function techScreen(state: AppState): string {
   const run = state.run;
   if (!run) return "";
   const selected = TECH_NODES.find((node) => node.id === state.selectedTechId) ?? TECH_NODES[0];
+  const selectedOwned = selected ? run.techOwned.includes(selected.id) : false;
+  const selectedReady = selected ? selected.prerequisite.every((id) => run.techOwned.includes(id)) : false;
+  const selectedAffordable = selected ? run.resources.data >= selected.cost : false;
   return `<section class="screen screen--tech" data-screen="SCR-TT-A">
     ${compactHeader(run, "科技樹", "協定資料解鎖永久規則", "hub")}
     <div class="protocol-data pill"><span>協定資料</span><strong>${run.resources.data}</strong></div>
@@ -236,7 +239,7 @@ function techScreen(state: AppState): string {
     <div class="tech-tree panel"><svg viewBox="0 0 336 360"><path d="M42 64 L84 146 L168 222 L244 302"/><path d="M294 64 L252 146 L168 222"/><path d="M84 146 L252 146"/></svg>
       ${TECH_NODES.map((node, index) => { const positions = [[12, 15], [87, 15], [25, 38], [75, 38], [50, 62]]; const pos = positions[index] ?? [50, 50]; const owned = run.techOwned.includes(node.id); const available = node.prerequisite.every((id) => run.techOwned.includes(id)); return `<button class="tech-node ${owned ? "is-owned" : available ? "is-available" : "is-locked"} ${state.selectedTechId === node.id ? "is-selected" : ""}" style="--x:${pos[0]}%;--y:${pos[1]}%" data-action="select-tech" data-value="${node.id}"><span>${owned ? "✓" : node.id}</span><small>${node.name}</small></button>`; }).join("")}
     </div>
-    ${selected ? `<article class="tech-detail panel"><div><strong>${selected.id}・${selected.name}</strong><span class="pill">${selected.branch}</span></div><p>${selected.description}</p><p>前置：${selected.prerequisite.length ? selected.prerequisite.join("＋") : "無"}　｜　成本 ${selected.cost}</p>${button("unlock-tech", run.techOwned.includes(selected.id) ? "已解鎖" : "解鎖節點", { value: selected.id, primary: !run.techOwned.includes(selected.id), icon: icons.tech, disabled: run.techOwned.includes(selected.id) })}</article>` : ""}
+    ${selected ? `<article class="tech-detail panel"><div><strong>${selected.id}・${selected.name}</strong><span class="pill">${selected.branch}</span></div><p>${selected.description}</p><p>前置：${selected.prerequisite.length ? selected.prerequisite.join("＋") : "無"}　｜　成本 ${selected.cost}</p>${button("unlock-tech", selectedOwned ? "已解鎖" : !selectedReady ? "前置未解鎖" : !selectedAffordable ? "資料不足" : "解鎖節點", { value: selected.id, primary: !selectedOwned && selectedReady && selectedAffordable, icon: icons.tech, disabled: selectedOwned || !selectedReady || !selectedAffordable })}</article>` : ""}
   </section>`;
 }
 

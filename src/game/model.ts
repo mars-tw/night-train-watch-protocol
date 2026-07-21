@@ -52,6 +52,8 @@ export function createAppState(): AppState {
     carriagePanel: "module",
     nightPaused: false,
     eventPreview: false,
+    routePreview: false,
+    modulePreview: false,
     moduleCategory: "全部",
     techBranch: "能源",
     saveStatus: "none",

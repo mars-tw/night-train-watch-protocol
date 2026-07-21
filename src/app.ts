@@ -45,6 +45,8 @@ export class NightTrainApp {
         this.state.carriagePanel = "module";
         this.state.nightPaused = false;
         this.state.eventPreview = false;
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         this.state.saveStatus = "saving";
         await this.persist();
         break;
@@ -53,12 +55,17 @@ export class NightTrainApp {
         this.state.run = loaded.run;
         this.state.nightPaused = false;
         this.state.eventPreview = false;
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         this.state.saveStatus = loaded.recovered ? "recovered" : "saved";
         this.state.screen = this.screenForPhase();
         break;
       }
       case "menu":
         this.state.screen = "menu";
+        this.state.eventPreview = false;
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         break;
       case "hub":
         if (!this.state.run) {
@@ -67,13 +74,17 @@ export class NightTrainApp {
         }
         this.state.screen = "hub";
         this.state.eventPreview = false;
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         break;
       case "settings":
         this.state.screen = "settings";
         break;
       case "carriage":
-        if (run?.phase === "route") run.phase = "prep";
+        if (run?.phase === "route" && !this.state.routePreview) run.phase = "prep";
         this.state.screen = "carriage";
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         break;
       case "pause":
         if (run?.phase === "night" && !this.state.settings.noCountdown) {
@@ -83,19 +94,34 @@ export class NightTrainApp {
         break;
       case "route":
         if (run && run.phase !== "night") {
-          run.phase = "route";
+          this.state.routePreview = this.state.screen === "hub" || run.ended;
+          this.state.modulePreview = false;
+          if (!this.state.routePreview) run.phase = "route";
           this.state.screen = "route";
         }
         break;
       case "modules":
+        this.state.modulePreview = false;
+        this.state.routePreview = false;
         this.state.screen = "modules";
         break;
+      case "modules-preview":
+        if (run) {
+          this.state.modulePreview = true;
+          this.state.routePreview = false;
+          this.state.screen = "modules";
+        }
+        break;
       case "tech":
+        this.state.routePreview = false;
+        this.state.modulePreview = false;
         this.state.screen = "tech";
         break;
       case "event-preview":
         if (run) {
           this.state.eventPreview = true;
+          this.state.routePreview = false;
+          this.state.modulePreview = false;
           this.state.screen = "event";
         }
         break;
@@ -103,7 +129,7 @@ export class NightTrainApp {
         if (value) this.state.selectedRouteId = value;
         break;
       case "confirm-route":
-        if (run && value) {
+        if (run && value && !this.state.routePreview) {
           this.runService.chooseRoute(run, value);
           if (run.phase === "travel") {
             this.state.eventPreview = false;
@@ -175,7 +201,7 @@ export class NightTrainApp {
         }
         break;
       case "build-module":
-        if (run && value && this.runService.buildModule(run, value)) {
+        if (run && value && !this.state.modulePreview && this.runService.buildModule(run, value)) {
           this.state.screen = "carriage";
           await this.persist();
         }

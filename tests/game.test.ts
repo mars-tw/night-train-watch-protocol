@@ -72,6 +72,30 @@ describe("authoritative run service", () => {
     expect(service.harvest(run)).toBe(false);
   });
 
+  it("repairs breach damage and charges both AP and parts", () => {
+    const run = createRun("repair-loop");
+    const service = new RunService();
+    run.environment.hull = 82;
+    const before = { ap: run.actionPoints, parts: run.resources.parts };
+
+    expect(service.repairCarriage(run)).toBe(true);
+    expect(run.environment.hull).toBe(96);
+    expect(run.actionPoints).toBe(before.ap - 2);
+    expect(run.resources.parts).toBe(before.parts - 2);
+  });
+
+  it("keeps locked technology unchanged until its data cost is available", () => {
+    const run = createRun("tech-buttons");
+    const service = new RunService();
+
+    expect(service.unlockTech(run, "E1")).toBe(false);
+    expect(run.techOwned).toEqual([]);
+    service.applyResource(run, "data", 1, "test.reward");
+    expect(service.unlockTech(run, "E1")).toBe(true);
+    expect(run.techOwned).toContain("E1");
+    expect(run.resources.data).toBe(0);
+  });
+
   it("spends night power and sheds lower-priority modules first", () => {
     const run = createRun("power-grid");
     const service = new RunService();
