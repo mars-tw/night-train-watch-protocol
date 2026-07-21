@@ -512,6 +512,139 @@
   pointer-events: auto;
 }
 
+.carriage-decor-layer {
+  position: absolute;
+  z-index: 24;
+  top: 214px;
+  right: 10px;
+  bottom: 332px;
+  left: 10px;
+  pointer-events: none;
+}
+
+.carriage-decor-layer.is-editing {
+  z-index: 37;
+  border: 1px dashed rgba(126, 165, 122, 0.7);
+  border-radius: 14px;
+  background: linear-gradient(rgba(126, 165, 122, 0.05), rgba(9, 14, 18, 0.08));
+  box-shadow: inset 0 0 36px rgba(126, 165, 122, 0.12);
+}
+
+.decor-item {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  display: grid;
+  width: max(52px, var(--decor-size));
+  height: max(52px, var(--decor-size));
+  padding: 0;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.68));
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.decor-item img {
+  display: block;
+  width: var(--decor-size);
+  height: var(--decor-size);
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.decor-item > span {
+  position: absolute;
+  right: -5px;
+  top: -7px;
+  display: none;
+  min-width: 25px;
+  min-height: 25px;
+  place-items: center;
+  border: 1px solid var(--color-action);
+  border-radius: 50%;
+  background: rgba(9, 14, 18, 0.92);
+  color: var(--color-action);
+  font-size: 8px;
+}
+
+.carriage-decor-layer.is-editing .decor-item {
+  border-color: rgba(126, 165, 122, 0.52);
+  background: rgba(9, 14, 18, 0.22);
+}
+
+.carriage-decor-layer.is-editing .decor-item > span {
+  display: grid;
+}
+
+.decor-item.is-selected,
+.decor-item:focus-visible {
+  border: 2px solid var(--color-action);
+  background: rgba(226, 168, 93, 0.12);
+  box-shadow: 0 0 0 4px rgba(226, 168, 93, 0.12), 0 0 24px rgba(226, 168, 93, 0.32);
+}
+
+.decor-item.is-dragging {
+  z-index: 4;
+  cursor: grabbing;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.72)) brightness(1.14);
+  scale: 1.08;
+}
+
+.decor-item--night {
+  opacity: 0.68;
+  pointer-events: none;
+  filter: brightness(0.68) saturate(0.74) drop-shadow(0 5px 7px rgba(0, 0, 0, 0.78));
+}
+
+.decor-item--display {
+  pointer-events: none;
+}
+
+.decor-drop-zones {
+  position: absolute;
+  inset: 22px 6px 6px;
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr 0.8fr;
+  gap: 7px;
+}
+
+.decor-drop-zones i {
+  display: grid;
+  place-items: end center;
+  padding-bottom: 5px;
+  border: 1px solid rgba(126, 165, 122, 0.4);
+  border-radius: 12px;
+  color: rgba(185, 218, 183, 0.78);
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.decor-instruction {
+  position: absolute;
+  z-index: 5;
+  top: -16px;
+  left: 50%;
+  width: max-content;
+  max-width: 90%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border: 1px solid var(--color-safe);
+  border-radius: 999px;
+  background: rgba(9, 14, 18, 0.94);
+  color: #b9dab7;
+  font-size: 9px;
+  text-align: center;
+}
+
 .module-detail {
   position: absolute;
   z-index: 38;
@@ -688,6 +821,67 @@
   font-style: normal;
 }
 
+.decor-tray {
+  overflow: hidden;
+}
+
+.decor-tray .prep-panel-heading strong {
+  font-size: 11px;
+}
+
+.decor-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.decor-picker button {
+  display: grid;
+  min-height: 58px;
+  padding: 3px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 8px;
+}
+
+.decor-picker button.is-selected {
+  border: 2px solid var(--color-action);
+  background: rgba(226, 168, 93, 0.12);
+  color: var(--color-text);
+}
+
+.decor-picker img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.decor-tray-actions {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.decor-tray-actions button {
+  min-height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 10px;
+}
+
+.decor-tray-actions button.is-primary {
+  border-color: var(--color-action);
+  background: var(--color-action);
+  color: #17130f;
+  font-weight: 800;
+}
+
 .carriage-dock,
 .emergency-actions {
   position: absolute;
@@ -701,8 +895,8 @@
 
 .carriage-dock {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
 }
 
 .carriage-dock button,
@@ -713,12 +907,12 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .carriage-dock button span {
   color: var(--color-text);
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .carriage-dock button.is-primary {

@@ -9,13 +9,17 @@ All files below are used by the game runtime. Generation occurred on 2026-07-20 
 | `carriage-night.png` | SCR-CV-B scene | Same carriage composition and A-07 identity at night; colder blue fog, rain and distant infected silhouettes; no UI or text. | Loaded by Canvas; night screenshot QA. |
 | `threat-knocker.png` | T002 敲窗者 layer | Isolated adult infected window-contact sprite; hard-edged dark pixel clusters, cyan rim light, no gore; generated on flat chroma green and converted to alpha. | RGBA, four transparent corners; renderer and asset test reference. |
 | `threat-clinger.png` | T003 攀附者 layer | Isolated adult infected clinging upside-down outside the train roof; long tense limbs, torn coat, hidden face, blue-black pixel art, cyan rim light, no blood or gore; flat `#00FF00` background, no environment/UI/text. | RGBA 1254×1254; alpha extrema 0–255; corners 0; bbox `(371,74,925,1169)`; renderer and asset test reference. |
+| `decor/lantern.png` | Movable carriage furnishing | GPT-authored brass railway lantern, warm amber core and cyan rim; flat green chroma source retained. | Runtime 256×256 RGBA; transparent corners; alpha bbox `(82,18,174,238)`; drag/reload browser QA. |
+| `decor/radio.png` | Movable carriage furnishing | GPT-authored battered shortwave railway radio, amber dial and worn steel; flat green chroma source retained. | Runtime 256×256 RGBA; transparent corners; alpha bbox `(29,18,226,238)`; drag/reload browser QA. |
+| `decor/toolbox.png` | Movable carriage furnishing | GPT-authored red steel mechanic toolbox with visible hand tools; flat green chroma source retained. | Runtime 256×256 RGBA; transparent corners; alpha bbox `(25,18,230,238)`; drag/reload browser QA. |
+| `decor/fern.png` | Movable carriage furnishing | GPT-authored hardy fern in a riveted train planter; flat magenta chroma source retained. | Runtime 256×256 RGBA; transparent corners; alpha bbox `(36,18,219,238)`; drag/reload browser QA. |
 
 ## Licensing
 
-The generated images in `public/assets/art/` are released under CC BY 4.0 with attribution to “Night Train: Watch Protocol contributors”. The chroma source files in `public/assets/source/` are retained for reproducibility and are not loaded by the runtime.
+The generated images in `public/assets/art/` are released under CC BY 4.0 with attribution to “Night Train: Watch Protocol contributors”. The chroma source files in `public/assets/source/` are retained for reproducibility and are not loaded by the runtime. Decoration prompt specifications and the processing command are documented in [`DECOR_ASSET_PROMPTS.md`](DECOR_ASSET_PROMPTS.md).
 
 The original UI reference images are not embedded in these assets. Layout, token and interaction decisions were reimplemented as native HTML/CSS/Canvas based on the supplied specification.
 
 ## Open-source gameplay previews
 
-The repository commits the browser-captured gameplay previews under `public/assets/screenshots/`. Files `09-repaired-carriage.png`, `10-route-preview.png`, and `11-module-preview.png` were captured from the v0.3.1 runtime at a 390×844 viewport by `tools/audit-buttons.mjs`. They document the playable repair loop and the read-only route/module preview states; they are not detached mockups.
+The repository commits browser-captured gameplay previews under `public/assets/screenshots/`. Files `09-repaired-carriage.png`, `10-route-preview.png`, and `11-module-preview.png` document the v0.3.1 repair and read-only preview loops. Files `12-decor-placement.png` and `13-decor-in-play.png` are 390×844 captures from the v0.4.0 runtime and document both the active drag interface and the resulting normal-play carriage. All are produced by `tools/audit-buttons.mjs`; they are not detached mockups.

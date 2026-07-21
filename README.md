@@ -11,6 +11,7 @@
 - 配電會在入夜時實際扣除電量並依 P3 → P1 自動斷載；停用設備會同步改變可用反制。
 - 安心／標準／節約三種配餐會在黎明影響食水、睡眠、壓力與信任；物資不足會造成健康損失。
 - 夜間可暫停倒數；威脅逐夜加速、破口傷害逐夜提高，健康或車體歸零會進入可重玩的失敗結局。
+- 車廂佈置模式提供 4 件 GPT 製作的透明小物：黃銅燈、短波機、工具箱與蕨盆栽；支援滑鼠／手指拖曳、重設、放開自動存檔與重載復原。
 - 8 個核心畫面與 A/B 狀態：主選單、局外中心、車廂、路線、事件、模組、科技、結算。
 - 8 個資料驅動事件、3 條路線、12 個模組、5 個科技節點、2 種交替夜間威脅。
 - IndexedDB current／backup 雙存檔，localStorage 降級，PWA 離線快取。
@@ -35,6 +36,10 @@
 | 破口後維修 | 局外路線預覽 | 起始藍圖預覽 |
 |---|---|---|
 | ![破口後維修](public/assets/screenshots/09-repaired-carriage.png) | ![局外路線預覽](public/assets/screenshots/10-route-preview.png) | ![起始藍圖預覽](public/assets/screenshots/11-module-preview.png) |
+
+| 小物拖曳配置 | 完成後正常遊玩 |
+|---|---|
+| ![小物拖曳配置](public/assets/screenshots/12-decor-placement.png) | ![完成後正常遊玩](public/assets/screenshots/13-decor-in-play.png) |
 
 ## 本機執行
 
@@ -63,7 +68,7 @@ npm run capture:video
 npm run capture:playability
 ```
 
-全按鈕手機瀏覽器稽核（36 種操作、局外預覽、存檔不變性與破口維修）：
+全按鈕手機瀏覽器稽核（41 種操作、實際拖曳、重載保存、局外預覽與破口維修）：
 
 ```bash
 npm run audit:buttons

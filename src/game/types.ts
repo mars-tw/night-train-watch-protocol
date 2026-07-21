@@ -6,6 +6,7 @@ export type CarriagePanel = "module" | "power" | "meal";
 export type RunOutcome = "active" | "victory" | "hull-lost" | "survivor-lost";
 export type ModuleCategory = "全部" | "防禦" | "生產" | "生活";
 export type TechBranch = "能源" | "居住" | "農業" | "防禦" | "情報";
+export type DecorationId = "lantern" | "radio" | "toolbox" | "fern";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -57,6 +58,12 @@ export interface ModuleInstance {
   powered: boolean;
   durability: number;
   mk: 1 | 2 | 3;
+}
+
+export interface DecorationPlacement {
+  id: DecorationId;
+  x: number;
+  y: number;
 }
 
 export interface RouteNode {
@@ -146,6 +153,7 @@ export interface RunState {
   survivor: SurvivorState;
   environment: EnvironmentState;
   modules: ModuleInstance[];
+  decorations: DecorationPlacement[];
   techOwned: string[];
   flags: string[];
   ledger: LedgerEntry[];
@@ -165,6 +173,8 @@ export interface AppState {
   eventPreview: boolean;
   routePreview: boolean;
   modulePreview: boolean;
+  decorating: boolean;
+  selectedDecorationId: DecorationId;
   moduleCategory: ModuleCategory;
   techBranch: TechBranch;
   saveStatus: "none" | "saved" | "saving" | "recovered" | "error";

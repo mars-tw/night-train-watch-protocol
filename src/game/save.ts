@@ -1,4 +1,5 @@
 import type { RunState, SettingsState } from "./types";
+import { createDecorationPlacements } from "./model";
 
 const DB_NAME = "night-train-save";
 const STORE_NAME = "snapshots";
@@ -16,6 +17,7 @@ function parseRun(raw: string | null): RunState | null {
     rationMode: value.rationMode ?? "standard",
     nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
     outcome: value.outcome ?? (value.ended ? "victory" : "active"),
+    decorations: Array.isArray(value.decorations) && value.decorations.length > 0 ? value.decorations : createDecorationPlacements(),
   };
 }
 

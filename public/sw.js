@@ -1,4 +1,4 @@
-const CACHE = "night-train-v0.3.1-button-audit";
+const CACHE = "night-train-v0.4.0-visible-decor";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

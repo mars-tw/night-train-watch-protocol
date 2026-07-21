@@ -1,5 +1,5 @@
-import { MODULES } from "./content";
-import type { AppState, RunState, SettingsState } from "./types";
+import { DECORATIONS, MODULES } from "./content";
+import type { AppState, DecorationPlacement, RunState, SettingsState } from "./types";
 
 export const DEFAULT_SETTINGS: SettingsState = {
   textScale: 100,
@@ -8,6 +8,10 @@ export const DEFAULT_SETTINGS: SettingsState = {
   lowSpeed: false,
   sound: true,
 };
+
+export function createDecorationPlacements(): DecorationPlacement[] {
+  return DECORATIONS.map((decoration) => ({ id: decoration.id, x: decoration.defaultX, y: decoration.defaultY }));
+}
 
 export function createRun(seed = `${Date.now()}`): RunState {
   return {
@@ -33,6 +37,7 @@ export function createRun(seed = `${Date.now()}`): RunState {
       durability: 100,
       mk: 1,
     })),
+    decorations: createDecorationPlacements(),
     techOwned: [],
     flags: [],
     ledger: [],
@@ -54,6 +59,8 @@ export function createAppState(): AppState {
     eventPreview: false,
     routePreview: false,
     modulePreview: false,
+    decorating: false,
+    selectedDecorationId: "lantern",
     moduleCategory: "全部",
     techBranch: "能源",
     saveStatus: "none",

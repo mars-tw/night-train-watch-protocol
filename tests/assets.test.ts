@@ -7,6 +7,7 @@ const workspace = resolve(import.meta.dirname, "..");
 describe("shipping art", () => {
   const assets = ["carriage-prep.png", "carriage-menu.png", "carriage-night.png", "threat-knocker.png", "threat-clinger.png"];
   const renderer = readFileSync(resolve(workspace, "src/game/renderer.ts"), "utf8");
+  const content = readFileSync(resolve(workspace, "src/game/content.ts"), "utf8");
 
   for (const asset of assets) {
     it(`${asset} exists and is referenced by the runtime renderer`, () => {
@@ -15,8 +16,18 @@ describe("shipping art", () => {
     });
   }
 
+  it("ships GPT-authored movable decoration sprites and their reproducible chroma sources", () => {
+    const decorations = ["lantern", "radio", "toolbox", "fern"];
+    for (const decoration of decorations) {
+      expect(existsSync(resolve(workspace, "public/assets/art/decor", `${decoration}.png`))).toBe(true);
+      expect(existsSync(resolve(workspace, "public/assets/source", `decor-${decoration}-chroma.png`))).toBe(true);
+      expect(content).toContain(`decor/${decoration}.png`);
+    }
+    expect(existsSync(resolve(workspace, "tools/process-decor-sprites.py"))).toBe(true);
+  });
+
   it("commits the audited mobile gameplay previews to the open-source project", () => {
-    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png"];
+    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png"];
     for (const preview of previews) {
       expect(existsSync(resolve(workspace, "public/assets/screenshots", preview)), `${preview} should be public`).toBe(true);
     }
@@ -39,7 +50,7 @@ describe("shipping art", () => {
 
   it("bumps the offline cache so installed games receive the motion release", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.3.1-button-audit');
+    expect(serviceWorker).toContain('night-train-v0.4.0-visible-decor');
   });
 
   it("wires every rendered button action to the application controller", () => {
@@ -51,7 +62,7 @@ describe("shipping art", () => {
       "tech", "event-preview", "select-route", "confirm-route", "event-choice", "counter", "next-day", "select-module",
       "select-module-category", "power", "meal", "toggle-module", "toggle-power", "select-ration", "build-module", "select-tech",
       "select-tech-branch", "unlock-tech", "harvest", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
-      "toggle-speed", "toggle-sound",
+      "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "reset-decor", "finish-decor",
     ];
 
     expect(buttonTags.length).toBeGreaterThan(20);
