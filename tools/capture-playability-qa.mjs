@@ -48,14 +48,14 @@ await page.waitForFunction(() => document.querySelector(".toast-message")?.textC
 assert((await page.locator(".toast-message").textContent())?.includes("安心餐"), "Ration choice should provide immediate feedback.");
 await page.screenshot({ path: resolve(outputDirectory, "02-ration-plan.png") });
 
-await page.getByRole("button", { name: "種" }).click();
-await page.waitForFunction(() => document.querySelector(".module-detail h3")?.textContent?.includes("垂直種植架"));
-await page.getByRole("button", { name: /收成 2/ }).click();
+await page.locator('[data-action="select-carriage"][data-value="greenhouse"]').click();
+await page.locator('[data-action="select-crop"][data-value="lettuce"]').click();
+await page.locator('[data-action="plant-crop"][data-value="plot-a:lettuce"]').first().click();
 await page.waitForFunction(() => document.querySelector(".app-header")?.textContent?.includes("4 AP"));
-assert((await page.locator(".app-header").textContent())?.includes("4 AP"), "Harvest should spend one AP.");
-assert((await page.locator(".toast-message").textContent())?.includes("收成 2 份"), "Harvest should explain its resource result.");
-assert(await page.getByRole("button", { name: /已收成/ }).isDisabled(), "Harvest should be limited to once per day.");
-await page.screenshot({ path: resolve(outputDirectory, "03-harvest-spent.png") });
+assert((await page.locator(".app-header").textContent())?.includes("4 AP"), "Sowing should spend one AP.");
+assert((await page.locator(".toast-message").textContent())?.includes("葉萵苣已播入上層槽"), "Sowing should explain the first irrigation and growth requirement.");
+assert(await page.locator('.crop-scene-plot.stage-1').count() === 1, "The sown crop should be visible inside the carriage.");
+await page.screenshot({ path: resolve(outputDirectory, "03-crop-sown.png") });
 
 await page.getByRole("button", { name: /出發/ }).click();
 await page.getByRole("button", { name: "確認路線" }).click();
@@ -84,6 +84,10 @@ await page.waitForSelector(".screen--result");
 assert((await page.locator(".aftermath-note").textContent())?.includes("安心餐"), "Dawn result should report the selected ration plan.");
 assert(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), "Mobile viewport should not overflow horizontally.");
 await page.screenshot({ path: resolve(outputDirectory, "05-dawn-tradeoffs.png") });
+await page.getByRole("button", { name: /進入第 2 日/ }).click();
+await page.waitForSelector('.crop-scene-plot.stage-2');
+assert(await page.locator('.crop-scene-plot.stage-2').count() === 1, "The powered and watered crop should visibly advance after dawn.");
+await page.screenshot({ path: resolve(outputDirectory, "06-crop-grown.png") });
 
 console.log(`Playability QA passed; screenshots written to ${outputDirectory}`);
 await browser.close();

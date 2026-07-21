@@ -1,9 +1,14 @@
-import type { AppState, ContactStage, ThreatContact } from "./types";
+import type { AppState, CarriageId, ContactStage, ThreatContact } from "./types";
 
-type ArtKey = "prep" | "night" | "menu" | "threat-knocker" | "threat-clinger";
+type CarriageArtKey = `carriage-${CarriageId}`;
+type ArtKey = CarriageArtKey | "night" | "menu" | "threat-knocker" | "threat-clinger";
 
 const ART_SOURCES: Record<ArtKey, string> = {
-  prep: "./assets/art/carriage-prep.png",
+  "carriage-sleep": "./assets/art/carriage-sleep.png",
+  "carriage-defense": "./assets/art/carriage-defense.png",
+  "carriage-workshop": "./assets/art/carriage-workshop.png",
+  "carriage-greenhouse": "./assets/art/carriage-greenhouse.png",
+  "carriage-kitchen": "./assets/art/carriage-kitchen.png",
   night: "./assets/art/carriage-night.png",
   menu: "./assets/art/carriage-menu.png",
   "threat-knocker": "./assets/art/threat-knocker.png",
@@ -56,13 +61,14 @@ export class SceneRenderer {
     const phase = state?.run?.phase;
     const contact = state?.run?.activeContact;
     const reducedMotion = this.motionIsReduced();
-    const artKey: ArtKey = state?.screen === "menu" || state?.screen === "result" ? "menu" : phase === "night" ? "night" : "prep";
+    const carriageArtKey: CarriageArtKey = `carriage-${state?.activeCarriageId ?? "greenhouse"}`;
+    const artKey: ArtKey = state?.screen === "menu" || state?.screen === "result" ? "menu" : carriageArtKey;
 
     ctx.save();
     const sway = reducedMotion ? { x: 0, y: 0 } : this.trainSway(time);
     const impact = reducedMotion ? { x: 0, y: 0 } : this.impactShake(contact, time);
     ctx.translate(sway.x + impact.x, sway.y + impact.y);
-    if (!this.drawArt(artKey)) this.drawFallback(artKey, time);
+    if (!this.drawArt(artKey)) this.drawFallback(artKey, time, phase === "night");
     this.drawWindowMotion(time, phase === "night", reducedMotion);
     this.drawCarriageLife(time, phase === "night", reducedMotion);
     this.drawAtmosphere(time, phase === "night", reducedMotion);
@@ -88,9 +94,8 @@ export class SceneRenderer {
     return true;
   }
 
-  private drawFallback(key: ArtKey, time: number): void {
+  private drawFallback(key: ArtKey, time: number, night = key === "night"): void {
     const ctx = this.context;
-    const night = key === "night";
     const gradient = ctx.createLinearGradient(0, 0, 0, 1280);
     gradient.addColorStop(0, night ? "#16232b" : "#3c3329");
     gradient.addColorStop(0.45, night ? "#20292d" : "#6b4a29");

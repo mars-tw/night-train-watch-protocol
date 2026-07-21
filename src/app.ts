@@ -1,10 +1,10 @@
-import { EVENTS, TECH_NODES } from "./game/content";
+import { CARRIAGES, CROPS, DECORATIONS, EVENTS, TECH_NODES } from "./game/content";
 import { AudioService } from "./game/audio";
 import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, DecorationId, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
+import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -48,6 +48,7 @@ export class NightTrainApp {
         this.state.routePreview = false;
         this.state.modulePreview = false;
         this.state.decorating = false;
+        this.state.activeCarriageId = "greenhouse";
         this.state.saveStatus = "saving";
         await this.persist();
         break;
@@ -154,6 +155,7 @@ export class NightTrainApp {
           const choice = gameEvent?.choices.find((candidate) => candidate.id === value) as EventChoice | undefined;
           if (choice && this.runService.resolveEvent(run, choice)) {
             this.state.screen = "carriage";
+            this.state.activeCarriageId = "defense";
             this.state.nightPaused = false;
             this.startNightTimer();
             if (this.state.settings.sound) this.audio.cue("warning");
@@ -179,6 +181,7 @@ export class NightTrainApp {
           this.state.screen = run.ended ? "result" : "carriage";
           this.state.carriagePanel = "module";
           this.state.decorating = false;
+          this.state.activeCarriageId = "greenhouse";
           this.state.nightPaused = false;
           await this.persist();
         }
@@ -203,31 +206,48 @@ export class NightTrainApp {
         if (run?.phase === "prep") {
           this.state.decorating = false;
           this.state.carriagePanel = "meal";
+          this.state.activeCarriageId = "kitchen";
+        }
+        break;
+      case "select-carriage":
+        if (run?.phase === "prep" && value && CARRIAGES.some((carriage) => carriage.id === value)) {
+          this.state.activeCarriageId = value as CarriageId;
+          this.state.carriagePanel = "module";
+          const carriage = CARRIAGES.find((item) => item.id === value)!;
+          run.lastMessage = `已切換到${carriage.name}：${carriage.signature}。`;
         }
         break;
       case "decorate":
         if (run?.phase === "prep") {
           this.state.decorating = true;
-          run.lastMessage = "拖曳小物到車廂中的發光區域；放開即保存。";
+          run.lastMessage = "先選小物，再點相容槽；也可把場景中的小物拖到綠色槽位。";
         }
         break;
       case "select-decoration":
-        if (run?.phase === "prep" && value && ["lantern", "radio", "toolbox", "fern"].includes(value)) {
+        if (run?.phase === "prep" && value && DECORATIONS.some((decoration) => decoration.id === value)) {
           this.state.selectedDecorationId = value as DecorationId;
           this.state.decorating = true;
-          const names: Record<DecorationId, string> = { lantern: "黃銅燈", radio: "短波機", toolbox: "工具箱", fern: "蕨盆栽" };
-          run.lastMessage = `${names[this.state.selectedDecorationId]}已選取；直接拖曳到想要的位置。`;
+          const decoration = DECORATIONS.find((item) => item.id === value)!;
+          run.lastMessage = `${decoration.name}已選取；綠色槽可放、紅色斜線槽不相容。`;
         }
         break;
       case "move-decoration":
         if (run?.phase === "prep" && value) {
-          const [id, rawX, rawY] = value.split(":");
-          const x = Number(rawX);
-          const y = Number(rawY);
-          if (["lantern", "radio", "toolbox", "fern"].includes(id ?? "") && Number.isFinite(x) && Number.isFinite(y)) {
+          const [id, slotId] = value.split(":");
+          if (DECORATIONS.some((decoration) => decoration.id === id)) {
             this.state.selectedDecorationId = id as DecorationId;
             this.state.decorating = true;
-            if (this.runService.moveDecoration(run, id as DecorationId, x, y)) await this.persist();
+            if (this.runService.moveDecoration(run, id as DecorationId, slotId ?? "")) await this.persist();
+          }
+        }
+        break;
+      case "place-decoration":
+        if (run?.phase === "prep" && value) {
+          const [id, slotId] = value.split(":");
+          if (DECORATIONS.some((decoration) => decoration.id === id)) {
+            this.state.selectedDecorationId = id as DecorationId;
+            this.state.decorating = true;
+            if (this.runService.moveDecoration(run, id as DecorationId, slotId ?? "")) await this.persist();
           }
         }
         break;
@@ -241,7 +261,7 @@ export class NightTrainApp {
       case "finish-decor":
         if (run?.phase === "prep") {
           this.state.decorating = false;
-          run.lastMessage = "車廂佈置已保存；四件小物會在守夜時留在原位。";
+          run.lastMessage = "五種車廂的槽位佈置已保存；守夜時會保留各自配置。";
           await this.persist();
         }
         break;
@@ -280,9 +300,39 @@ export class NightTrainApp {
           await this.persist();
         }
         break;
-      case "harvest":
+      case "select-crop":
+        if (value && CROPS.some((crop) => crop.id === value)) this.state.selectedCropId = value as CropId;
+        break;
+      case "plant-crop":
+        if (run && value) {
+          const [plotId, cropId] = value.split(":");
+          if (["plot-a", "plot-b"].includes(plotId ?? "") && CROPS.some((crop) => crop.id === cropId)) {
+            this.runService.plantCrop(run, plotId as CropPlotId, cropId as CropId);
+            await this.persist();
+          }
+        }
+        break;
+      case "water-crops":
         if (run) {
-          this.runService.harvest(run);
+          this.runService.waterCrops(run);
+          await this.persist();
+        }
+        break;
+      case "harvest-crop":
+        if (run && value && ["plot-a", "plot-b"].includes(value)) {
+          this.runService.harvestCrop(run, value as CropPlotId);
+          await this.persist();
+        }
+        break;
+      case "workshop-scrap":
+        if (run) {
+          this.runService.collectWorkshopScrap(run);
+          await this.persist();
+        }
+        break;
+      case "cook-meal":
+        if (run) {
+          this.runService.cookHotMeal(run);
           await this.persist();
         }
         break;

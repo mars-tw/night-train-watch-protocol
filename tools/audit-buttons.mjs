@@ -10,8 +10,9 @@ const expectedActions = [
   "new-game", "continue", "menu", "hub", "settings", "carriage", "pause", "route", "modules", "modules-preview",
   "tech", "event-preview", "select-route", "confirm-route", "event-choice", "counter", "next-day", "select-module",
   "select-module-category", "power", "meal", "toggle-module", "toggle-power", "select-ration", "build-module", "select-tech",
-  "select-tech-branch", "unlock-tech", "harvest", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
-  "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "reset-decor", "finish-decor",
+  "select-tech-branch", "unlock-tech", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
+  "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "place-decoration", "reset-decor", "finish-decor",
+  "select-carriage", "select-crop", "plant-crop", "water-crops", "harvest-crop", "workshop-scrap", "cook-meal",
 ];
 const clickedActions = new Set();
 const assertions = [];
@@ -38,6 +39,16 @@ async function auditRenderedButtons(label) {
     return [...new Set(buttons.map((button) => button.dataset.action).filter((action) => action && !allow.has(action)))];
   }, expectedActions);
   assert(unknownActions.length === 0, `${label}: every rendered action is part of the controller contract`);
+  const obstructed = await page.locator("button[data-action]:not([disabled])").evaluateAll((buttons) => buttons.flatMap((button) => {
+    const rect = button.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    if (rect.width === 0 || rect.height === 0 || x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return [];
+    const top = document.elementFromPoint(x, y);
+    if (top && (top === button || button.contains(top))) return [];
+    return [{ action: button.dataset.action, label: button.getAttribute("aria-label") ?? button.textContent?.trim().slice(0, 24), coveredBy: top?.tagName ?? "none" }];
+  }));
+  assert(obstructed.length === 0, `${label}: every visible enabled button has an unobstructed center target${obstructed.length ? ` (${JSON.stringify(obstructed)})` : ""}`);
 }
 
 async function clickAction(action, value) {
@@ -46,25 +57,26 @@ async function clickAction(action, value) {
   assert(await target.count() === 1, `${action}${value ? `:${value}` : ""} is present and enabled`);
   await target.click();
   clickedActions.add(action);
-  await page.waitForTimeout(60);
+  await page.waitForTimeout(await page.locator(".screen-enter").count() ? 560 : 60);
   await auditRenderedButtons(`after ${action}`);
+  console.log(`✓ ${action}${value === undefined ? "" : `:${value}`}`);
 }
 
-async function dragDecoration(id, targetX, targetY) {
+async function dragDecoration(id, slotId) {
   const item = page.locator(`.decor-item[data-decor-id="${id}"]`);
-  const layer = page.locator(".carriage-decor-layer");
+  const slot = page.locator(`.decor-slot[data-slot-id="${slotId}"]`);
   const itemBox = await item.boundingBox();
-  const layerBox = await layer.boundingBox();
-  assert(Boolean(itemBox && layerBox), `${id} decoration and carriage placement area are visible`);
+  const slotBox = await slot.boundingBox();
+  assert(Boolean(itemBox && slotBox), `${id} decoration and ${slotId} placement slot are visible`);
   await page.mouse.move(itemBox.x + itemBox.width / 2, itemBox.y + itemBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(layerBox.x + layerBox.width * targetX / 100, layerBox.y + layerBox.height * targetY / 100, { steps: 12 });
+  await page.mouse.move(slotBox.x + slotBox.width / 2, slotBox.y + slotBox.height / 2, { steps: 12 });
   await page.mouse.up();
   clickedActions.add("move-decoration");
-  await page.waitForFunction(({ decorId, x, y }) => {
+  await page.waitForFunction(({ decorId, expectedSlot }) => {
     const target = document.querySelector(`[data-decor-id="${decorId}"]`);
-    return target && Math.abs(Number(target.getAttribute("data-decoration-x")) - x) < 2 && Math.abs(Number(target.getAttribute("data-decoration-y")) - y) < 2;
-  }, { decorId: id, x: targetX, y: targetY });
+    return target?.getAttribute("data-decoration-slot") === expectedSlot;
+  }, { decorId: id, expectedSlot: slotId });
   await auditRenderedButtons(`after dragging ${id}`);
 }
 
@@ -109,36 +121,54 @@ try {
   await clickAction("new-game");
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "new game starts with five action points");
+  assert(await page.locator('.screen--carriage[data-carriage="greenhouse"]').count() === 1, "new game opens the distinct greenhouse carriage");
+
+  await clickAction("select-crop", "tomato");
+  await clickAction("plant-crop", "plot-a:tomato");
+  await page.waitForSelector('.crop-scene-plot.stage-1');
+  assert((await page.locator(".toast-message").textContent())?.includes("矮株番茄已播入上層槽"), "sowing gives visible crop and resource feedback");
+  await page.screenshot({ path: resolve(outputDirectory, "17-greenhouse-farming.png"), fullPage: true });
+
+  await clickAction("select-carriage", "sleep");
+  assert(await page.locator('.screen--carriage[data-carriage="sleep"]').count() === 1, "sleep carriage has its own visible configuration");
+  await page.screenshot({ path: resolve(outputDirectory, "14-sleep-carriage.png"), fullPage: true });
+  await clickAction("comfort");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("壓力 −8"));
+  assert((await page.locator(".toast-message").textContent())?.includes("壓力 −8"), "sleep-carriage comfort action reports its survivor effect");
+
+  await clickAction("select-carriage", "defense");
+  assert(await page.locator('.screen--carriage[data-carriage="defense"]').count() === 1, "defense carriage has its own visible configuration");
+  await page.screenshot({ path: resolve(outputDirectory, "15-defense-carriage.png"), fullPage: true });
+  await clickAction("toggle-module", "M001");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("停用"));
+  await clickAction("toggle-module", "M001");
+
+  await clickAction("select-carriage", "workshop");
+  assert(await page.locator('.screen--carriage[data-carriage="workshop"]').count() === 1, "workshop carriage has its own visible configuration");
+  await page.screenshot({ path: resolve(outputDirectory, "16-workshop-carriage.png"), fullPage: true });
+  await clickAction("workshop-scrap");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("零件 +1"));
+  assert((await page.locator(".toast-message").textContent())?.includes("零件 +1"), "workshop salvage changes parts and noise");
 
   await clickAction("decorate");
   await page.waitForSelector(".decor-tray");
-  assert(await page.locator(".decor-item img").count() === 4, "four GPT decoration sprites are visible inside the carriage");
+  assert(await page.locator(".decor-picker img").count() === 4, "four GPT decoration sprites are visible in the placement tray");
   await clickAction("select-decoration", "radio");
-  await dragDecoration("radio", 52, 40);
-  assert((await page.locator(".toast-message").textContent())?.includes("短波機已移到新位置"), "dragging a sprite gives visible save feedback");
+  assert(await page.locator(".decor-slot.is-valid").count() > 0, "selected item exposes green compatible slots");
+  assert(await page.locator(".decor-slot.is-invalid").count() > 0, "selected item exposes red incompatible slots");
+  await page.screenshot({ path: resolve(outputDirectory, "19-slot-placement.png"), fullPage: true });
+  await clickAction("place-decoration", "radio:workshop-bench");
+  await page.waitForFunction(() => document.querySelector('[data-decor-id="radio"]')?.getAttribute("data-decoration-slot") === "workshop-bench");
+  await dragDecoration("radio", "workshop-radio");
+  assert((await page.locator(".toast-message").textContent())?.includes("已吸附到電台層架"), "dragging a sprite snaps into the authored compatible slot");
+  const savedRadioSlot = await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-slot");
   await clickAction("reset-decor");
-  await page.waitForFunction(() => document.querySelector('[data-decor-id="radio"]')?.getAttribute("data-decoration-x") === "68");
-  await dragDecoration("radio", 68, 20);
-  const savedRadioPosition = await page.locator('[data-decor-id="radio"]').evaluate((element) => ({ x: element.getAttribute("data-decoration-x"), y: element.getAttribute("data-decoration-y") }));
+  await page.waitForFunction(() => document.querySelector('[data-decor-id="radio"]')?.getAttribute("data-decoration-slot") === "workshop-radio");
   await page.screenshot({ path: resolve(outputDirectory, "00-visible-drag-decoration.png"), fullPage: true });
   await clickAction("finish-decor");
   await page.waitForFunction(() => !document.querySelector(".decor-tray"));
-  assert(await page.locator(".decor-item img").count() === 4, "finished decorations remain visibly placed in the carriage");
+  assert(await page.locator('.decor-item[data-decor-id="radio"] img').count() === 1, "finished decoration remains visibly placed in its carriage");
   await page.screenshot({ path: resolve(outputDirectory, "00b-visible-decorations-in-play.png"), fullPage: true });
-
-  await clickAction("select-module", "M002");
-  await clickAction("comfort");
-  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("壓力 −8"));
-  assert((await page.locator(".toast-message").textContent())?.includes("壓力 −8"), "comfort reports its survivor effect");
-  await clickAction("toggle-module", "M002");
-  await page.waitForFunction(() => document.querySelector(".module-state")?.textContent?.includes("OFF"));
-  assert((await page.locator(".module-state").textContent())?.includes("OFF"), "module detail toggle turns the heater off");
-  await clickAction("toggle-module", "M002");
-  await page.waitForFunction(() => document.querySelector(".module-state")?.textContent?.includes("ON"));
-  await clickAction("select-module", "M003");
-  await clickAction("harvest");
-  await page.waitForFunction(() => document.querySelector('[data-action="harvest"]')?.hasAttribute("disabled"));
-  assert(await page.locator('[data-action="harvest"]').isDisabled(), "harvest becomes disabled after its once-per-day use");
 
   await clickAction("modules");
   await page.waitForSelector(".screen--modules");
@@ -157,6 +187,8 @@ try {
   await page.waitForFunction(() => document.querySelector('[data-action="toggle-power"][data-value="M004"]')?.textContent?.includes("ON"));
   await clickAction("meal");
   await page.waitForSelector(".meal-config");
+  assert(await page.locator('.screen--carriage[data-carriage="kitchen"]').count() === 1, "meal control opens the distinct kitchen carriage");
+  await page.screenshot({ path: resolve(outputDirectory, "18-kitchen-carriage.png"), fullPage: true });
   await clickAction("select-ration", "full");
   await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("安心餐"));
   assert((await page.locator(".toast-message").textContent())?.includes("安心餐"), "ration selection gives immediate feedback");
@@ -190,6 +222,17 @@ try {
   await page.waitForSelector(".screen--result");
   await clickAction("next-day");
   await page.waitForSelector(".screen--carriage.is-prep");
+  assert(await page.locator('.crop-scene-plot.stage-2').count() === 1, "watered seed becomes a visibly larger crop after the first powered night");
+  const apBeforeWater = JSON.parse((await page.evaluate(() => localStorage.getItem("run.current"))) ?? "{}").actionPoints;
+  await clickAction("water-crops");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("水培架已灌溉"));
+  assert((await page.locator(".toast-message").textContent())?.includes("水培架已灌溉"), "day-two irrigation is visible and does not consume AP");
+  const apAfterWater = JSON.parse((await page.evaluate(() => localStorage.getItem("run.current"))) ?? "{}").actionPoints;
+  assert(apAfterWater === apBeforeWater, "irrigation preserves the current action points");
+  await clickAction("select-carriage", "kitchen");
+  await clickAction("cook-meal");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("熱食完成"));
+  assert((await page.locator(".toast-message").textContent())?.includes("熱食完成"), "kitchen hot-meal action changes survivor state and resources");
 
   await clickAction("route");
   await clickAction("select-route", "RN01");
@@ -202,8 +245,13 @@ try {
   assert((await page.locator(".aftermath-note").textContent())?.includes("破口"), "unanswered threat reaches a visible breach result");
   await clickAction("next-day");
   await page.waitForSelector(".screen--carriage.is-prep");
+  assert(await page.locator('.crop-scene-plot.stage-3').count() === 1, "crop reaches the visible mature stage after the second watered powered night");
+  await page.screenshot({ path: resolve(outputDirectory, "17-greenhouse-farming.png"), fullPage: true });
+  await clickAction("harvest-crop", "plot-a");
+  await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("矮株番茄已收成"));
+  assert((await page.locator(".toast-message").textContent())?.includes("矮株番茄已收成"), "mature crop can be harvested into food");
   const damagedHull = Number((await page.locator(".status-panel--environment div").last().locator("strong").textContent())?.replace("%", ""));
-  await clickAction("select-module", "M001");
+  await clickAction("select-carriage", "defense");
   await clickAction("repair-hull");
   await page.waitForFunction((before) => Number(document.querySelector(".status-panel--environment div:last-child strong")?.textContent?.replace("%", "")) > before, damagedHull);
   const repairedHull = Number((await page.locator(".status-panel--environment div").last().locator("strong").textContent())?.replace("%", ""));
@@ -216,8 +264,8 @@ try {
   await clickAction("continue");
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("第 3 日"), "continue restores the current preparation day");
-  assert(await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-x") === savedRadioPosition.x, "dragged radio x position survives reload");
-  assert(await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-y") === savedRadioPosition.y, "dragged radio y position survives reload");
+  await clickAction("select-carriage", "workshop");
+  assert(await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-slot") === savedRadioSlot, "snapped radio slot survives reload");
 
   await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForSelector(".screen--menu");
@@ -277,5 +325,5 @@ try {
   await writeFile(resolve(outputDirectory, "report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
   console.log(`Button audit passed: ${report.actionCount} actions, ${report.assertions} assertions; report written to ${outputDirectory}`);
 } finally {
-  await browser.close();
+  await Promise.race([browser.close(), new Promise((resolveClose) => setTimeout(resolveClose, 5000))]);
 }

@@ -1,5 +1,5 @@
-import { DECORATIONS, MODULES } from "./content";
-import type { AppState, DecorationPlacement, RunState, SettingsState } from "./types";
+import { DECORATIONS, DECORATION_SLOTS, MODULES } from "./content";
+import type { AppState, CropPlot, DecorationPlacement, RunState, SettingsState } from "./types";
 
 export const DEFAULT_SETTINGS: SettingsState = {
   textScale: 100,
@@ -10,12 +10,23 @@ export const DEFAULT_SETTINGS: SettingsState = {
 };
 
 export function createDecorationPlacements(): DecorationPlacement[] {
-  return DECORATIONS.map((decoration) => ({ id: decoration.id, x: decoration.defaultX, y: decoration.defaultY }));
+  return DECORATIONS.map((decoration) => {
+    const slot = DECORATION_SLOTS.find((candidate) => candidate.id === decoration.defaultSlotId);
+    if (!slot) throw new Error(`Missing decoration slot ${decoration.defaultSlotId}`);
+    return { id: decoration.id, carriageId: slot.carriageId, slotId: slot.id, x: slot.x, y: slot.y };
+  });
+}
+
+export function createCropPlots(): CropPlot[] {
+  return [
+    { id: "plot-a", stage: 0, dryDays: 0 },
+    { id: "plot-b", stage: 0, dryDays: 0 },
+  ];
 }
 
 export function createRun(seed = `${Date.now()}`): RunState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     seed,
     day: 1,
     maxDays: 7,
@@ -38,6 +49,7 @@ export function createRun(seed = `${Date.now()}`): RunState {
       mk: 1,
     })),
     decorations: createDecorationPlacements(),
+    crops: createCropPlots(),
     techOwned: [],
     flags: [],
     ledger: [],
@@ -61,6 +73,8 @@ export function createAppState(): AppState {
     modulePreview: false,
     decorating: false,
     selectedDecorationId: "lantern",
+    activeCarriageId: "greenhouse",
+    selectedCropId: "lettuce",
     moduleCategory: "全部",
     techBranch: "能源",
     saveStatus: "none",
