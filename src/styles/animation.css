@@ -50,6 +50,10 @@
 .scene-hotspots button:nth-child(2) { animation-delay: 340ms; }
 .scene-hotspots button:nth-child(3) { animation-delay: 680ms; }
 
+.carriage-decor-layer.is-editing .decor-item.is-selected {
+  animation: decor-magnet 1.8s ease-in-out infinite;
+}
+
 .route-map path,
 .tech-tree path {
   animation: route-flow 8s linear infinite;
@@ -190,6 +194,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes decor-magnet {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(226, 168, 93, 0.1), 0 0 15px rgba(226, 168, 93, 0.22); }
+  50% { box-shadow: 0 0 0 7px rgba(226, 168, 93, 0.03), 0 0 26px rgba(226, 168, 93, 0.42); }
+}
+
 @keyframes panel-rise {
   from { opacity: 0; transform: translateY(22px); }
   to { opacity: 1; transform: translateY(0); }
@@ -283,6 +292,7 @@
 @media (prefers-reduced-motion: reduce) {
   .brand-rails i,
   .scene-hotspots button,
+  .carriage-decor-layer.is-editing .decor-item.is-selected,
   .route-map path,
   .tech-tree path,
   .route-node.is-selected,

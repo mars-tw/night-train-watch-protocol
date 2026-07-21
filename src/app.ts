@@ -4,7 +4,7 @@ import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
+import type { AppState, DecorationId, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -47,6 +47,7 @@ export class NightTrainApp {
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
+        this.state.decorating = false;
         this.state.saveStatus = "saving";
         await this.persist();
         break;
@@ -57,6 +58,7 @@ export class NightTrainApp {
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
+        this.state.decorating = false;
         this.state.saveStatus = loaded.recovered ? "recovered" : "saved";
         this.state.screen = this.screenForPhase();
         break;
@@ -66,6 +68,7 @@ export class NightTrainApp {
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
+        this.state.decorating = false;
         break;
       case "hub":
         if (!this.state.run) {
@@ -76,6 +79,7 @@ export class NightTrainApp {
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
+        this.state.decorating = false;
         break;
       case "settings":
         this.state.screen = "settings";
@@ -85,6 +89,7 @@ export class NightTrainApp {
         this.state.screen = "carriage";
         this.state.routePreview = false;
         this.state.modulePreview = false;
+        this.state.decorating = false;
         break;
       case "pause":
         if (run?.phase === "night" && !this.state.settings.noCountdown) {
@@ -94,6 +99,7 @@ export class NightTrainApp {
         break;
       case "route":
         if (run && run.phase !== "night") {
+          this.state.decorating = false;
           this.state.routePreview = this.state.screen === "hub" || run.ended;
           this.state.modulePreview = false;
           if (!this.state.routePreview) run.phase = "route";
@@ -101,24 +107,28 @@ export class NightTrainApp {
         }
         break;
       case "modules":
+        this.state.decorating = false;
         this.state.modulePreview = false;
         this.state.routePreview = false;
         this.state.screen = "modules";
         break;
       case "modules-preview":
         if (run) {
+          this.state.decorating = false;
           this.state.modulePreview = true;
           this.state.routePreview = false;
           this.state.screen = "modules";
         }
         break;
       case "tech":
+        this.state.decorating = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
         this.state.screen = "tech";
         break;
       case "event-preview":
         if (run) {
+          this.state.decorating = false;
           this.state.eventPreview = true;
           this.state.routePreview = false;
           this.state.modulePreview = false;
@@ -168,12 +178,14 @@ export class NightTrainApp {
           this.runService.continueAftermath(run);
           this.state.screen = run.ended ? "result" : "carriage";
           this.state.carriagePanel = "module";
+          this.state.decorating = false;
           this.state.nightPaused = false;
           await this.persist();
         }
         break;
       case "select-module":
         if (value) {
+          this.state.decorating = false;
           this.state.selectedModuleId = value;
           this.state.carriagePanel = "module";
         }
@@ -182,10 +194,56 @@ export class NightTrainApp {
         if (value && ["全部", "防禦", "生產", "生活"].includes(value)) this.state.moduleCategory = value as ModuleCategory;
         break;
       case "power":
-        if (run?.phase === "prep") this.state.carriagePanel = "power";
+        if (run?.phase === "prep") {
+          this.state.decorating = false;
+          this.state.carriagePanel = "power";
+        }
         break;
       case "meal":
-        if (run?.phase === "prep") this.state.carriagePanel = "meal";
+        if (run?.phase === "prep") {
+          this.state.decorating = false;
+          this.state.carriagePanel = "meal";
+        }
+        break;
+      case "decorate":
+        if (run?.phase === "prep") {
+          this.state.decorating = true;
+          run.lastMessage = "拖曳小物到車廂中的發光區域；放開即保存。";
+        }
+        break;
+      case "select-decoration":
+        if (run?.phase === "prep" && value && ["lantern", "radio", "toolbox", "fern"].includes(value)) {
+          this.state.selectedDecorationId = value as DecorationId;
+          this.state.decorating = true;
+          const names: Record<DecorationId, string> = { lantern: "黃銅燈", radio: "短波機", toolbox: "工具箱", fern: "蕨盆栽" };
+          run.lastMessage = `${names[this.state.selectedDecorationId]}已選取；直接拖曳到想要的位置。`;
+        }
+        break;
+      case "move-decoration":
+        if (run?.phase === "prep" && value) {
+          const [id, rawX, rawY] = value.split(":");
+          const x = Number(rawX);
+          const y = Number(rawY);
+          if (["lantern", "radio", "toolbox", "fern"].includes(id ?? "") && Number.isFinite(x) && Number.isFinite(y)) {
+            this.state.selectedDecorationId = id as DecorationId;
+            this.state.decorating = true;
+            if (this.runService.moveDecoration(run, id as DecorationId, x, y)) await this.persist();
+          }
+        }
+        break;
+      case "reset-decor":
+        if (run?.phase === "prep") {
+          this.runService.resetDecorations(run);
+          this.state.selectedDecorationId = "lantern";
+          await this.persist();
+        }
+        break;
+      case "finish-decor":
+        if (run?.phase === "prep") {
+          this.state.decorating = false;
+          run.lastMessage = "車廂佈置已保存；四件小物會在守夜時留在原位。";
+          await this.persist();
+        }
         break;
       case "toggle-module":
       case "toggle-power":

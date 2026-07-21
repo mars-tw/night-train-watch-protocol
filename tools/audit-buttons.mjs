@@ -11,7 +11,7 @@ const expectedActions = [
   "tech", "event-preview", "select-route", "confirm-route", "event-choice", "counter", "next-day", "select-module",
   "select-module-category", "power", "meal", "toggle-module", "toggle-power", "select-ration", "build-module", "select-tech",
   "select-tech-branch", "unlock-tech", "harvest", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
-  "toggle-speed", "toggle-sound",
+  "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "reset-decor", "finish-decor",
 ];
 const clickedActions = new Set();
 const assertions = [];
@@ -48,6 +48,24 @@ async function clickAction(action, value) {
   clickedActions.add(action);
   await page.waitForTimeout(60);
   await auditRenderedButtons(`after ${action}`);
+}
+
+async function dragDecoration(id, targetX, targetY) {
+  const item = page.locator(`.decor-item[data-decor-id="${id}"]`);
+  const layer = page.locator(".carriage-decor-layer");
+  const itemBox = await item.boundingBox();
+  const layerBox = await layer.boundingBox();
+  assert(Boolean(itemBox && layerBox), `${id} decoration and carriage placement area are visible`);
+  await page.mouse.move(itemBox.x + itemBox.width / 2, itemBox.y + itemBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(layerBox.x + layerBox.width * targetX / 100, layerBox.y + layerBox.height * targetY / 100, { steps: 12 });
+  await page.mouse.up();
+  clickedActions.add("move-decoration");
+  await page.waitForFunction(({ decorId, x, y }) => {
+    const target = document.querySelector(`[data-decor-id="${decorId}"]`);
+    return target && Math.abs(Number(target.getAttribute("data-decoration-x")) - x) < 2 && Math.abs(Number(target.getAttribute("data-decoration-y")) - y) < 2;
+  }, { decorId: id, x: targetX, y: targetY });
+  await auditRenderedButtons(`after dragging ${id}`);
 }
 
 try {
@@ -91,6 +109,22 @@ try {
   await clickAction("new-game");
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "new game starts with five action points");
+
+  await clickAction("decorate");
+  await page.waitForSelector(".decor-tray");
+  assert(await page.locator(".decor-item img").count() === 4, "four GPT decoration sprites are visible inside the carriage");
+  await clickAction("select-decoration", "radio");
+  await dragDecoration("radio", 52, 40);
+  assert((await page.locator(".toast-message").textContent())?.includes("短波機已移到新位置"), "dragging a sprite gives visible save feedback");
+  await clickAction("reset-decor");
+  await page.waitForFunction(() => document.querySelector('[data-decor-id="radio"]')?.getAttribute("data-decoration-x") === "68");
+  await dragDecoration("radio", 68, 20);
+  const savedRadioPosition = await page.locator('[data-decor-id="radio"]').evaluate((element) => ({ x: element.getAttribute("data-decoration-x"), y: element.getAttribute("data-decoration-y") }));
+  await page.screenshot({ path: resolve(outputDirectory, "00-visible-drag-decoration.png"), fullPage: true });
+  await clickAction("finish-decor");
+  await page.waitForFunction(() => !document.querySelector(".decor-tray"));
+  assert(await page.locator(".decor-item img").count() === 4, "finished decorations remain visibly placed in the carriage");
+  await page.screenshot({ path: resolve(outputDirectory, "00b-visible-decorations-in-play.png"), fullPage: true });
 
   await clickAction("select-module", "M002");
   await clickAction("comfort");
@@ -182,6 +216,8 @@ try {
   await clickAction("continue");
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("第 3 日"), "continue restores the current preparation day");
+  assert(await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-x") === savedRadioPosition.x, "dragged radio x position survives reload");
+  assert(await page.locator('[data-decor-id="radio"]').getAttribute("data-decoration-y") === savedRadioPosition.y, "dragged radio y position survives reload");
 
   await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForSelector(".screen--menu");

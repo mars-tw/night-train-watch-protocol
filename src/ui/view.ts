@@ -1,4 +1,4 @@
-import { MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
+import { DECORATIONS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
 import { counterReadiness, getNightPowerDemand } from "../game/services";
 import type { AppState, GameEvent, RunState } from "../game/types";
 import { escapeText, formatSigned } from "./dom";
@@ -142,6 +142,27 @@ function mealPrepPanel(run: RunState): string {
   return `<div class="prep-control-panel meal-config panel"><div class="prep-panel-heading"><h3>今夜配餐</h3><strong>黎明結算</strong></div><div class="ration-grid">${plans.map((plan) => `<button class="${run.rationMode === plan.id ? "is-selected" : ""}" data-action="select-ration" data-value="${plan.id}" aria-pressed="${run.rationMode === plan.id}"><strong>${plan.name}</strong><small>${plan.cost}</small><em>${plan.effect}</em></button>`).join("")}</div></div>`;
 }
 
+function decorationLayer(state: AppState, run: RunState, night: boolean): string {
+  const items = DECORATIONS.map((decoration) => {
+    const placement = run.decorations.find((item) => item.id === decoration.id) ?? { id: decoration.id, x: decoration.defaultX, y: decoration.defaultY };
+    const style = `--x:${placement.x}%;--y:${placement.y}%;--decor-size:${decoration.size}px`;
+    if (night || !state.decorating) return `<span class="decor-item ${night ? "decor-item--night" : "decor-item--display"}" data-decor-id="${decoration.id}" data-decoration-x="${placement.x}" data-decoration-y="${placement.y}" style="${style}" aria-hidden="true"><img src="${decoration.asset}" alt=""></span>`;
+    return `<button class="decor-item ${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" data-decor-id="${decoration.id}" data-decoration-x="${placement.x}" data-decoration-y="${placement.y}" style="${style}" aria-label="移動${decoration.name}"><img src="${decoration.asset}" alt="" draggable="false"><span aria-hidden="true">拖</span></button>`;
+  }).join("");
+  return `<div class="carriage-decor-layer ${state.decorating ? "is-editing" : ""}" aria-label="可移動車廂小物">
+    ${state.decorating ? `<div class="decor-drop-zones" aria-hidden="true"><i>左側層架</i><i>床邊桌面</i><i>右側設備</i></div><p class="decor-instruction">按住小物拖曳・放開自動保存</p>` : ""}
+    ${items}
+  </div>`;
+}
+
+function decorationTray(state: AppState): string {
+  return `<section class="decor-tray prep-control-panel panel" aria-label="車廂佈置工具">
+    <div class="prep-panel-heading"><h3>車廂佈置</h3><strong>自由拖曳</strong></div>
+    <div class="decor-picker">${DECORATIONS.map((decoration) => `<button class="${state.selectedDecorationId === decoration.id ? "is-selected" : ""}" type="button" data-action="select-decoration" data-value="${decoration.id}" aria-pressed="${state.selectedDecorationId === decoration.id}"><img src="${decoration.asset}" alt=""><span>${decoration.name}</span></button>`).join("")}</div>
+    <div class="decor-tray-actions"><button type="button" data-action="reset-decor">重設位置</button><button class="is-primary" type="button" data-action="finish-decor">完成佈置</button></div>
+  </section>`;
+}
+
 function carriageScreen(state: AppState): string {
   const run = state.run;
   if (!run) return "";
@@ -164,16 +185,17 @@ function carriageScreen(state: AppState): string {
     ${compactHeader(run, night ? "夜間守望" : "車廂整備", night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `剩餘 ${run.actionPoints} AP`)}
     <button class="speed-control" type="button" data-action="pause" ${night && !state.settings.noCountdown ? "" : "disabled"} aria-label="${!night ? "整備階段時間已暫停" : state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}">${night ? state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "×1" : icons.pause}</button>
     ${environmentPanel(run)}${survivorPanel(run)}
+    ${decorationLayer(state, run, night)}
     ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
-    ${!night ? `<div class="scene-hotspots" aria-label="車廂設備熱區">
+    ${!night && !state.decorating ? `<div class="scene-hotspots" aria-label="車廂設備熱區">
       <button data-action="select-module" data-value="M003" style="--x:20%;--y:47%">種</button>
       <button data-action="select-module" data-value="M002" style="--x:52%;--y:62%">床</button>
       <button data-action="select-module" data-value="M001" style="--x:84%;--y:38%">窗</button>
     </div>` : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", "M001"], ["暖氣", "M002"], ["溫室", "M003"], ["感測器", "M004"]].map(([label, moduleId]) => { const module = run.modules.find((instance) => instance.definitionId === moduleId); const on = Boolean(module?.active && module.powered); return `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${module ? on ? "ON" : "OFF" : "—"}</b></div>`; }).join("")}</div>` : ""}
-    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${prepPanel}
+    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state) : prepPanel}
     <nav class="carriage-dock panel">
-      <button data-action="modules"><span>${icons.build}</span>建造</button><button class="${state.carriagePanel === "power" ? "is-selected" : ""}" data-action="power"><span>${icons.power}</span>配電</button><button class="${state.carriagePanel === "meal" ? "is-selected" : ""}" data-action="meal"><span>${icons.meal}</span>配餐</button><button class="is-primary" data-action="route"><span>${icons.route}</span>出發<small>${run.actionPoints} AP 未用</small></button>
+      <button data-action="modules"><span>${icons.build}</span>建造</button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power"><span>${icons.power}</span>配電</button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal"><span>${icons.meal}</span>配餐</button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate"><span>◇</span>佈置</button><button class="is-primary" data-action="route"><span>${icons.route}</span>出發<small>${run.actionPoints} AP</small></button>
     </nav>`}
     <div class="toast-message" role="status">${escapeText(run.lastMessage)}</div>
   </section>`;
@@ -277,6 +299,8 @@ export class GameView {
   private readonly canvas: HTMLCanvasElement;
   private readonly uiRoot: HTMLDivElement;
   private previousScreenKey = "";
+  private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean } | null = null;
+  private suppressDecorClick = false;
 
   public constructor(private readonly root: HTMLElement, private readonly onAction: ActionHandler) {
     this.root.innerHTML = `<main class="game-shell"><div class="game-frame"><canvas id="scene-canvas" aria-hidden="true"></canvas><div id="ui-root"></div></div><p class="rotate-notice">請將裝置轉回直式，守護協定需要完整車廂視野。</p></main>`;
@@ -285,12 +309,54 @@ export class GameView {
     this.uiRoot.addEventListener("click", (event) => {
       const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action]");
       if (!target || target.matches(":disabled")) return;
+      if (this.suppressDecorClick && target.matches(".decor-item")) {
+        this.suppressDecorClick = false;
+        return;
+      }
       this.onAction(target.dataset.action ?? "", target.dataset.value);
     });
+    this.uiRoot.addEventListener("pointerdown", (event) => this.startDecorDrag(event));
+    this.uiRoot.addEventListener("pointermove", (event) => this.moveDecorDrag(event));
+    this.uiRoot.addEventListener("pointerup", (event) => this.finishDecorDrag(event));
+    this.uiRoot.addEventListener("pointercancel", () => { this.decorDrag = null; });
   }
 
   public getCanvas(): HTMLCanvasElement {
     return this.canvas;
+  }
+
+  private startDecorDrag(event: PointerEvent): void {
+    const target = (event.target as HTMLElement).closest<HTMLElement>(".decor-item[data-decor-id]");
+    const layer = target?.closest<HTMLElement>(".carriage-decor-layer");
+    if (!target || !layer) return;
+    target.setPointerCapture(event.pointerId);
+    this.decorDrag = { target, id: target.dataset.decorId ?? "", bounds: layer.getBoundingClientRect(), startX: event.clientX, startY: event.clientY, x: Number(target.dataset.decorationX), y: Number(target.dataset.decorationY), moved: false };
+    target.classList.add("is-dragging");
+    event.preventDefault();
+  }
+
+  private moveDecorDrag(event: PointerEvent): void {
+    const drag = this.decorDrag;
+    if (!drag) return;
+    if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 4) drag.moved = true;
+    drag.x = Math.min(92, Math.max(8, ((event.clientX - drag.bounds.left) / drag.bounds.width) * 100));
+    drag.y = Math.min(92, Math.max(8, ((event.clientY - drag.bounds.top) / drag.bounds.height) * 100));
+    drag.target.style.setProperty("--x", `${drag.x}%`);
+    drag.target.style.setProperty("--y", `${drag.y}%`);
+    event.preventDefault();
+  }
+
+  private finishDecorDrag(event: PointerEvent): void {
+    const drag = this.decorDrag;
+    if (!drag) return;
+    drag.target.classList.remove("is-dragging");
+    if (drag.moved) {
+      this.suppressDecorClick = true;
+      window.setTimeout(() => { this.suppressDecorClick = false; }, 0);
+      this.onAction("move-decoration", `${drag.id}:${drag.x.toFixed(1)}:${drag.y.toFixed(1)}`);
+    }
+    this.decorDrag = null;
+    event.preventDefault();
   }
 
   public render(state: AppState, hasSave: boolean, activeEvent?: GameEvent): void {

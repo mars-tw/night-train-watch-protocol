@@ -1,6 +1,6 @@
-import { BALANCE, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
+import { BALANCE, DECORATIONS, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
 import { createRng } from "./rng";
-import type { EnvironmentKey, EventChoice, RationMode, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
+import type { DecorationId, EnvironmentKey, EventChoice, RationMode, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -35,6 +35,21 @@ export function counterReadiness(run: RunState, counterId: string): { available:
 }
 
 export class RunService {
+  public moveDecoration(run: RunState, id: DecorationId, x: number, y: number): boolean {
+    const placement = run.decorations.find((item) => item.id === id);
+    const definition = DECORATIONS.find((item) => item.id === id);
+    if (!placement || !definition) return false;
+    placement.x = Math.round(Math.min(92, Math.max(8, x)) * 10) / 10;
+    placement.y = Math.round(Math.min(92, Math.max(8, y)) * 10) / 10;
+    run.lastMessage = `${definition.name}已移到新位置；放開手指即自動保存。`;
+    return true;
+  }
+
+  public resetDecorations(run: RunState): void {
+    run.decorations = DECORATIONS.map((item) => ({ id: item.id, x: item.defaultX, y: item.defaultY }));
+    run.lastMessage = "四件小物已回到起始位置。";
+  }
+
   public applyResource(run: RunState, key: ResourceKey, delta: number, source: string): boolean {
     const before = run.resources[key];
     const maximum = BALANCE.max[key];

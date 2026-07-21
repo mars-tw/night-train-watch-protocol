@@ -1,4 +1,11 @@
-import type { GameEvent, ModuleDefinition, RouteNode, ThreatDefinition } from "./types";
+import type { DecorationId, GameEvent, ModuleDefinition, RouteNode, ThreatDefinition } from "./types";
+
+export const DECORATIONS: Array<{ id: DecorationId; name: string; asset: string; defaultX: number; defaultY: number; size: number }> = [
+  { id: "lantern", name: "黃銅燈", asset: "./assets/art/decor/lantern.png", defaultX: 34, defaultY: 45, size: 58 },
+  { id: "radio", name: "短波機", asset: "./assets/art/decor/radio.png", defaultX: 68, defaultY: 25, size: 74 },
+  { id: "toolbox", name: "工具箱", asset: "./assets/art/decor/toolbox.png", defaultX: 24, defaultY: 74, size: 72 },
+  { id: "fern", name: "蕨盆栽", asset: "./assets/art/decor/fern.png", defaultX: 84, defaultY: 68, size: 68 },
+];
 
 export const BALANCE = {
   max: { energy: 100, fuel: 60, food: 8, water: 8, parts: 20, medicine: 5, data: 99 },

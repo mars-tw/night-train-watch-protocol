@@ -72,6 +72,17 @@ describe("authoritative run service", () => {
     expect(service.harvest(run)).toBe(false);
   });
 
+  it("moves, clamps, and resets visible carriage decorations", () => {
+    const run = createRun("decor-loop");
+    const service = new RunService();
+
+    expect(run.decorations).toHaveLength(4);
+    expect(service.moveDecoration(run, "radio", 150, -20)).toBe(true);
+    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ x: 92, y: 8 });
+    service.resetDecorations(run);
+    expect(run.decorations.find((item) => item.id === "radio")).toMatchObject({ x: 68, y: 25 });
+  });
+
   it("repairs breach damage and charges both AP and parts", () => {
     const run = createRun("repair-loop");
     const service = new RunService();
