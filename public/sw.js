@@ -1,4 +1,4 @@
-const CACHE = "night-train-v0.5.0-five-carriages-farming";
+const CACHE = "night-train-v0.6.0-mobile-observation-ui";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

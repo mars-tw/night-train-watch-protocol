@@ -17,6 +17,8 @@ const expectedActions = [
 const clickedActions = new Set();
 const assertions = [];
 const browserErrors = [];
+let visualLayoutMetrics = null;
+let compactLayoutMetrics = null;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -122,6 +124,24 @@ try {
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "new game starts with five action points");
   assert(await page.locator('.screen--carriage[data-carriage="greenhouse"]').count() === 1, "new game opens the distinct greenhouse carriage");
+  visualLayoutMetrics = await page.evaluate(() => {
+    const selector = document.querySelector(".carriage-selector")?.getBoundingClientRect();
+    const toast = document.querySelector(".toast-message")?.getBoundingClientRect();
+    const dock = document.querySelector(".carriage-dock")?.getBoundingClientRect();
+    const targets = [...document.querySelectorAll(".screen--carriage button:not([disabled])")]
+      .map((button) => button.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && rect.height > 0);
+    return {
+      uninterruptedSceneHeight: Math.round((toast?.top ?? dock?.top ?? 0) - (selector?.bottom ?? 0)),
+      dockHeight: Math.round(dock?.height ?? 0),
+      minimumTouchWidth: Math.round(Math.min(...targets.map((rect) => rect.width))),
+      minimumTouchHeight: Math.round(Math.min(...targets.map((rect) => rect.height))),
+    };
+  });
+  assert(await page.locator(".prep-control-panel").count() === 0, "observation mode starts without a large panel covering the carriage");
+  assert(visualLayoutMetrics.uninterruptedSceneHeight >= 500, `default carriage keeps at least 500px of uninterrupted scene (${visualLayoutMetrics.uninterruptedSceneHeight}px)`);
+  assert(visualLayoutMetrics.dockHeight <= 76, `command dock stays compact (${visualLayoutMetrics.dockHeight}px)`);
+  assert(visualLayoutMetrics.minimumTouchWidth >= 48 && visualLayoutMetrics.minimumTouchHeight >= 48, `visible carriage targets are at least 48px (${visualLayoutMetrics.minimumTouchWidth}×${visualLayoutMetrics.minimumTouchHeight})`);
 
   await clickAction("select-crop", "tomato");
   await clickAction("plant-crop", "plot-a:tomato");
@@ -152,6 +172,10 @@ try {
 
   await clickAction("decorate");
   await page.waitForSelector(".decor-tray");
+  await clickAction("decorate");
+  assert(await page.locator(".decor-tray").count() === 0, "tapping the selected decoration command closes its drawer");
+  await clickAction("decorate");
+  await page.waitForSelector(".decor-tray");
   assert(await page.locator(".decor-picker img").count() === 4, "four GPT decoration sprites are visible in the placement tray");
   await clickAction("select-decoration", "radio");
   assert(await page.locator(".decor-slot.is-valid").count() > 0, "selected item exposes green compatible slots");
@@ -180,6 +204,16 @@ try {
 
   await clickAction("power");
   await page.waitForSelector(".power-config");
+  const openPowerSceneHeight = await page.evaluate(() => {
+    const selector = document.querySelector(".carriage-selector")?.getBoundingClientRect();
+    const drawer = document.querySelector(".power-config")?.getBoundingClientRect();
+    return Math.round((drawer?.top ?? 0) - (selector?.bottom ?? 0));
+  });
+  assert(openPowerSceneHeight >= 360, `open power drawer still leaves a visible carriage area (${openPowerSceneHeight}px)`);
+  await clickAction("power");
+  assert(await page.locator(".power-config").count() === 0, "tapping the selected power command closes its drawer");
+  await clickAction("power");
+  await page.waitForSelector(".power-config");
   await clickAction("toggle-power", "M004");
   await page.waitForFunction(() => document.querySelector('[data-action="toggle-power"][data-value="M004"]')?.textContent?.includes("OFF"));
   assert((await page.locator('[data-action="toggle-power"][data-value="M004"]').textContent())?.includes("OFF"), "power row turns the sensor off");
@@ -192,6 +226,8 @@ try {
   await clickAction("select-ration", "full");
   await page.waitForFunction(() => document.querySelector(".toast-message")?.textContent?.includes("安心餐"));
   assert((await page.locator(".toast-message").textContent())?.includes("安心餐"), "ration selection gives immediate feedback");
+  await clickAction("meal");
+  assert(await page.locator(".meal-config").count() === 0, "tapping the selected meal command closes its drawer");
 
   const fuelBeforeRouteBack = JSON.parse((await page.evaluate(() => localStorage.getItem("run.current"))) ?? "{}").resources.fuel;
   await clickAction("route");
@@ -307,6 +343,33 @@ try {
   await clickAction("menu");
   await page.waitForSelector(".screen--menu");
 
+  const compactContext = await browser.newContext({ viewport: { width: 360, height: 640 }, locale: "zh-TW" });
+  const compactPage = await compactContext.newPage();
+  await compactPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await compactPage.locator('[data-action="new-game"]:not([disabled])').first().click();
+  await compactPage.waitForSelector(".screen--carriage.is-observation-mode");
+  compactLayoutMetrics = await compactPage.evaluate(() => {
+    const selector = document.querySelector(".carriage-selector")?.getBoundingClientRect();
+    const toast = document.querySelector(".toast-message")?.getBoundingClientRect();
+    const dock = document.querySelector(".carriage-dock")?.getBoundingClientRect();
+    const targets = [...document.querySelectorAll(".screen--carriage button:not([disabled])")]
+      .map((button) => button.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && rect.height > 0);
+    return {
+      uninterruptedSceneHeight: Math.round((toast?.top ?? 0) - (selector?.bottom ?? 0)),
+      dockBottom: Math.round(dock?.bottom ?? 0),
+      minimumTouchWidth: Math.round(Math.min(...targets.map((rect) => rect.width))),
+      minimumTouchHeight: Math.round(Math.min(...targets.map((rect) => rect.height))),
+      horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    };
+  });
+  assert(compactLayoutMetrics.uninterruptedSceneHeight >= 320, `360×640 view keeps a playable scene window (${compactLayoutMetrics.uninterruptedSceneHeight}px)`);
+  assert(compactLayoutMetrics.dockBottom <= 640, `360×640 command dock remains inside the viewport (${compactLayoutMetrics.dockBottom}px)`);
+  assert(compactLayoutMetrics.minimumTouchWidth >= 48 && compactLayoutMetrics.minimumTouchHeight >= 48, `360×640 targets remain at least 48px (${compactLayoutMetrics.minimumTouchWidth}×${compactLayoutMetrics.minimumTouchHeight})`);
+  assert(compactLayoutMetrics.horizontalOverflow === 0, "360×640 viewport has no horizontal overflow");
+  await compactPage.screenshot({ path: resolve(outputDirectory, "20-compact-360x640.png"), fullPage: true });
+  await compactContext.close();
+
   const missingCoverage = expectedActions.filter((action) => !clickedActions.has(action));
   assert(missingCoverage.length === 0, `all ${expectedActions.length} controller actions were exercised`);
   assert(browserErrors.length === 0, "browser emitted no page or console errors");
@@ -319,6 +382,8 @@ try {
     actionsExercised: [...clickedActions].sort(),
     actionCount: clickedActions.size,
     assertions: assertions.length,
+    visualLayoutMetrics,
+    compactLayoutMetrics,
     browserErrors,
     generatedAt: new Date().toISOString(),
   };

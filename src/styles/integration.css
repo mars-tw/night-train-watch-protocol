@@ -723,7 +723,7 @@
 .decor-instruction {
   position: absolute;
   z-index: 5;
-  top: -16px;
+  top: 4px;
   left: 50%;
   width: max-content;
   max-width: 90%;
@@ -1858,5 +1858,353 @@
   .route-map,
   .event-card {
     top: 104px;
+  }
+}
+
+/* Mobile carriage UX: instruments hug the frame so the authored carriage remains playable. */
+.screen--carriage .app-header {
+  top: max(8px, env(safe-area-inset-top));
+  right: 8px;
+  left: 8px;
+  min-height: 72px;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 5px;
+  padding: 7px 62px 7px 9px;
+  border-radius: 12px;
+}
+
+.screen--carriage .app-header__title {
+  gap: 5px;
+}
+
+.screen--carriage .app-header__title strong {
+  font-size: calc(15px * var(--text-scale, 1));
+}
+
+.screen--carriage .app-header__title small,
+.screen--carriage .day-mark {
+  font-size: calc(9px * var(--text-scale, 1));
+}
+
+.screen--carriage .resource-bar {
+  gap: 4px;
+}
+
+.screen--carriage .resource-bar > span {
+  grid-template-columns: 12px minmax(30px, 1fr) auto;
+  gap: 3px;
+  font-size: 8px;
+}
+
+.screen--carriage .resource-bar i {
+  height: 7px;
+}
+
+.screen--carriage .speed-control {
+  top: max(20px, calc(env(safe-area-inset-top) + 12px));
+  right: 16px;
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.screen--carriage .status-panel {
+  top: 88px;
+  width: calc(50% - 12px);
+  min-height: 42px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  overflow: hidden;
+}
+
+.screen--carriage .status-panel--environment {
+  left: 8px;
+}
+
+.screen--carriage .status-panel--survivor {
+  right: 8px;
+  grid-template-columns: 34px repeat(3, minmax(0, 1fr));
+}
+
+.screen--carriage .status-panel > div,
+.screen--carriage .status-panel--survivor > div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1fr;
+  place-items: center;
+  gap: 0;
+  font-size: 8px;
+  line-height: 1.15;
+}
+
+.screen--carriage .status-panel > div > b {
+  display: none;
+}
+
+.screen--carriage .status-panel span {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.screen--carriage .status-panel strong {
+  color: var(--color-text);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.screen--carriage .status-panel--survivor > b {
+  display: grid;
+  min-height: 28px;
+  place-items: center;
+  border-right: 1px solid var(--color-border);
+  color: var(--color-info);
+  font-size: 9px;
+}
+
+.screen--carriage .carriage-selector {
+  top: 136px;
+  right: 8px;
+  left: 8px;
+  gap: 3px;
+  padding: 4px;
+}
+
+.screen--carriage .carriage-selector button {
+  min-height: 48px;
+  border-radius: 7px;
+  font-size: 9px;
+}
+
+.screen--carriage .carriage-selector button span {
+  font-size: 13px;
+}
+
+.screen--carriage .carriage-selector button small {
+  font-size: 7px;
+}
+
+.screen--carriage .carriage-decor-layer,
+.screen--carriage .crop-scene-layer {
+  top: 194px;
+  right: 8px;
+  bottom: 96px;
+  left: 8px;
+}
+
+.screen--carriage.has-drawer .carriage-decor-layer.is-editing {
+  bottom: 302px;
+}
+
+.screen--carriage .scene-hotspots {
+  inset: 194px 8px 96px;
+}
+
+.screen--carriage .scene-hotspots button {
+  width: auto;
+  min-width: 70px;
+  height: 58px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: 1fr 1fr;
+  gap: 0 5px;
+  padding: 5px 8px;
+  border-radius: 13px;
+  background: rgba(9, 14, 18, 0.88);
+  text-align: left;
+}
+
+.screen--carriage .scene-hotspots button b {
+  grid-row: 1 / -1;
+  color: var(--color-action);
+  font-size: 17px;
+  text-align: center;
+}
+
+.screen--carriage .scene-hotspots button span {
+  align-self: end;
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.screen--carriage .scene-hotspots button small {
+  align-self: start;
+  color: var(--color-text-muted);
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.screen--carriage .scene-hotspots button:disabled {
+  border-color: var(--color-border);
+  opacity: 0.58;
+}
+
+.crop-quick-picker {
+  position: absolute;
+  z-index: 39;
+  top: 206px;
+  right: 8px;
+  display: grid;
+  width: 68px;
+  gap: 4px;
+  padding: 6px;
+  border-color: rgba(126, 165, 122, 0.78);
+  background: rgba(9, 14, 18, 0.86);
+}
+
+.crop-quick-picker > span {
+  color: #c9e6c7;
+  font-size: 9px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.crop-quick-picker button {
+  display: grid;
+  min-height: 52px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  font-size: 7px;
+}
+
+.crop-quick-picker button.is-selected {
+  border: 2px solid var(--color-action);
+  background: rgba(226, 168, 93, 0.14);
+  color: var(--color-text);
+}
+
+.crop-quick-picker img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.crop-quick-picker em {
+  color: var(--color-text-muted);
+  font-size: 7px;
+  font-style: normal;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.screen--carriage .crop-scene-plot {
+  width: 96px;
+  height: 96px;
+  border-width: 2px;
+  background: radial-gradient(circle, rgba(126, 165, 122, 0.2), rgba(9, 14, 18, 0.12) 72%);
+}
+
+.screen--carriage .crop-scene-plot img {
+  width: 94px;
+  height: 94px;
+}
+
+.screen--carriage .crop-scene-plot span {
+  width: 30px;
+  height: 30px;
+  font-size: 10px;
+}
+
+.screen--carriage .prep-control-panel {
+  right: 8px;
+  bottom: 86px;
+  left: 8px;
+  max-height: 212px;
+  padding: 10px;
+  border-width: 1px 1px 3px;
+  border-radius: 12px;
+  background: rgba(9, 14, 18, 0.95);
+  box-shadow: 0 -14px 42px rgba(0, 0, 0, 0.42);
+}
+
+.screen--carriage .prep-panel-heading h3 {
+  font-size: 14px;
+}
+
+.screen--carriage .prep-panel-heading > strong {
+  font-size: 14px;
+}
+
+.screen--carriage .decor-tray-actions button {
+  min-height: 48px;
+}
+
+.screen--carriage .carriage-dock {
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  left: 8px;
+  min-height: 70px;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(9, 14, 18, 0.94);
+}
+
+.screen--carriage .carriage-dock button {
+  min-height: 60px;
+  grid-template-rows: 22px 14px;
+  align-content: center;
+  gap: 1px;
+  border-radius: 8px;
+  font-size: 8px;
+}
+
+.screen--carriage .carriage-dock button span {
+  font-size: 16px;
+}
+
+.screen--carriage .carriage-dock button b {
+  font-size: 8px;
+}
+
+.screen--carriage .carriage-dock button small {
+  position: absolute;
+  margin-top: 43px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(9, 14, 18, 0.9);
+}
+
+.screen--carriage.is-prep .toast-message {
+  right: 8px;
+  bottom: 84px;
+  left: 8px;
+  min-height: 32px;
+  padding: 7px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(137, 183, 199, 0.45);
+  border-left: 3px solid var(--color-info);
+  border-radius: 8px;
+  background: rgba(9, 14, 18, 0.9);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.screen--carriage.has-drawer .toast-message {
+  display: none;
+}
+
+@media (max-height: 700px) {
+  .screen--carriage .app-header {
+    min-height: 66px;
+  }
+
+  .screen--carriage .status-panel {
+    top: 80px;
+  }
+
+  .screen--carriage .carriage-selector {
+    top: 128px;
+  }
+
+  .screen--carriage .carriage-decor-layer,
+  .screen--carriage .crop-scene-layer,
+  .screen--carriage .scene-hotspots {
+    top: 186px;
   }
 }

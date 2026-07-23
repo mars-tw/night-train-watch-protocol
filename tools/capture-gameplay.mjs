@@ -72,6 +72,23 @@ await page.waitForFunction(() => document.querySelector(".toast-message")?.textC
 await page.waitForTimeout(1000);
 await page.locator('[data-action="select-carriage"][data-value="greenhouse"]').click();
 await page.waitForTimeout(1000);
+
+// Demonstrate that utility drawers are optional tools: open them, use them, then return to the scene.
+await page.locator('[data-action="power"]').click();
+await page.waitForSelector(".power-config");
+await page.waitForTimeout(1200);
+await page.locator('[data-action="power"]').click();
+await page.waitForFunction(() => !document.querySelector(".power-config"));
+await page.waitForTimeout(600);
+await page.locator('[data-action="meal"]').click();
+await page.waitForSelector(".meal-config");
+await page.waitForTimeout(1100);
+await page.locator('[data-action="select-ration"][data-value="standard"]').click();
+await page.waitForTimeout(700);
+await page.locator('[data-action="meal"]').click();
+await page.waitForFunction(() => !document.querySelector(".meal-config"));
+await page.locator('[data-action="select-carriage"][data-value="greenhouse"]').click();
+await page.waitForTimeout(900);
 await page.getByRole("button", { name: /出發/ }).click();
 await page.waitForTimeout(1600);
 await page.getByRole("button", { name: "確認路線" }).click();
