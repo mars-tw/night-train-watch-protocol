@@ -66,7 +66,7 @@ export function createAppState(): AppState {
     selectedTechId: "E1",
     selectedModuleId: "M003",
     selectedRouteId: "RN02",
-    carriagePanel: "module",
+    carriagePanel: "scene",
     nightPaused: false,
     eventPreview: false,
     routePreview: false,

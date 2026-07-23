@@ -42,7 +42,7 @@ export class NightTrainApp {
       case "new-game":
         this.state.run = createRun();
         this.state.screen = "carriage";
-        this.state.carriagePanel = "module";
+        this.state.carriagePanel = "scene";
         this.state.nightPaused = false;
         this.state.eventPreview = false;
         this.state.routePreview = false;
@@ -88,6 +88,7 @@ export class NightTrainApp {
       case "carriage":
         if (run?.phase === "route" && !this.state.routePreview) run.phase = "prep";
         this.state.screen = "carriage";
+        this.state.carriagePanel = "scene";
         this.state.routePreview = false;
         this.state.modulePreview = false;
         this.state.decorating = false;
@@ -179,7 +180,7 @@ export class NightTrainApp {
         if (run) {
           this.runService.continueAftermath(run);
           this.state.screen = run.ended ? "result" : "carriage";
-          this.state.carriagePanel = "module";
+          this.state.carriagePanel = "scene";
           this.state.decorating = false;
           this.state.activeCarriageId = "greenhouse";
           this.state.nightPaused = false;
@@ -190,7 +191,7 @@ export class NightTrainApp {
         if (value) {
           this.state.decorating = false;
           this.state.selectedModuleId = value;
-          this.state.carriagePanel = "module";
+          this.state.carriagePanel = "scene";
         }
         break;
       case "select-module-category":
@@ -198,29 +199,34 @@ export class NightTrainApp {
         break;
       case "power":
         if (run?.phase === "prep") {
+          const closing = this.state.carriagePanel === "power" && !this.state.decorating;
           this.state.decorating = false;
-          this.state.carriagePanel = "power";
+          this.state.carriagePanel = closing ? "scene" : "power";
+          run.lastMessage = closing ? "配電工具已收起，繼續查看車廂。" : "配電工具已打開；再次點擊「配電」可收起。";
         }
         break;
       case "meal":
         if (run?.phase === "prep") {
+          const closing = this.state.carriagePanel === "meal" && !this.state.decorating;
           this.state.decorating = false;
-          this.state.carriagePanel = "meal";
-          this.state.activeCarriageId = "kitchen";
+          this.state.carriagePanel = closing ? "scene" : "meal";
+          if (!closing) this.state.activeCarriageId = "kitchen";
+          run.lastMessage = closing ? "配餐工具已收起，繼續查看炊事車廂。" : "配餐工具已打開；再次點擊「配餐」可收起。";
         }
         break;
       case "select-carriage":
         if (run?.phase === "prep" && value && CARRIAGES.some((carriage) => carriage.id === value)) {
           this.state.activeCarriageId = value as CarriageId;
-          this.state.carriagePanel = "module";
+          this.state.carriagePanel = "scene";
           const carriage = CARRIAGES.find((item) => item.id === value)!;
           run.lastMessage = `已切換到${carriage.name}：${carriage.signature}。`;
         }
         break;
       case "decorate":
         if (run?.phase === "prep") {
-          this.state.decorating = true;
-          run.lastMessage = "先選小物，再點相容槽；也可把場景中的小物拖到綠色槽位。";
+          this.state.decorating = !this.state.decorating;
+          this.state.carriagePanel = "scene";
+          run.lastMessage = this.state.decorating ? "先選小物，再點相容槽；也可把場景中的小物拖到綠色槽位。" : "佈置工具已收起，小物會保留在車廂裡。";
         }
         break;
       case "select-decoration":

@@ -43,12 +43,13 @@ describe("shipping art", () => {
   });
 
   it("commits the audited mobile gameplay previews to the open-source project", () => {
-    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png"];
+    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png"];
     for (const preview of previews) {
       expect(existsSync(resolve(workspace, "public/assets/screenshots", preview)), `${preview} should be public`).toBe(true);
     }
     const readme = readFileSync(resolve(workspace, "README.md"), "utf8");
     for (const preview of previews) expect(readme).toContain(preview);
+    expect(existsSync(resolve(workspace, "public/assets/qa/mobile-playability-report.json"))).toBe(true);
   });
 
   it("wires the authored motion system into the shipping runtime", () => {
@@ -64,9 +65,9 @@ describe("shipping art", () => {
     expect(view).toContain("contact-stage-${contact?.stage");
   });
 
-  it("bumps the offline cache so installed games receive the motion release", () => {
+  it("bumps the offline cache so installed games receive the mobile observation UI", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.5.0-five-carriages-farming');
+    expect(serviceWorker).toContain('night-train-v0.6.0-mobile-observation-ui');
   });
 
   it("wires every rendered button action to the application controller", () => {
