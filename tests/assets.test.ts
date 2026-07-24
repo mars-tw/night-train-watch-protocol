@@ -43,7 +43,7 @@ describe("shipping art", () => {
   });
 
   it("commits the audited mobile gameplay previews to the open-source project", () => {
-    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png"];
+    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png", "22-swipe-guidance.png", "23-action-feedback.png"];
     for (const preview of previews) {
       expect(existsSync(resolve(workspace, "public/assets/screenshots", preview)), `${preview} should be public`).toBe(true);
     }
@@ -65,9 +65,21 @@ describe("shipping art", () => {
     expect(view).toContain("contact-stage-${contact?.stage");
   });
 
-  it("bumps the offline cache so installed games receive the mobile observation UI", () => {
+  it("ships visible mobile game-feel feedback instead of code-only controls", () => {
+    const view = readFileSync(resolve(workspace, "src/ui/view.ts"), "utf8");
+    const app = readFileSync(resolve(workspace, "src/app.ts"), "utf8");
+    const integrationCss = readFileSync(resolve(workspace, "src/styles/integration.css"), "utf8");
+
+    expect(view).toContain("prep-ap-dial");
+    expect(view).toContain("carriage-swipe-hint");
+    expect(view).toContain("feedback-chips");
+    expect(app).toContain('case "swipe-carriage"');
+    expect(integrationCss).toContain("touch-action: pan-y");
+  });
+
+  it("bumps the offline cache so installed games receive the mobile game-feel update", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.6.0-mobile-observation-ui');
+    expect(serviceWorker).toContain('night-train-v0.7.0-mobile-game-feel');
   });
 
   it("wires every rendered button action to the application controller", () => {

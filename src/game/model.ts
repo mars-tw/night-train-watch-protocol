@@ -75,6 +75,7 @@ export function createAppState(): AppState {
     selectedDecorationId: "lantern",
     activeCarriageId: "greenhouse",
     selectedCropId: "lettuce",
+    actionFeedback: [],
     moduleCategory: "全部",
     techBranch: "能源",
     saveStatus: "none",

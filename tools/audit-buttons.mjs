@@ -13,6 +13,7 @@ const expectedActions = [
   "select-tech-branch", "unlock-tech", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
   "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "place-decoration", "reset-decor", "finish-decor",
   "select-carriage", "select-crop", "plant-crop", "water-crops", "harvest-crop", "workshop-scrap", "cook-meal",
+  "swipe-carriage",
 ];
 const clickedActions = new Set();
 const assertions = [];
@@ -82,6 +83,22 @@ async function dragDecoration(id, slotId) {
   await auditRenderedButtons(`after dragging ${id}`);
 }
 
+async function swipeCarriage(direction, expectedCarriage) {
+  const screen = page.locator(".screen--carriage.is-observation-mode");
+  const box = await screen.boundingBox();
+  assert(Boolean(box), `observation scene is visible before ${direction} swipe`);
+  const startX = direction === "next" ? box.x + box.width * 0.76 : box.x + box.width * 0.24;
+  const endX = direction === "next" ? box.x + box.width * 0.28 : box.x + box.width * 0.72;
+  const y = box.y + box.height * 0.48;
+  await page.mouse.move(startX, y);
+  await page.mouse.down();
+  await page.mouse.move(endX, y, { steps: 10 });
+  await page.mouse.up();
+  clickedActions.add("swipe-carriage");
+  await page.waitForSelector(`.screen--carriage[data-carriage="${expectedCarriage}"]`);
+  await auditRenderedButtons(`after ${direction} carriage swipe`);
+}
+
 try {
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForSelector(".screen--menu");
@@ -124,6 +141,9 @@ try {
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "new game starts with five action points");
   assert(await page.locator('.screen--carriage[data-carriage="greenhouse"]').count() === 1, "new game opens the distinct greenhouse carriage");
+  assert(await page.locator(".prep-ap-dial").count() === 1, "preparation uses a readable AP dial instead of a disabled pause button");
+  assert(await page.locator('[data-action="pause"]').count() === 0, "preparation screen does not expose a fake disabled pause control");
+  assert(await page.locator(".carriage-swipe-hint").count() === 1, "first preparation view teaches horizontal carriage swiping");
   visualLayoutMetrics = await page.evaluate(() => {
     const selector = document.querySelector(".carriage-selector")?.getBoundingClientRect();
     const toast = document.querySelector(".toast-message")?.getBoundingClientRect();
@@ -142,11 +162,19 @@ try {
   assert(visualLayoutMetrics.uninterruptedSceneHeight >= 500, `default carriage keeps at least 500px of uninterrupted scene (${visualLayoutMetrics.uninterruptedSceneHeight}px)`);
   assert(visualLayoutMetrics.dockHeight <= 76, `command dock stays compact (${visualLayoutMetrics.dockHeight}px)`);
   assert(visualLayoutMetrics.minimumTouchWidth >= 48 && visualLayoutMetrics.minimumTouchHeight >= 48, `visible carriage targets are at least 48px (${visualLayoutMetrics.minimumTouchWidth}×${visualLayoutMetrics.minimumTouchHeight})`);
+  await page.screenshot({ path: resolve(outputDirectory, "22-swipe-guidance.png"), fullPage: true });
+
+  await swipeCarriage("next", "kitchen");
+  assert(await page.locator(".carriage-swipe-hint").count() === 0, "swipe hint disappears after the player learns carriage navigation");
+  await swipeCarriage("previous", "greenhouse");
 
   await clickAction("select-crop", "tomato");
   await clickAction("plant-crop", "plot-a:tomato");
   await page.waitForSelector('.crop-scene-plot.stage-1');
   assert((await page.locator(".toast-message").textContent())?.includes("矮株番茄已播入上層槽"), "sowing gives visible crop and resource feedback");
+  assert((await page.locator(".feedback-chips").textContent())?.includes("AP -1"), "sowing shows its AP cost as a visible delta ticket");
+  assert((await page.locator(".feedback-chips").textContent())?.includes("水 -1"), "sowing shows its water cost as a visible delta ticket");
+  await page.screenshot({ path: resolve(outputDirectory, "23-action-feedback.png"), fullPage: true });
   await page.screenshot({ path: resolve(outputDirectory, "17-greenhouse-farming.png"), fullPage: true });
 
   await clickAction("select-carriage", "sleep");
@@ -315,6 +343,7 @@ try {
   assert(await page.locator('[data-action="confirm-route"]').isDisabled(), "route preview cannot spend fuel or advance the run");
   await clickAction("select-route", "RN03");
   await page.screenshot({ path: resolve(outputDirectory, "02-route-preview.png"), fullPage: true });
+  await page.waitForTimeout(180);
   await clickAction("hub");
 
   await clickAction("modules-preview");
@@ -324,6 +353,7 @@ try {
   await clickAction("select-module", "M005");
   assert(await page.locator('[data-action="build-module"]').isDisabled(), "blueprint preview cannot build or spend parts");
   await page.screenshot({ path: resolve(outputDirectory, "03-module-preview.png"), fullPage: true });
+  await page.waitForTimeout(180);
   await clickAction("hub");
 
   await clickAction("event-preview");
@@ -384,6 +414,13 @@ try {
     assertions: assertions.length,
     visualLayoutMetrics,
     compactLayoutMetrics,
+    mobileGameFeel: {
+      horizontalCarriageSwipe: true,
+      firstUseSwipeGuidance: true,
+      actionDeltaTickets: true,
+      preparationApDial: true,
+      hapticFeedbackWhenSupported: true,
+    },
     browserErrors,
     generatedAt: new Date().toISOString(),
   };

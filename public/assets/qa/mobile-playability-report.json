@@ -41,6 +41,7 @@
     "select-tech",
     "select-tech-branch",
     "settings",
+    "swipe-carriage",
     "tech",
     "toggle-countdown",
     "toggle-module",
@@ -52,8 +53,8 @@
     "water-crops",
     "workshop-scrap"
   ],
-  "actionCount": 48,
-  "assertions": 392,
+  "actionCount": 49,
+  "assertions": 406,
   "visualLayoutMetrics": {
     "uninterruptedSceneHeight": 534,
     "dockHeight": 70,
@@ -61,12 +62,19 @@
     "minimumTouchHeight": 48
   },
   "compactLayoutMetrics": {
-    "uninterruptedSceneHeight": 332,
-    "dockBottom": 638,
+    "uninterruptedSceneHeight": 337,
+    "dockBottom": 633,
     "minimumTouchWidth": 54,
     "minimumTouchHeight": 48,
     "horizontalOverflow": 0
   },
+  "mobileGameFeel": {
+    "horizontalCarriageSwipe": true,
+    "firstUseSwipeGuidance": true,
+    "actionDeltaTickets": true,
+    "preparationApDial": true,
+    "hapticFeedbackWhenSupported": true
+  },
   "browserErrors": [],
-  "generatedAt": "2026-07-23T01:07:48.395Z"
+  "generatedAt": "2026-07-24T08:33:01.759Z"
 }

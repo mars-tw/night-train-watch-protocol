@@ -10,6 +10,7 @@ export type DecorationId = "lantern" | "radio" | "toolbox" | "fern";
 export type CarriageId = "sleep" | "defense" | "workshop" | "greenhouse" | "kitchen";
 export type CropId = "lettuce" | "tomato" | "herb";
 export type CropPlotId = "plot-a" | "plot-b";
+export type FeedbackTone = "gain" | "cost" | "relief" | "neutral";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -192,6 +193,7 @@ export interface AppState {
   selectedDecorationId: DecorationId;
   activeCarriageId: CarriageId;
   selectedCropId: CropId;
+  actionFeedback: Array<{ label: string; delta: number; tone: FeedbackTone }>;
   moduleCategory: ModuleCategory;
   techBranch: TechBranch;
   saveStatus: "none" | "saved" | "saving" | "recovered" | "error";
