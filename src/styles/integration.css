@@ -1999,6 +1999,7 @@
   .carriage-swipe-hint {
     top: 181px;
   }
+
 }
 
 /* Mobile carriage UX: instruments hug the frame so the authored carriage remains playable. */
@@ -2011,6 +2012,7 @@
   gap: 5px;
   padding: 7px 62px 7px 9px;
   border-radius: 12px;
+  pointer-events: none;
 }
 
 .screen--carriage .app-header__title {
@@ -2043,9 +2045,24 @@
 .screen--carriage .speed-control {
   top: max(20px, calc(env(safe-area-inset-top) + 12px));
   right: 16px;
-  width: 48px;
-  min-width: 48px;
+  width: 56px;
+  min-width: 56px;
   min-height: 48px;
+  grid-template-rows: 17px 10px;
+  align-content: center;
+  gap: 2px;
+  border-radius: 18px;
+  font-size: 15px;
+}
+
+.screen--carriage .speed-control span {
+  line-height: 1;
+}
+
+.screen--carriage .speed-control small {
+  color: var(--color-action);
+  font: 800 8px/1 var(--font-data);
+  letter-spacing: 0.04em;
 }
 
 .screen--carriage .status-panel {
@@ -2122,7 +2139,7 @@
 }
 
 .screen--carriage .carriage-selector button small {
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .screen--carriage .carriage-decor-layer,
@@ -2172,7 +2189,7 @@
 .screen--carriage .scene-hotspots button small {
   align-self: start;
   color: var(--color-text-muted);
-  font-size: 7px;
+  font-size: 9px;
   white-space: nowrap;
 }
 
@@ -2187,7 +2204,7 @@
   top: 206px;
   right: 8px;
   display: grid;
-  width: 68px;
+  width: 74px;
   gap: 4px;
   padding: 6px;
   border-color: rgba(126, 165, 122, 0.78);
@@ -2196,7 +2213,7 @@
 
 .crop-quick-picker > span {
   color: #c9e6c7;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   text-align: center;
 }
@@ -2208,7 +2225,7 @@
   border: 1px solid var(--color-border);
   border-radius: 9px;
   color: var(--color-text-muted);
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .crop-quick-picker button.is-selected {
@@ -2225,7 +2242,7 @@
 
 .crop-quick-picker em {
   color: var(--color-text-muted);
-  font-size: 7px;
+  font-size: 9px;
   font-style: normal;
   line-height: 1.25;
   text-align: center;
@@ -2286,11 +2303,11 @@
 
 .screen--carriage .carriage-dock button {
   min-height: 60px;
-  grid-template-rows: 22px 14px;
+  grid-template-rows: 22px 16px;
   align-content: center;
   gap: 1px;
   border-radius: 8px;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .screen--carriage .carriage-dock button span {
@@ -2298,7 +2315,7 @@
 }
 
 .screen--carriage .carriage-dock button b {
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .screen--carriage .carriage-dock button small {
@@ -2320,7 +2337,7 @@
   border-left: 3px solid var(--color-info);
   border-radius: 8px;
   background: rgba(9, 14, 18, 0.9);
-  font-size: 9px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -58,7 +58,25 @@ async function clickAction(action, value) {
   const suffix = value === undefined ? "" : `[data-value="${value}"]`;
   const target = page.locator(`[data-action="${action}"]${suffix}:not([disabled])`).first();
   assert(await target.count() === 1, `${action}${value ? `:${value}` : ""} is present and enabled`);
-  await target.click();
+  let hitTest;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    hitTest = await target.evaluate((button) => {
+      const rect = button.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const top = document.elementFromPoint(x, y);
+      return {
+        clear: rect.width > 0 && rect.height > 0 && (top === button || Boolean(top && button.contains(top))),
+        top: top ? `${top.tagName.toLowerCase()}.${[...top.classList].join(".")}` : "none",
+        x,
+        y,
+      };
+    });
+    if (hitTest.clear) break;
+    await page.waitForTimeout(40);
+  }
+  assert(hitTest?.clear, `${action}${value ? `:${value}` : ""} can be hit at its visible center (${Math.round(hitTest?.x ?? -1)},${Math.round(hitTest?.y ?? -1)}; top ${hitTest?.top ?? "none"})`);
+  await page.mouse.click(hitTest.x, hitTest.y);
   clickedActions.add(action);
   await page.waitForTimeout(await page.locator(".screen-enter").count() ? 560 : 60);
   await auditRenderedButtons(`after ${action}`);
@@ -267,22 +285,33 @@ try {
   assert(fuelAfterRouteBack === fuelBeforeRouteBack, "route back button does not spend fuel");
 
   await clickAction("route");
-  await clickAction("select-route", "RN01");
-  await clickAction("confirm-route", "RN01");
+  await clickAction("select-route", "RN02");
+  assert((await page.locator(".route-summary").textContent())?.includes("2 波"), "medium-risk route visibly promises two night contacts");
+  await clickAction("confirm-route", "RN02");
   await page.waitForSelector(".screen--event");
   await clickAction("event-choice", "B");
   await page.waitForSelector(".screen--carriage.is-night");
 
   const alert = page.getByRole("alert");
+  assert((await alert.textContent())?.includes("接觸 1/2"), "medium-risk route begins at the first of two visible contacts");
+  assert((await page.locator('[data-action="pause"]').textContent())?.includes("暫停"), "night control visibly says pause instead of looking like a speed indicator");
+  assert((await page.locator('[data-action="pause"]').getAttribute("aria-label"))?.includes("暫停"), "night pause control exposes matching accessible language");
   await clickAction("pause");
+  assert((await page.locator('[data-action="pause"]').textContent())?.includes("繼續"), "paused night control visibly changes to continue");
   const pausedAt = await alert.textContent();
   await page.waitForTimeout(1400);
   assert((await alert.textContent()) === pausedAt, "pause freezes the threat countdown");
   await clickAction("pause");
+  assert((await page.locator('[data-action="pause"]').textContent())?.includes("暫停"), "resumed night control visibly returns to pause");
   await page.waitForTimeout(1200);
   assert((await alert.textContent()) !== pausedAt, "resume advances the threat countdown");
   const contactName = (await alert.textContent()) ?? "";
   await clickAction("counter", contactName.includes("攀附者") ? "emergency-boost" : "close-shutter");
+  await page.waitForFunction(() => document.querySelector('[role="alert"]')?.textContent?.includes("接觸 2/2"));
+  assert((await alert.textContent())?.includes("接觸 2/2"), "successful first counter advances to the route's second contact instead of ending the night");
+  await page.screenshot({ path: resolve(outputDirectory, "24-route-risk-waves.png"), fullPage: true });
+  const secondContactName = (await alert.textContent()) ?? "";
+  await clickAction("counter", secondContactName.includes("攀附者") ? "emergency-boost" : "close-shutter");
   await page.waitForSelector(".screen--result");
   await clickAction("next-day");
   await page.waitForSelector(".screen--carriage.is-prep");
@@ -341,7 +370,8 @@ try {
   await page.waitForSelector(".screen--route");
   assert((await page.locator(".app-header").textContent())?.includes("路線圖鑑"), "hub route opens in read-only preview mode");
   assert(await page.locator('[data-action="confirm-route"]').isDisabled(), "route preview cannot spend fuel or advance the run");
-  await clickAction("select-route", "RN03");
+  await page.locator('[data-action="select-route"][data-value="RN03"]').click();
+  await page.waitForSelector('[data-action="select-route"][data-value="RN03"].is-selected');
   await page.screenshot({ path: resolve(outputDirectory, "02-route-preview.png"), fullPage: true });
   await page.waitForTimeout(180);
   await clickAction("hub");
@@ -391,12 +421,18 @@ try {
       minimumTouchWidth: Math.round(Math.min(...targets.map((rect) => rect.width))),
       minimumTouchHeight: Math.round(Math.min(...targets.map((rect) => rect.height))),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      selectorLabelFontSize: Number.parseFloat(getComputedStyle(document.querySelector(".carriage-selector button small")).fontSize),
+      dockLabelFontSize: Number.parseFloat(getComputedStyle(document.querySelector(".carriage-dock button b")).fontSize),
+      cropInfoFontSize: Number.parseFloat(getComputedStyle(document.querySelector(".crop-quick-picker em")).fontSize),
     };
   });
   assert(compactLayoutMetrics.uninterruptedSceneHeight >= 320, `360×640 view keeps a playable scene window (${compactLayoutMetrics.uninterruptedSceneHeight}px)`);
   assert(compactLayoutMetrics.dockBottom <= 640, `360×640 command dock remains inside the viewport (${compactLayoutMetrics.dockBottom}px)`);
   assert(compactLayoutMetrics.minimumTouchWidth >= 48 && compactLayoutMetrics.minimumTouchHeight >= 48, `360×640 targets remain at least 48px (${compactLayoutMetrics.minimumTouchWidth}×${compactLayoutMetrics.minimumTouchHeight})`);
   assert(compactLayoutMetrics.horizontalOverflow === 0, "360×640 viewport has no horizontal overflow");
+  assert(compactLayoutMetrics.selectorLabelFontSize >= 9, `360×640 carriage labels remain readable (${compactLayoutMetrics.selectorLabelFontSize}px)`);
+  assert(compactLayoutMetrics.dockLabelFontSize >= 10, `360×640 command labels remain readable (${compactLayoutMetrics.dockLabelFontSize}px)`);
+  assert(compactLayoutMetrics.cropInfoFontSize >= 9, `360×640 crop information remains readable (${compactLayoutMetrics.cropInfoFontSize}px)`);
   await compactPage.screenshot({ path: resolve(outputDirectory, "20-compact-360x640.png"), fullPage: true });
   await compactContext.close();
 
@@ -420,6 +456,9 @@ try {
       actionDeltaTickets: true,
       preparationApDial: true,
       hapticFeedbackWhenSupported: true,
+      routeRiskNightWaves: true,
+      distinctGptCarriageBackgrounds: true,
+      semanticPauseControl: true,
     },
     browserErrors,
     generatedAt: new Date().toISOString(),

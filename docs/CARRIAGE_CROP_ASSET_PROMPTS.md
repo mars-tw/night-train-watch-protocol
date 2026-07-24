@@ -1,11 +1,11 @@
 # GPT carriage and crop asset prompts
 
-The five carriage configurations and three four-stage crop strips were produced with Codex built-in GPT image generation. The public game contains no runtime API key or generation call. The exact generated masters are retained under `public/assets/source/carriages/` and `public/assets/source/crops/`.
+The five carriage configurations and three four-stage crop strips were produced with Codex built-in GPT image generation. The public game contains no runtime API key or generation call. The exact generated masters are retained under `public/assets/source/carriages/` and `public/assets/source/crops/`. The 2026-07-24 `*-gpt-v2.png` masters replace the original shared-berth variants for defense, workshop, greenhouse and kitchen.
 
 ## Shared carriage constraints
 
 - Use the existing `carriage-prep.png` as an identity, fixed-camera and palette reference.
-- Keep a vertical 9:16 mobile-game composition, rear door/window, right side window, worn riveted metal architecture and A-07 as the same adult East Asian woman.
+- Keep a vertical 9:16 mobile-game composition, rear door/window, right side window and worn riveted metal architecture. A-07 remains visible only in the sleeping carriage; all working carriages must remove the person, bed, blanket, pillow and bedroom identity.
 - Cozy-horror pixel-art illustration, warm amber interior against cool cyan fog, readable at phone size.
 - No UI, text, logos, watermark, frame or duplicated character.
 - Change the actual furniture, storage and equipment so each configuration reads immediately while retaining one train design language.
@@ -16,19 +16,19 @@ The five carriage configurations and three four-stage crop strips were produced 
 
 ### Defense and cargo carriage
 
-> Reconfigure the reference as a weapons, defense and supplies carriage: reinforced window, secured cargo racks, strapped crates, tool wall, armor plates and inspection bench. Keep paths and door readable.
+> Reconfigure the reference as an armored watch station: reinforced shutters, secured cargo racks, sensor console, observation scope, tool wall and defense hardware. Remove the entire sleeping berth and keep paths and door readable.
 
 ### Workshop and intelligence carriage
 
-> Reconfigure the reference as a repair and intelligence carriage: shortwave radio, route maps, electronics, cable reels, task lamp, parts drawers and a practical workbench.
+> Reconfigure the reference as a full repair carriage: dual fabrication benches, drill press, welding station, vise, cable reels, task lamps and parts drawers. Remove the entire sleeping berth.
 
 ### Greenhouse carriage
 
-> Reconfigure the reference as an agricultural carriage with two clearly separate empty hydroponic grow racks on the left, water lines, reservoir and grow lamps. Do not draw mature crops into the base; runtime sprites will show growth.
+> Reconfigure the reference as a structural hydroponic farm with illuminated vertical racks, seedling trays, nutrient tank, water lines and a clear center aisle. Remove the entire sleeping berth; runtime sprites remain the interactive plot state.
 
 ### Kitchen and storage carriage
 
-> Reconfigure the reference as a galley and food-storage carriage: safe compact stove, preparation counter, water filter, hanging cookware, dry-food shelves and secured pantry bins.
+> Reconfigure the reference as a fixed train galley: safe stove, sink, dual preparation counters, hanging cookware, pantry shelves and a fold-down eating table. Remove the entire sleeping berth.
 
 ## Shared crop-strip constraints
 

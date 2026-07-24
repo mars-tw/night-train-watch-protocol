@@ -171,10 +171,14 @@ export class NightTrainApp {
         if (run && value) {
           const resolved = this.runService.counterThreat(run, value);
           if (resolved) {
-            clearInterval(this.nightTimer);
             this.state.nightPaused = false;
-            this.state.screen = "result";
-            if (this.state.settings.sound) this.audio.cue("safe");
+            if (run.phase === "night") {
+              if (this.state.settings.sound) this.audio.cue("warning");
+            } else {
+              clearInterval(this.nightTimer);
+              this.state.screen = "result";
+              if (this.state.settings.sound) this.audio.cue("safe");
+            }
             await this.persist();
           }
         }

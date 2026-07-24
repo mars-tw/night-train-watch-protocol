@@ -54,27 +54,33 @@
     "workshop-scrap"
   ],
   "actionCount": 49,
-  "assertions": 406,
+  "assertions": 498,
   "visualLayoutMetrics": {
     "uninterruptedSceneHeight": 534,
     "dockHeight": 70,
-    "minimumTouchWidth": 54,
+    "minimumTouchWidth": 60,
     "minimumTouchHeight": 48
   },
   "compactLayoutMetrics": {
-    "uninterruptedSceneHeight": 337,
-    "dockBottom": 633,
-    "minimumTouchWidth": 54,
+    "uninterruptedSceneHeight": 338,
+    "dockBottom": 632,
+    "minimumTouchWidth": 60,
     "minimumTouchHeight": 48,
-    "horizontalOverflow": 0
+    "horizontalOverflow": 0,
+    "selectorLabelFontSize": 9,
+    "dockLabelFontSize": 10,
+    "cropInfoFontSize": 9
   },
   "mobileGameFeel": {
     "horizontalCarriageSwipe": true,
     "firstUseSwipeGuidance": true,
     "actionDeltaTickets": true,
     "preparationApDial": true,
-    "hapticFeedbackWhenSupported": true
+    "hapticFeedbackWhenSupported": true,
+    "routeRiskNightWaves": true,
+    "distinctGptCarriageBackgrounds": true,
+    "semanticPauseControl": true
   },
   "browserErrors": [],
-  "generatedAt": "2026-07-24T08:33:01.759Z"
+  "generatedAt": "2026-07-24T11:11:45.605Z"
 }

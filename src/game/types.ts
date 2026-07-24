@@ -129,6 +129,8 @@ export interface ThreatContact {
   definitionId: string;
   stage: ContactStage;
   secondsLeft: number;
+  wave?: number;
+  totalWaves?: number;
   resolvedBy?: string;
 }
 

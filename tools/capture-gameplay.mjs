@@ -112,12 +112,22 @@ await page.locator('[data-action="select-carriage"][data-value="greenhouse"]').c
 await page.waitForTimeout(900);
 await page.getByRole("button", { name: /出發/ }).click();
 await page.waitForTimeout(1600);
+await page.locator('[data-action="select-route"][data-value="RN02"]').click();
+await page.waitForFunction(() => document.querySelector(".route-summary")?.textContent?.includes("2 波"));
 await page.getByRole("button", { name: "確認路線" }).click();
 await page.waitForTimeout(1900);
 await page.locator('[data-action="event-choice"]:not([disabled])').last().click();
-const threatText = await page.getByRole("alert").textContent();
 await page.waitForTimeout(3500);
-if (threatText?.includes("攀附者")) {
+const firstThreatText = await page.getByRole("alert").textContent();
+if (firstThreatText?.includes("攀附者")) {
+  await page.getByRole("button", { name: /緊急加速/ }).click();
+} else {
+  await page.getByRole("button", { name: /關閉百葉/ }).click();
+}
+await page.waitForFunction(() => document.querySelector('[role="alert"]')?.textContent?.includes("接觸 2/2"));
+await page.waitForTimeout(2300);
+const secondThreatText = await page.getByRole("alert").textContent();
+if (secondThreatText?.includes("攀附者")) {
   await page.getByRole("button", { name: /緊急加速/ }).click();
 } else {
   await page.getByRole("button", { name: /關閉百葉/ }).click();

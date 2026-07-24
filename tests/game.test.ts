@@ -154,6 +154,80 @@ describe("authoritative run service", () => {
     expect(run.modules.find((module) => module.definitionId === "M003")?.powered).toBe(false);
   });
 
+  it("turns route threat level into deterministic night contact waves", () => {
+    const first = createRun("route-waves");
+    const second = createRun("route-waves");
+    const firstService = new RunService();
+    const secondService = new RunService();
+    first.selectedRouteNodeId = "RN03";
+    second.selectedRouteNodeId = "RN03";
+
+    firstService.beginNight(first);
+    secondService.beginNight(second);
+
+    const firstOrder: string[] = [];
+    const secondOrder: string[] = [];
+    for (let wave = 1; wave <= 3; wave += 1) {
+      firstOrder.push(first.activeContact!.definitionId);
+      secondOrder.push(second.activeContact!.definitionId);
+      expect(first.activeContact).toMatchObject({ wave, totalWaves: 3, stage: "approach" });
+      const firstCounter = first.activeContact!.definitionId === "T003" ? "emergency-boost" : "close-shutter";
+      const secondCounter = second.activeContact!.definitionId === "T003" ? "emergency-boost" : "close-shutter";
+      expect(firstService.counterThreat(first, firstCounter)).toBe(true);
+      expect(secondService.counterThreat(second, secondCounter)).toBe(true);
+    }
+
+    expect(firstOrder).toEqual(secondOrder);
+    expect(first.phase).toBe("aftermath");
+    expect(first.activeContact).toBeUndefined();
+    expect(first.ledger.filter((entry) => entry.source === "aftermath.night-complete")).toHaveLength(1);
+  });
+
+  it("maps shipped route threat levels to one, two, and three contacts", () => {
+    for (const [routeId, totalWaves] of [["RN01", 1], ["RN02", 2], ["RN03", 3]] as const) {
+      const routeRun = createRun(`route-wave-${routeId}`);
+      routeRun.selectedRouteNodeId = routeId;
+      new RunService().beginNight(routeRun);
+      expect(routeRun.activeContact).toMatchObject({ wave: 1, totalWaves });
+    }
+  });
+
+  it("keeps the safe route at one contact and only finishes after that wave", () => {
+    const run = createRun("safe-route-wave");
+    const service = new RunService();
+    run.selectedRouteNodeId = "RN01";
+
+    service.beginNight(run);
+
+    expect(run.activeContact).toMatchObject({ wave: 1, totalWaves: 1 });
+    const counter = run.activeContact!.definitionId === "T003" ? "emergency-boost" : "close-shutter";
+    expect(service.counterThreat(run, counter)).toBe(true);
+    expect(run.phase).toBe("aftermath");
+  });
+
+  it("advances to the next route wave after each visible breach", () => {
+    const run = createRun("breach-waves");
+    const service = new RunService();
+    run.selectedRouteNodeId = "RN03";
+
+    service.beginNight(run);
+
+    for (let wave = 1; wave <= 3; wave += 1) {
+      run.activeContact!.secondsLeft = 1;
+      service.tickNight(run);
+      expect(run.activeContact).toMatchObject({ wave, totalWaves: 3, stage: "breach" });
+      service.tickNight(run);
+      if (wave < 3) {
+        expect(run.phase).toBe("night");
+        expect(run.activeContact).toMatchObject({ wave: wave + 1, totalWaves: 3, stage: "approach" });
+      }
+    }
+
+    expect(run.phase).toBe("aftermath");
+    expect(run.activeContact).toBeUndefined();
+    expect(run.environment.hull).toBeLessThan(100);
+  });
+
   it("applies the selected ration plan during dawn settlement", () => {
     const run = createRun("ration-plan");
     const service = new RunService();

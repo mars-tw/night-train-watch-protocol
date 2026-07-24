@@ -1,4 +1,4 @@
-const CACHE = "night-train-v0.7.0-mobile-game-feel";
+const CACHE = "night-train-v0.8.0-route-risk-waves";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

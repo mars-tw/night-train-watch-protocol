@@ -83,6 +83,15 @@ await page.waitForSelector(".screen--carriage.is-night");
 assert((await page.locator(".app-header").textContent())?.includes("耗電 9 E"), "Night should expose the settled power cost.");
 
 const alert = page.getByRole("alert");
+const pauseHitTest = await page.locator('[data-action="pause"]').evaluate((button) => {
+  const rect = button.getBoundingClientRect();
+  const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  return {
+    clear: top === button || Boolean(top && button.contains(top)),
+    top: top ? `${top.tagName.toLowerCase()}.${[...top.classList].join(".")}` : "none",
+  };
+});
+assert(pauseHitTest.clear, `Pause center must remain directly tappable; hit ${pauseHitTest.top}.`);
 await page.getByRole("button", { name: "暫停守夜倒數" }).click();
 await page.waitForFunction(() => document.querySelector('[role="alert"]')?.textContent?.includes("倒數暫停"));
 const pausedAt = await alert.textContent();
