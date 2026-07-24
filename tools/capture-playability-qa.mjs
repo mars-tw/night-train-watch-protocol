@@ -23,6 +23,23 @@ await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
 await page.getByRole("button", { name: "開始新局" }).click();
 await page.waitForSelector(".screen--carriage.is-prep");
 assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "New run should begin with 5 AP.");
+assert(await page.locator(".prep-ap-dial").count() === 1, "Preparation should show an AP instrument instead of a disabled pause control.");
+assert(await page.locator('[data-action="pause"]').count() === 0, "Preparation should not expose a fake pause button.");
+
+const swipeBox = await page.locator(".screen--carriage.is-observation-mode").boundingBox();
+assert(Boolean(swipeBox), "Observation scene should be available for mobile swiping.");
+await page.mouse.move(swipeBox.x + swipeBox.width * 0.76, swipeBox.y + swipeBox.height * 0.48);
+await page.mouse.down();
+await page.mouse.move(swipeBox.x + swipeBox.width * 0.28, swipeBox.y + swipeBox.height * 0.48, { steps: 10 });
+await page.mouse.up();
+await page.waitForSelector('.screen--carriage[data-carriage="kitchen"]');
+assert(await page.locator(".carriage-swipe-hint").count() === 0, "Swipe tutorial should clear after the gesture succeeds.");
+const swipeBackBox = await page.locator(".screen--carriage.is-observation-mode").boundingBox();
+await page.mouse.move(swipeBackBox.x + swipeBackBox.width * 0.24, swipeBackBox.y + swipeBackBox.height * 0.48);
+await page.mouse.down();
+await page.mouse.move(swipeBackBox.x + swipeBackBox.width * 0.72, swipeBackBox.y + swipeBackBox.height * 0.48, { steps: 10 });
+await page.mouse.up();
+await page.waitForSelector('.screen--carriage[data-carriage="greenhouse"]');
 
 await page.getByRole("button", { name: /建造/ }).click();
 await page.waitForSelector(".screen--modules");
@@ -54,6 +71,7 @@ await page.locator('[data-action="plant-crop"][data-value="plot-a:lettuce"]').fi
 await page.waitForFunction(() => document.querySelector(".app-header")?.textContent?.includes("4 AP"));
 assert((await page.locator(".app-header").textContent())?.includes("4 AP"), "Sowing should spend one AP.");
 assert((await page.locator(".toast-message").textContent())?.includes("葉萵苣已播入上層槽"), "Sowing should explain the first irrigation and growth requirement.");
+assert((await page.locator(".feedback-chips").textContent())?.includes("AP -1"), "Sowing should show the spent AP as a visible delta.");
 assert(await page.locator('.crop-scene-plot.stage-1').count() === 1, "The sown crop should be visible inside the carriage.");
 await page.screenshot({ path: resolve(outputDirectory, "03-crop-sown.png") });
 
@@ -65,6 +83,15 @@ await page.waitForSelector(".screen--carriage.is-night");
 assert((await page.locator(".app-header").textContent())?.includes("耗電 9 E"), "Night should expose the settled power cost.");
 
 const alert = page.getByRole("alert");
+const pauseHitTest = await page.locator('[data-action="pause"]').evaluate((button) => {
+  const rect = button.getBoundingClientRect();
+  const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  return {
+    clear: top === button || Boolean(top && button.contains(top)),
+    top: top ? `${top.tagName.toLowerCase()}.${[...top.classList].join(".")}` : "none",
+  };
+});
+assert(pauseHitTest.clear, `Pause center must remain directly tappable; hit ${pauseHitTest.top}.`);
 await page.getByRole("button", { name: "暫停守夜倒數" }).click();
 await page.waitForFunction(() => document.querySelector('[role="alert"]')?.textContent?.includes("倒數暫停"));
 const pausedAt = await alert.textContent();

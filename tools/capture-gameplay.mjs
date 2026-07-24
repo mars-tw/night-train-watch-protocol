@@ -18,6 +18,19 @@ const context = await browser.newContext({
 });
 
 const page = await context.newPage();
+async function swipeScene(direction) {
+  const screen = page.locator(".screen--carriage.is-observation-mode");
+  const box = await screen.boundingBox();
+  if (!box) throw new Error("Observation scene is not visible for swipe.");
+  const startX = direction === "next" ? box.x + box.width * 0.76 : box.x + box.width * 0.24;
+  const endX = direction === "next" ? box.x + box.width * 0.28 : box.x + box.width * 0.72;
+  const y = box.y + box.height * 0.48;
+  await page.mouse.move(startX, y);
+  await page.mouse.down();
+  await page.mouse.move(endX, y, { steps: 14 });
+  await page.mouse.up();
+}
+
 await page.goto(baseUrl, { waitUntil: "networkidle" });
 await page.evaluate(() => {
   localStorage.setItem("settings", JSON.stringify({
@@ -39,6 +52,14 @@ await page.locator('[data-action="select-crop"][data-value="tomato"]').click();
 await page.locator('[data-action="plant-crop"][data-value="plot-a:tomato"]').first().click();
 await page.waitForSelector('.crop-scene-plot.stage-1');
 await page.waitForTimeout(1700);
+
+// Show the mobile-first carriage gesture and its animated transition.
+await swipeScene("next");
+await page.waitForSelector('.screen--carriage[data-carriage="kitchen"]');
+await page.waitForTimeout(1100);
+await swipeScene("previous");
+await page.waitForSelector('.screen--carriage[data-carriage="greenhouse"]');
+await page.waitForTimeout(900);
 
 // Tour the five distinct configurations rather than reusing one carriage image.
 for (const carriageId of ["sleep", "defense", "workshop"]) {
@@ -91,12 +112,22 @@ await page.locator('[data-action="select-carriage"][data-value="greenhouse"]').c
 await page.waitForTimeout(900);
 await page.getByRole("button", { name: /出發/ }).click();
 await page.waitForTimeout(1600);
+await page.locator('[data-action="select-route"][data-value="RN02"]').click();
+await page.waitForFunction(() => document.querySelector(".route-summary")?.textContent?.includes("2 波"));
 await page.getByRole("button", { name: "確認路線" }).click();
 await page.waitForTimeout(1900);
 await page.locator('[data-action="event-choice"]:not([disabled])').last().click();
-const threatText = await page.getByRole("alert").textContent();
 await page.waitForTimeout(3500);
-if (threatText?.includes("攀附者")) {
+const firstThreatText = await page.getByRole("alert").textContent();
+if (firstThreatText?.includes("攀附者")) {
+  await page.getByRole("button", { name: /緊急加速/ }).click();
+} else {
+  await page.getByRole("button", { name: /關閉百葉/ }).click();
+}
+await page.waitForFunction(() => document.querySelector('[role="alert"]')?.textContent?.includes("接觸 2/2"));
+await page.waitForTimeout(2300);
+const secondThreatText = await page.getByRole("alert").textContent();
+if (secondThreatText?.includes("攀附者")) {
   await page.getByRole("button", { name: /緊急加速/ }).click();
 } else {
   await page.getByRole("button", { name: /關閉百葉/ }).click();

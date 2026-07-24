@@ -132,25 +132,19 @@ export class RunService {
   }
 
   public beginNight(run: RunState): void {
-    const orderRng = createRng(run.seed, "threat-order");
-    const offset = Math.floor(orderRng() * THREATS.length);
-    const threat = THREATS[(offset + run.day - 1) % THREATS.length] ?? THREATS[0]!;
+    const route = ROUTE_NODES.find((node) => node.id === run.selectedRouteNodeId);
+    const totalWaves = Math.max(1, route?.threatLevel ?? 1);
     const powerReport = this.settleNightPower(run);
     run.phase = "night";
-    run.activeContact = {
-      id: `contact-${run.day}`,
-      definitionId: threat.id,
-      stage: "approach",
-      secondsLeft: Math.max(7, threat.warningSeconds - Math.floor((run.day - 1) / 2)),
-    };
-    run.lastMessage = `${powerReport} 遠距感測出現異常，等待方向確認。`;
+    run.activeContact = this.createNightContact(run, 1, totalWaves);
+    run.lastMessage = `${powerReport} 遠距感測出現異常，等待方向確認。接觸 1/${totalWaves}。`;
   }
 
   public tickNight(run: RunState): void {
     const contact = run.activeContact;
     if (run.phase !== "night" || !contact || contact.stage === "resolve") return;
     if (contact.stage === "breach") {
-      this.finishNight(run);
+      this.advanceNightContactOrFinish(run, `${this.getThreat(contact)?.name ?? "威脅"}造成的破口已隔離。`);
       return;
     }
     contact.secondsLeft -= 1;
@@ -186,9 +180,7 @@ export class RunService {
     if (effective) {
       contact.stage = "resolve";
       contact.resolvedBy = counterId;
-      run.lastMessage = `${threat.name}已離開接觸範圍。車廂重新安靜。`;
-      this.finishNight(run);
-      return true;
+      return this.advanceNightContactOrFinish(run, `${threat.name}已離開接觸範圍。`);
     }
     contact.secondsLeft = Math.max(1, contact.secondsLeft - 2);
     run.lastMessage = "反制無效，接觸仍在升級。";
@@ -455,6 +447,35 @@ export class RunService {
 
   public getThreat(contact?: ThreatContact) {
     return THREATS.find((threat) => threat.id === contact?.definitionId);
+  }
+
+  private createNightContact(run: RunState, wave: number, totalWaves: number): ThreatContact {
+    const orderRng = createRng(run.seed, "threat-order");
+    const offset = Math.floor(orderRng() * THREATS.length);
+    const threat = THREATS[(offset + run.day + wave - 2) % THREATS.length] ?? THREATS[0]!;
+    return {
+      id: `contact-${run.day}-${wave}`,
+      definitionId: threat.id,
+      stage: "approach",
+      secondsLeft: Math.max(7, threat.warningSeconds - Math.floor((run.day - 1) / 2)),
+      wave,
+      totalWaves,
+    };
+  }
+
+  private advanceNightContactOrFinish(run: RunState, result: string): boolean {
+    const contact = run.activeContact;
+    const wave = contact?.wave ?? 1;
+    const totalWaves = contact?.totalWaves ?? 1;
+    if (run.environment.hull > 0 && run.survivor.health > 0 && wave < totalWaves) {
+      const nextWave = wave + 1;
+      run.activeContact = this.createNightContact(run, nextWave, totalWaves);
+      run.lastMessage = `${result} 下一次接觸逼近：${nextWave}/${totalWaves}。`;
+      return true;
+    }
+    run.lastMessage = `${result} 今夜 ${totalWaves} 次接觸已結束。`;
+    this.finishNight(run);
+    return true;
   }
 
   private advanceCrops(run: RunState): string {

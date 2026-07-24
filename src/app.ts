@@ -4,7 +4,7 @@ import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, ModuleCategory, RationMode, ScreenId, TechBranch } from "./game/types";
+import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, FeedbackTone, ModuleCategory, RationMode, RunState, ScreenId, TechBranch } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -38,6 +38,9 @@ export class NightTrainApp {
     await this.audio.enable();
     if (this.state.settings.sound) this.audio.cue("tap");
     const run = this.state.run;
+    const ledgerStart = run?.ledger.length ?? 0;
+    const actionPointsBefore = run?.actionPoints;
+    this.state.actionFeedback = [];
     switch (action) {
       case "new-game":
         this.state.run = createRun();
@@ -168,10 +171,14 @@ export class NightTrainApp {
         if (run && value) {
           const resolved = this.runService.counterThreat(run, value);
           if (resolved) {
-            clearInterval(this.nightTimer);
             this.state.nightPaused = false;
-            this.state.screen = "result";
-            if (this.state.settings.sound) this.audio.cue("safe");
+            if (run.phase === "night") {
+              if (this.state.settings.sound) this.audio.cue("warning");
+            } else {
+              clearInterval(this.nightTimer);
+              this.state.screen = "result";
+              if (this.state.settings.sound) this.audio.cue("safe");
+            }
             await this.persist();
           }
         }
@@ -218,8 +225,25 @@ export class NightTrainApp {
         if (run?.phase === "prep" && value && CARRIAGES.some((carriage) => carriage.id === value)) {
           this.state.activeCarriageId = value as CarriageId;
           this.state.carriagePanel = "scene";
+          if (!run.flags.includes("carriage-nav-seen")) run.flags.push("carriage-nav-seen");
           const carriage = CARRIAGES.find((item) => item.id === value)!;
           run.lastMessage = `已切換到${carriage.name}：${carriage.signature}。`;
+        }
+        break;
+      case "swipe-carriage":
+        if (run?.phase === "prep" && (value === "next" || value === "previous")) {
+          const currentIndex = CARRIAGES.findIndex((carriage) => carriage.id === this.state.activeCarriageId);
+          const nextIndex = currentIndex + (value === "next" ? 1 : -1);
+          if (nextIndex < 0 || nextIndex >= CARRIAGES.length) {
+            run.lastMessage = nextIndex < 0 ? "已到列車前端；往左滑可返回後方車廂。" : "已到列車尾端；往右滑可返回前方車廂。";
+          } else {
+            const carriage = CARRIAGES[nextIndex]!;
+            this.state.activeCarriageId = carriage.id;
+            this.state.carriagePanel = "scene";
+            this.state.decorating = false;
+            run.lastMessage = `滑入${carriage.name}：${carriage.role}。`;
+          }
+          if (!run.flags.includes("carriage-nav-seen")) run.flags.push("carriage-nav-seen");
         }
         break;
       case "decorate":
@@ -377,7 +401,31 @@ export class NightTrainApp {
       default:
         break;
     }
+    const currentRun = this.state.run;
+    if (run && currentRun === run) this.captureActionFeedback(run, ledgerStart, actionPointsBefore);
     this.render();
+  }
+
+  private captureActionFeedback(run: RunState, ledgerStart: number, actionPointsBefore?: number): void {
+    const combined = new Map<string, number>();
+    if (typeof actionPointsBefore === "number" && actionPointsBefore !== run.actionPoints) combined.set("AP", run.actionPoints - actionPointsBefore);
+    for (const entry of run.ledger.slice(ledgerStart)) combined.set(entry.key, (combined.get(entry.key) ?? 0) + entry.delta);
+    const labels: Record<string, string> = {
+      energy: "電", fuel: "燃", food: "食", water: "水", parts: "零", medicine: "藥", data: "資",
+      health: "健", stress: "壓", infection: "染", trust: "信", sleep: "眠", wakeups: "醒",
+      temperature: "溫", noise: "噪", visibility: "視", hull: "體", weight: "重",
+    };
+    const reliefKeys = new Set(["stress", "infection", "noise", "wakeups", "weight"]);
+    this.state.actionFeedback = [...combined.entries()]
+      .filter(([, delta]) => delta !== 0)
+      .slice(0, 3)
+      .map(([key, delta]) => {
+        let tone: FeedbackTone = "neutral";
+        if (key === "AP") tone = "cost";
+        else if (reliefKeys.has(key)) tone = delta < 0 ? "relief" : "cost";
+        else if (key !== "temperature" && key !== "visibility") tone = delta > 0 ? "gain" : "cost";
+        return { label: labels[key] ?? key, delta, tone };
+      });
   }
 
   private startNightTimer(): void {
@@ -386,6 +434,7 @@ export class NightTrainApp {
     this.nightTimer = window.setInterval(() => {
       const run = this.state.run;
       if (!run || run.phase !== "night" || this.state.settings.noCountdown || this.state.nightPaused) return;
+      this.state.actionFeedback = [];
       this.runService.tickNight(run);
       const phaseAfterTick: string = run.phase;
       if (phaseAfterTick === "aftermath" || phaseAfterTick === "ending") {

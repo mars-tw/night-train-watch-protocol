@@ -1,6 +1,6 @@
 import { CARRIAGES, CROPS, DECORATIONS, DECORATION_SLOTS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
 import { counterReadiness, getNightPowerDemand } from "../game/services";
-import type { AppState, GameEvent, RunState } from "../game/types";
+import type { AppState, CarriageId, GameEvent, RunState } from "../game/types";
 import { escapeText, formatSigned } from "./dom";
 import { icons } from "./icons";
 
@@ -118,7 +118,7 @@ function cropQuickPicker(state: AppState, run: RunState): string {
   return `<aside class="crop-quick-picker panel" aria-label="選擇要播種的作物">
     <span>播種</span>
     ${CROPS.map((crop) => `<button class="${state.selectedCropId === crop.id ? "is-selected" : ""}" data-action="select-crop" data-value="${crop.id}" aria-pressed="${state.selectedCropId === crop.id}" aria-label="選擇${crop.name}"><img src="${cropAsset(crop.id, 3)}" alt=""><small>${crop.name}</small></button>`).join("")}
-    <em>已選 ${selected.name}・點水培槽操作・水 ${run.resources.water}</em>
+    <em>${selected.name}<b>水 ${run.resources.water}</b></em>
   </aside>`;
 }
 
@@ -191,11 +191,16 @@ function carriageHotspots(state: AppState, run: RunState): string {
   if (state.decorating || state.carriagePanel !== "scene" || state.activeCarriageId === "greenhouse") return "";
   const hotspot = {
     sleep: `<button data-action="comfort" style="--x:58%;--y:58%" aria-label="安撫 A-07，消耗 1 AP" ${run.flags.includes(`comforted-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b>撫</b><span>${run.flags.includes(`comforted-${run.day}`) ? "已安撫" : "安撫"}</span><small>1 AP</small></button>`,
-    defense: `<button data-action="toggle-module" data-value="M001" style="--x:82%;--y:36%" aria-label="切換防護百葉"><b>百</b><span>百葉</span><small>ON / OFF</small></button><button data-action="repair-hull" style="--x:19%;--y:56%" aria-label="維修車體，消耗 2 AP 與 2 零件" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}><b>修</b><span>${run.environment.hull >= 100 ? "車體完整" : "維修"}</span><small>2 AP</small></button>`,
+    defense: `<button data-action="toggle-module" data-value="M001" style="--x:82%;--y:36%" aria-label="切換防護百葉"><b>百</b><span>百葉</span><small>ON / OFF</small></button><button data-action="repair-hull" style="--x:19%;--y:56%" aria-label="維修車體，消耗 2 AP 與 2 零件" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}><b>修</b><span>${run.environment.hull >= 100 ? "車體完整" : "維修"}</span><small>${run.environment.hull >= 100 ? "無需維修" : "2 AP・零 2"}</small></button>`,
     workshop: `<button data-action="workshop-scrap" style="--x:20%;--y:62%" aria-label="整理回收零件，消耗 1 AP" ${run.flags.includes(`workshop-scrap-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b>整</b><span>${run.flags.includes(`workshop-scrap-${run.day}`) ? "已整理" : "回收"}</span><small>1 AP</small></button>`,
-    kitchen: `<button data-action="cook-meal" style="--x:20%;--y:62%" aria-label="烹煮熱食，消耗 1 AP" ${run.flags.includes(`hot-meal-${run.day}`) || run.actionPoints < 1 || run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2 ? "disabled" : ""}><b>煮</b><span>${run.flags.includes(`hot-meal-${run.day}`) ? "已烹飪" : "熱食"}</span><small>1 AP</small></button>`,
+    kitchen: `<button data-action="cook-meal" style="--x:20%;--y:62%" aria-label="烹煮熱食，消耗 1 AP、食物 1、飲水 1、電量 2" ${run.flags.includes(`hot-meal-${run.day}`) || run.actionPoints < 1 || run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2 ? "disabled" : ""}><b>煮</b><span>${run.flags.includes(`hot-meal-${run.day}`) ? "已烹飪" : "熱食"}</span><small>1 AP・食水電</small></button>`,
   }[state.activeCarriageId];
   return `<div class="scene-hotspots" aria-label="${CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)?.name}設備熱區">${hotspot}</div>`;
+}
+
+function actionFeedback(state: AppState): string {
+  if (state.actionFeedback.length === 0) return "";
+  return `<span class="feedback-chips" aria-label="本次數值變化">${state.actionFeedback.map((entry) => `<b class="feedback-chip is-${entry.tone}">${escapeText(entry.label)} ${formatSigned(entry.delta)}</b>`).join("")}</span>`;
 }
 
 function carriageScreen(state: AppState): string {
@@ -224,18 +229,19 @@ function carriageScreen(state: AppState): string {
   const drawerOpen = !night && (state.decorating || state.carriagePanel !== "scene");
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}">
     ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
-    <button class="speed-control" type="button" data-action="pause" ${night && !state.settings.noCountdown ? "" : "disabled"} aria-label="${!night ? "整備階段時間已暫停" : state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}">${night ? state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "×1" : icons.pause}</button>
+    ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "Ⅱ"}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
     ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
+    ${!night && !run.flags.includes("carriage-nav-seen") ? `<p class="carriage-swipe-hint" aria-hidden="true"><b>←</b> 滑動車廂 <b>→</b></p>` : ""}
     ${decorationLayer(state, run, night)}
     ${!night ? cropSceneLayer(state, run) : ""}
-    ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
+    ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>接觸 ${contact.wave ?? 1}/${contact.totalWaves ?? 1}・${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
     ${!night ? carriageHotspots(state, run) : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", "M001"], ["暖氣", "M002"], ["溫室", "M003"], ["感測器", "M004"]].map(([label, moduleId]) => { const module = run.modules.find((instance) => instance.definitionId === moduleId); const on = Boolean(module?.active && module.powered); return `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${module ? on ? "ON" : "OFF" : "—"}</b></div>`; }).join("")}</div>` : ""}
     ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state, run) : prepPanel}
     <nav class="carriage-dock panel">
       <button data-action="modules"><span>${icons.build}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${icons.power}</span><b>配電</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${icons.meal}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>◇</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${icons.route}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
     </nav>`}
-    <div class="toast-message" role="status">${escapeText(run.lastMessage)}</div>
+    <div class="toast-message" role="status"><span class="toast-copy">${escapeText(run.lastMessage)}</span>${actionFeedback(state)}</div>
   </section>`;
 }
 
@@ -250,7 +256,7 @@ function routeScreen(state: AppState): string {
       ${ROUTE_NODES.map((node, index) => `<button class="route-node route-node--${node.kind} ${state.selectedRouteId === node.id ? "is-selected" : ""}" style="--x:${[12, 46, 83][index]}%;--y:${[78, 47, 18][index]}%" data-action="select-route" data-value="${node.id}"><span>${node.kind === "danger" ? "!" : node.kind === "supply" ? "+" : "◇"}</span><small>${node.name}</small></button>`).join("")}
       <div class="route-legend"><span>◆ 補給</span><span>◇ 故事</span><span>! 危險</span></div>
     </div>
-    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selected.fuelCost}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", state.routePreview ? "局外預覽" : run.resources.fuel < selected.fuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && run.resources.fuel >= selected.fuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || run.resources.fuel < selected.fuelCost })}</article>` : ""}
+    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}・${selected.threatLevel} 波</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selected.fuelCost}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", state.routePreview ? "局外預覽" : run.resources.fuel < selected.fuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && run.resources.fuel >= selected.fuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || run.resources.fuel < selected.fuelCost })}</article>` : ""}
   </section>`;
 }
 
@@ -337,6 +343,8 @@ export class GameView {
   private readonly canvas: HTMLCanvasElement;
   private readonly uiRoot: HTMLDivElement;
   private previousScreenKey = "";
+  private previousCarriageId?: CarriageId;
+  private carriageSwipe: { target: HTMLElement; pointerId: number; startX: number; startY: number; x: number; y: number } | null = null;
   private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean; nearestSlotId?: string } | null = null;
   private suppressDecorClick = false;
 
@@ -351,12 +359,25 @@ export class GameView {
         this.suppressDecorClick = false;
         return;
       }
+      if ("vibrate" in navigator) navigator.vibrate(8);
       this.onAction(target.dataset.action ?? "", target.dataset.value);
     });
-    this.uiRoot.addEventListener("pointerdown", (event) => this.startDecorDrag(event));
-    this.uiRoot.addEventListener("pointermove", (event) => this.moveDecorDrag(event));
-    this.uiRoot.addEventListener("pointerup", (event) => this.finishDecorDrag(event));
-    this.uiRoot.addEventListener("pointercancel", () => this.cancelDecorDrag());
+    this.uiRoot.addEventListener("pointerdown", (event) => {
+      this.startDecorDrag(event);
+      if (!this.decorDrag) this.startCarriageSwipe(event);
+    });
+    this.uiRoot.addEventListener("pointermove", (event) => {
+      this.moveDecorDrag(event);
+      this.moveCarriageSwipe(event);
+    });
+    this.uiRoot.addEventListener("pointerup", (event) => {
+      if (this.decorDrag) this.finishDecorDrag(event);
+      else this.finishCarriageSwipe(event);
+    });
+    this.uiRoot.addEventListener("pointercancel", () => {
+      this.cancelDecorDrag();
+      this.cancelCarriageSwipe();
+    });
   }
 
   public getCanvas(): HTMLCanvasElement {
@@ -417,6 +438,56 @@ export class GameView {
     this.decorDrag = null;
   }
 
+  private startCarriageSwipe(event: PointerEvent): void {
+    const source = event.target as HTMLElement;
+    const screen = source.closest<HTMLElement>(".screen--carriage.is-prep.is-observation-mode");
+    if (!screen || source.closest("button, [data-action], .panel, .toast-message, .carriage-swipe-hint")) return;
+    const selectorBottom = this.uiRoot.querySelector(".carriage-selector")?.getBoundingClientRect().bottom ?? 0;
+    const toastTop = this.uiRoot.querySelector(".toast-message")?.getBoundingClientRect().top ?? innerHeight;
+    if (event.clientY < selectorBottom || event.clientY > toastTop) return;
+    screen.setPointerCapture(event.pointerId);
+    this.carriageSwipe = { target: screen, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY };
+  }
+
+  private moveCarriageSwipe(event: PointerEvent): void {
+    const swipe = this.carriageSwipe;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    swipe.x = event.clientX;
+    swipe.y = event.clientY;
+    const dx = swipe.x - swipe.startX;
+    const dy = swipe.y - swipe.startY;
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      const dragOffset = Math.max(-28, Math.min(28, dx * 0.16));
+      this.canvas.style.transform = `translateX(${dragOffset}px) scale(1.012)`;
+      this.canvas.style.opacity = String(1 - Math.min(0.16, Math.abs(dx) / 700));
+      event.preventDefault();
+    }
+  }
+
+  private finishCarriageSwipe(event: PointerEvent): void {
+    const swipe = this.carriageSwipe;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    const dx = event.clientX - swipe.startX;
+    const dy = event.clientY - swipe.startY;
+    this.resetCarriageCanvasDrag();
+    this.carriageSwipe = null;
+    if (Math.abs(dx) >= 58 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      if ("vibrate" in navigator) navigator.vibrate(12);
+      this.onAction("swipe-carriage", dx < 0 ? "next" : "previous");
+      event.preventDefault();
+    }
+  }
+
+  private cancelCarriageSwipe(): void {
+    this.resetCarriageCanvasDrag();
+    this.carriageSwipe = null;
+  }
+
+  private resetCarriageCanvasDrag(): void {
+    this.canvas.style.removeProperty("transform");
+    this.canvas.style.removeProperty("opacity");
+  }
+
   public render(state: AppState, hasSave: boolean, activeEvent?: GameEvent): void {
     const screen = {
       menu: () => menuScreen(state, hasSave),
@@ -430,9 +501,21 @@ export class GameView {
       settings: () => settingsScreen(state),
     }[state.screen];
     this.uiRoot.innerHTML = screen();
-    const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? "", state.activeCarriageId].join(":");
+    const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? ""].join(":");
     if (screenKey !== this.previousScreenKey) this.uiRoot.querySelector(".screen")?.classList.add("screen-enter");
     this.previousScreenKey = screenKey;
+    if (state.screen === "carriage") {
+      if (this.previousCarriageId && this.previousCarriageId !== state.activeCarriageId) {
+        const previousIndex = CARRIAGES.findIndex((carriage) => carriage.id === this.previousCarriageId);
+        const currentIndex = CARRIAGES.findIndex((carriage) => carriage.id === state.activeCarriageId);
+        const motionClass = currentIndex > previousIndex ? "carriage-shift-next" : "carriage-shift-previous";
+        this.canvas.classList.remove("carriage-shift-next", "carriage-shift-previous");
+        void this.canvas.offsetWidth;
+        this.canvas.classList.add(motionClass);
+        window.setTimeout(() => this.canvas.classList.remove(motionClass), 320);
+      }
+      this.previousCarriageId = state.activeCarriageId;
+    }
     this.root.style.setProperty("--text-scale", String(state.settings.textScale / 100));
     this.root.classList.toggle("reduce-motion", state.settings.reducedMotion);
     this.root.dataset.gameScreen = state.screen;
