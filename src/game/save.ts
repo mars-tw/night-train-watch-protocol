@@ -1,6 +1,7 @@
 import type { RunState, SettingsState } from "./types";
 import { DECORATION_SLOTS } from "./content";
 import { createCropPlots, createDecorationPlacements } from "./model";
+import { createDefaultStoryState } from "./story";
 
 const DB_NAME = "night-train-save";
 const STORE_NAME = "snapshots";
@@ -8,10 +9,10 @@ const CURRENT_KEY = "run.current";
 const BACKUP_KEY = "run.backup";
 const SETTINGS_KEY = "settings";
 
-function parseRun(raw: string | null): RunState | null {
+export function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
   const value = JSON.parse(raw) as RunState & { schemaVersion: number };
-  if (![1, 2].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  if (![1, 2, 3].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
   const defaults = createDecorationPlacements();
   const decorations = defaults.map((fallback) => {
     const saved = Array.isArray(value.decorations) ? value.decorations.find((item) => item.id === fallback.id) : undefined;
@@ -21,15 +22,29 @@ function parseRun(raw: string | null): RunState | null {
     const closest = compatible.sort((a, b) => Math.hypot(a.x - saved.x, a.y - saved.y) - Math.hypot(b.x - saved.x, b.y - saved.y))[0];
     return closest ? { id: fallback.id, carriageId: closest.carriageId, slotId: closest.id, x: closest.x, y: closest.y } : fallback;
   });
+  const storyDefaults = createDefaultStoryState();
+  const savedStory = value.story;
   return {
     ...value,
-    schemaVersion: 2,
+    schemaVersion: 3,
     actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
     rationMode: value.rationMode ?? "standard",
     nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
     outcome: value.outcome ?? (value.ended ? "victory" : "active"),
     decorations,
     crops: Array.isArray(value.crops) && value.crops.length === 2 ? value.crops : createCropPlots(),
+    story: {
+      ...storyDefaults,
+      ...(savedStory ?? {}),
+      flags: {
+        ...storyDefaults.flags,
+        ...(savedStory?.flags ?? {}),
+      },
+      queue: Array.isArray(savedStory?.queue) ? savedStory.queue : [],
+      seenEventIds: Array.isArray(savedStory?.seenEventIds) ? savedStory.seenEventIds : [],
+      endingReasons: Array.isArray(savedStory?.endingReasons) ? savedStory.endingReasons : [],
+      dawnLogIds: Array.isArray(savedStory?.dawnLogIds) ? savedStory.dawnLogIds : [],
+    },
   };
 }
 

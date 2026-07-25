@@ -62,8 +62,8 @@
     "minimumTouchHeight": 48
   },
   "compactLayoutMetrics": {
-    "uninterruptedSceneHeight": 338,
-    "dockBottom": 632,
+    "uninterruptedSceneHeight": 327,
+    "dockBottom": 639,
     "minimumTouchWidth": 60,
     "minimumTouchHeight": 48,
     "horizontalOverflow": 0,
@@ -82,5 +82,5 @@
     "semanticPauseControl": true
   },
   "browserErrors": [],
-  "generatedAt": "2026-07-24T11:11:45.605Z"
+  "generatedAt": "2026-07-25T14:58:42.991Z"
 }

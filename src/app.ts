@@ -89,6 +89,10 @@ export class NightTrainApp {
         this.state.screen = "settings";
         break;
       case "carriage":
+        if (run?.activeEventId && "forced" in (this.runService.getEvent(run) ?? {})) {
+          this.state.screen = "event";
+          break;
+        }
         if (run?.phase === "route" && !this.state.routePreview) run.phase = "prep";
         this.state.screen = "carriage";
         this.state.carriagePanel = "scene";
@@ -104,6 +108,10 @@ export class NightTrainApp {
         break;
       case "route":
         if (run && run.phase !== "night") {
+          if (run.activeEventId && "forced" in (this.runService.getEvent(run) ?? {})) {
+            this.state.screen = "event";
+            break;
+          }
           this.state.decorating = false;
           this.state.routePreview = this.state.screen === "hub" || run.ended;
           this.state.modulePreview = false;
@@ -158,11 +166,15 @@ export class NightTrainApp {
           const gameEvent = this.runService.getEvent(run);
           const choice = gameEvent?.choices.find((candidate) => candidate.id === value) as EventChoice | undefined;
           if (choice && this.runService.resolveEvent(run, choice)) {
-            this.state.screen = "carriage";
-            this.state.activeCarriageId = "defense";
+            this.state.screen = this.screenForPhase();
             this.state.nightPaused = false;
-            this.startNightTimer();
-            if (this.state.settings.sound) this.audio.cue("warning");
+            if (run.phase === "night") {
+              this.state.activeCarriageId = "defense";
+              this.startNightTimer();
+              if (this.state.settings.sound) this.audio.cue("warning");
+            } else if (run.phase === "ending" && this.state.settings.sound) {
+              this.audio.cue("safe");
+            }
             await this.persist();
           }
         }
@@ -176,7 +188,7 @@ export class NightTrainApp {
               if (this.state.settings.sound) this.audio.cue("warning");
             } else {
               clearInterval(this.nightTimer);
-              this.state.screen = "result";
+              this.state.screen = this.screenForPhase();
               if (this.state.settings.sound) this.audio.cue("safe");
             }
             await this.persist();
@@ -186,7 +198,7 @@ export class NightTrainApp {
       case "next-day":
         if (run) {
           this.runService.continueAftermath(run);
-          this.state.screen = run.ended ? "result" : "carriage";
+          this.state.screen = this.screenForPhase();
           this.state.carriagePanel = "scene";
           this.state.decorating = false;
           this.state.activeCarriageId = "greenhouse";
@@ -437,9 +449,9 @@ export class NightTrainApp {
       this.state.actionFeedback = [];
       this.runService.tickNight(run);
       const phaseAfterTick: string = run.phase;
-      if (phaseAfterTick === "aftermath" || phaseAfterTick === "ending") {
+      if (phaseAfterTick === "aftermath" || phaseAfterTick === "ending" || (phaseAfterTick === "travel" && Boolean(run.activeEventId))) {
         clearInterval(this.nightTimer);
-        this.state.screen = "result";
+        this.state.screen = this.screenForPhase();
         if (this.state.settings.sound) this.audio.cue("breach");
         void this.persist();
       }
@@ -474,7 +486,11 @@ export class NightTrainApp {
   }
 
   private render(): void {
-    const activeEvent = this.state.eventPreview ? EVENTS.find((event) => event.id === "EV004") : this.state.run?.activeEventId ? EVENTS.find((event) => event.id === this.state.run?.activeEventId) : undefined;
+    const activeEvent = this.state.eventPreview
+      ? EVENTS.find((event) => event.id === "EV004")
+      : this.state.run?.activeEventId
+        ? this.runService.getEvent(this.state.run)
+        : undefined;
     this.view.render(this.state, this.hasSave, activeEvent);
     this.renderer.render(this.state);
   }

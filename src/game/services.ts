@@ -1,7 +1,42 @@
-import { BALANCE, CROPS, DECORATIONS, DECORATION_SLOTS, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, TECH_NODES, THREATS } from "./content";
+import {
+  BALANCE,
+  CROPS,
+  DAY4_BRANCH_DEFINITIONS,
+  DECORATIONS,
+  DECORATION_SLOTS,
+  EVENTS,
+  MODULES,
+  ROUTE_EVENT_POOLS,
+  ROUTE_NODES,
+  STORY_DAY_SCHEDULE,
+  STORY_EVENTS,
+  TECH_NODES,
+  THREATS,
+} from "./content";
+import type { StoryContentChoice, StoryContentEvent } from "./content";
 import { createDecorationPlacements } from "./model";
 import { createRng } from "./rng";
-import type { CropId, CropPlotId, DecorationId, EnvironmentKey, EventChoice, RationMode, ResourceKey, RunState, SurvivorKey, ThreatContact } from "./types";
+import {
+  applyDay4Route,
+  consumeStoryEvent,
+  evaluateA07Consent,
+  evaluateEnding,
+  getDueStoryEvents,
+  queueStoryEvent,
+  refreshTrueRouteData,
+} from "./story";
+import type {
+  CropId,
+  CropPlotId,
+  DecorationId,
+  EnvironmentKey,
+  EventChoice,
+  RationMode,
+  ResourceKey,
+  RunState,
+  SurvivorKey,
+  ThreatContact,
+} from "./types";
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -11,6 +46,32 @@ export const COUNTER_COSTS: Record<string, Partial<Record<ResourceKey, number>>>
   "emergency-boost": { fuel: -4 },
   decoy: { energy: -6 },
 };
+
+function isStoryChoice(choice: EventChoice): choice is StoryContentChoice {
+  return "consequence" in choice;
+}
+
+function storyFlagValue(run: RunState, key: string): unknown {
+  return (run.story.flags as unknown as Record<string, unknown>)[key];
+}
+
+function storyFlagSatisfied(run: RunState, requirement: string): boolean {
+  const [key, rawMinimum] = requirement.split(":");
+  const value = storyFlagValue(run, key ?? "");
+  if (rawMinimum !== undefined) return typeof value === "number" && value >= Number(rawMinimum);
+  return Boolean(value);
+}
+
+function storyConditionMatches(run: RunState, condition: Record<string, boolean | number | string | null>): boolean {
+  return Object.entries(condition).every(([key, expected]) => {
+    if (key === "a07Consent") return evaluateA07Consent(run).consents === expected;
+    return storyFlagValue(run, key) === expected;
+  });
+}
+
+function isStoryEvent(event: { id: string }): event is StoryContentEvent {
+  return "forced" in event;
+}
 
 export function getNightPowerDemand(run: RunState): number {
   const efficiencyDiscount = run.techOwned.includes("E1") ? 1 : 0;
@@ -96,6 +157,10 @@ export class RunService {
   }
 
   public chooseRoute(run: RunState, nodeId: string): void {
+    if ((run.phase !== "prep" && run.phase !== "route") || run.activeEventId || run.ended) {
+      run.lastMessage = "目前階段不能重複確認路線。";
+      return;
+    }
     const node = ROUTE_NODES.find((candidate) => candidate.id === nodeId);
     if (!node) throw new Error(`Unknown route node: ${nodeId}`);
     if (!this.applyResource(run, "fuel", -node.fuelCost, `route.${node.id}`)) {
@@ -103,38 +168,182 @@ export class RunService {
       return;
     }
     run.selectedRouteNodeId = node.id;
-    const eventPool = ROUTE_EVENT_POOLS[node.id] ?? [node.eventId];
-    run.activeEventId = eventPool[(run.day - 1) % eventPool.length] ?? node.eventId;
+    const scheduledStoryEvent = STORY_DAY_SCHEDULE[run.day as keyof typeof STORY_DAY_SCHEDULE]?.[0];
+    if (scheduledStoryEvent && !run.story.seenEventIds.includes(scheduledStoryEvent.eventId)) {
+      run.activeEventId = scheduledStoryEvent.eventId;
+      if (scheduledStoryEvent.finaleStage) run.story.finaleStage = scheduledStoryEvent.finaleStage;
+    } else {
+      const eventPool = ROUTE_EVENT_POOLS[node.id] ?? [node.eventId];
+      run.activeEventId = eventPool[(run.day - 1) % eventPool.length] ?? node.eventId;
+    }
     run.phase = "travel";
     run.lastMessage = `已鎖定 ${node.name}，預計消耗燃料 ${node.fuelCost}。`;
   }
 
   public resolveEvent(run: RunState, choice: EventChoice): boolean {
-    for (const [key, delta] of Object.entries(choice.deltas)) {
-      if (typeof delta === "number" && delta < 0 && run.resources[key as ResourceKey] + delta < 0) {
+    const event = this.getEvent(run);
+    const eventId = run.activeEventId;
+    if (!event || !eventId || !event.choices.some((candidate) => candidate.id === choice.id)) return false;
+    const storyEvent = isStoryEvent(event) ? event : undefined;
+    const eventRequirements = storyEvent?.requirements;
+    if (eventRequirements?.allFlags?.some((requirement) => !storyFlagSatisfied(run, requirement))) {
+      run.lastMessage = "故事證據不足，這個事件尚不能結算。";
+      return false;
+    }
+    if (eventRequirements?.anyFlags && !eventRequirements.anyFlags.some((requirement) => storyFlagSatisfied(run, requirement))) {
+      run.lastMessage = "至少還缺一項可驗證的故事證據。";
+      return false;
+    }
+    if (eventRequirements?.techOwned?.some((techId) => !run.techOwned.includes(techId))) {
+      run.lastMessage = `需要 ${eventRequirements.techOwned.join("、")} 才能繼續解碼。`;
+      return false;
+    }
+    if (eventRequirements?.endingRequired && !run.story.endingId) {
+      run.lastMessage = "結局尚未鎖定，不能提前進入尾聲。";
+      return false;
+    }
+
+    const storyChoice = isStoryChoice(choice) ? choice : undefined;
+    const requirements = storyChoice?.requirements;
+    if (requirements?.allFlags?.some((requirement) => !storyFlagSatisfied(run, requirement))) {
+      run.lastMessage = "尚未完成這項操作所需的故事條件。";
+      return false;
+    }
+    for (const [key, minimum] of Object.entries(requirements?.minimum ?? {})) {
+      const current = key in run.resources
+        ? run.resources[key as ResourceKey]
+        : run.survivor[key as SurvivorKey];
+      if (typeof minimum === "number" && current < minimum) {
+        run.lastMessage = "資源或乘客狀態不足，無法執行這項操作。";
+        return false;
+      }
+    }
+    const consent = requirements?.a07ConsentOrTech ? evaluateA07Consent(run) : undefined;
+    if (requirements?.a07ConsentOrTech && !consent?.consents && !run.techOwned.includes(requirements.a07ConsentOrTech)) {
+      run.lastMessage = `A-07 不同意；需要 ${requirements.a07ConsentOrTech} 才能覆寫。`;
+      return false;
+    }
+
+    const consequence = storyChoice?.consequence;
+    const resourceDelta = consequence?.resourceDelta ?? choice.deltas;
+    const survivorDelta = consequence?.survivorDelta ?? choice.survivor;
+    const conditionalResource = (consequence?.conditionalResourceDelta ?? [])
+      .filter((entry) => storyConditionMatches(run, entry.when))
+      .flatMap((entry) => Object.entries(entry.delta));
+    const conditionalSurvivor = (consequence?.conditionalSurvivorDelta ?? [])
+      .filter((entry) => storyConditionMatches(run, entry.when))
+      .flatMap((entry) => Object.entries(entry.delta));
+
+    const totalResourceDelta = new Map<string, number>();
+    for (const [key, delta] of [...Object.entries(resourceDelta), ...conditionalResource]) {
+      if (typeof delta === "number") totalResourceDelta.set(key, (totalResourceDelta.get(key) ?? 0) + delta);
+    }
+    for (const [key, delta] of totalResourceDelta) {
+      if (delta < 0 && run.resources[key as ResourceKey] + delta < 0) {
         run.lastMessage = `資源不足，無法執行「${choice.label}」。`;
         return false;
       }
     }
-    for (const [key, delta] of Object.entries(choice.deltas)) {
-      if (typeof delta === "number") this.applyResource(run, key as ResourceKey, delta, `event.${run.activeEventId}.${choice.id}`);
+    for (const [key, delta] of totalResourceDelta) {
+      this.applyResource(run, key as ResourceKey, delta, `event.${eventId}.${choice.id}`);
     }
-    for (const [key, delta] of Object.entries(choice.survivor ?? {})) {
-      if (typeof delta === "number") this.applySurvivor(run, key as SurvivorKey, delta, `event.${run.activeEventId}.${choice.id}`);
+
+    const totalSurvivorDelta = new Map<string, number>();
+    for (const [key, delta] of [...Object.entries(survivorDelta ?? {}), ...conditionalSurvivor]) {
+      if (typeof delta === "number") totalSurvivorDelta.set(key, (totalSurvivorDelta.get(key) ?? 0) + delta);
+    }
+    for (const [key, delta] of totalSurvivorDelta) {
+      this.applySurvivor(run, key as SurvivorKey, delta, `event.${eventId}.${choice.id}`);
     }
     for (const [key, delta] of Object.entries(choice.environment ?? {})) {
-      if (typeof delta === "number") this.applyEnvironment(run, key as EnvironmentKey, delta, `event.${run.activeEventId}.${choice.id}`);
+      if (typeof delta === "number") this.applyEnvironment(run, key as EnvironmentKey, delta, `event.${eventId}.${choice.id}`);
     }
+
+    if (consequence?.setFlags) {
+      Object.assign(run.story.flags as unknown as Record<string, unknown>, consequence.setFlags);
+    }
+    if (consequence?.day4Route) run.story = applyDay4Route(run.story, consequence.day4Route);
+    if (consequence?.unlockDawnLogId && !run.story.dawnLogIds.includes(consequence.unlockDawnLogId)) {
+      run.story.dawnLogIds.push(consequence.unlockDawnLogId);
+    }
+    if (consequence?.addEndingReason && !run.story.endingReasons.includes(consequence.addEndingReason)) {
+      run.story.endingReasons.push(consequence.addEndingReason);
+    }
+    if (!run.story.seenEventIds.includes(eventId)) run.story.seenEventIds.push(eventId);
+
+    if (eventId === "EV043") {
+      for (const techId of ["I1", "E4"]) if (!run.techOwned.includes(techId)) run.techOwned.push(techId);
+    }
+    if (eventId === "EV045" || eventId === "EV047") this.recordBranchEvidence(run);
+    if (eventId === "EV045" && run.story.flags.a07MovedObject) {
+      const target = run.decorations.some((item) => item.slotId === "sleep-bedside" && item.id !== "radio")
+        ? "kitchen-counter"
+        : "sleep-bedside";
+      this.moveDecoration(run, "radio", target);
+    }
+    if (eventId === "EV047" && run.story.flags.clause7Read && !run.techOwned.includes("I2")) {
+      run.techOwned.push("I2");
+    }
+    if (requirements?.a07ConsentOrTech && consent && !consent.consents) run.story.flags.overrideUsed = true;
+
     run.lastMessage = choice.result;
     run.activeEventId = undefined;
-    this.beginNight(run);
+    const transition = consequence?.transition;
+    if (transition === "queue-next-phase") {
+      const nextEvent = STORY_EVENTS.find((candidate) => candidate.id === consequence?.nextEventId);
+      if (nextEvent?.storyPhase === "aftermath") {
+        run.story = queueStoryEvent(run.story, {
+          id: `${eventId}.${choice.id}.${nextEvent.id}`,
+          eventId: nextEvent.id,
+          dueDay: run.day,
+          duePhase: "aftermath",
+          sourceEventId: eventId,
+          sourceChoiceId: choice.id,
+        });
+        this.beginNight(run);
+      } else {
+        run.activeEventId = consequence?.nextEventId;
+        run.phase = "travel";
+      }
+    } else if (transition === "finale-decision" || transition === "ending-epilogue") {
+      run.activeEventId = consequence?.nextEventId;
+      run.phase = "travel";
+      if (transition === "finale-decision") run.story.finaleStage = "decision";
+    } else if (transition === "finale-contact") {
+      run.story.finaleStage = "contact";
+      this.beginNight(run);
+    } else if (transition === "resolve-ending") {
+      if (!consequence?.finalDecision) return false;
+      run.story.finalDecision = consequence.finalDecision;
+      const ending = evaluateEnding(run, consequence.finalDecision);
+      run.story.endingId = ending.endingId;
+      run.story.endingReasons = [...new Set([...run.story.endingReasons, ...ending.reasons])];
+      run.story.finaleStage = "resolved";
+      run.activeEventId = consequence.nextEventId;
+      run.phase = "travel";
+    } else if (transition === "story-complete") {
+      run.story.finaleStage = "resolved";
+      run.phase = "ending";
+      run.ended = true;
+      run.outcome = "victory";
+    } else if (transition === "queue-next-day" && storyEvent?.storyPhase === "aftermath") {
+      run.phase = "aftermath";
+    } else {
+      this.beginNight(run);
+    }
     return true;
   }
 
   public beginNight(run: RunState): void {
     const route = ROUTE_NODES.find((node) => node.id === run.selectedRouteNodeId);
-    const totalWaves = Math.max(1, route?.threatLevel ?? 1);
+    const totalWaves = run.day === 7 ? 3 : Math.max(1, route?.threatLevel ?? 1);
     const powerReport = this.settleNightPower(run);
+    if (run.day === 7) {
+      const matureCrops = run.crops.filter((plot) => plot.cropId && plot.stage >= 3).length;
+      run.story.finaleHealthBuffer = matureCrops * 6;
+      run.story.completedContactWaves = 0;
+      run.story.finaleStage = "contact";
+    }
     run.phase = "night";
     run.activeContact = this.createNightContact(run, 1, totalWaves);
     run.lastMessage = `${powerReport} 遠距感測出現異常，等待方向確認。接觸 1/${totalWaves}。`;
@@ -156,7 +365,10 @@ export class RunService {
     const threat = THREATS.find((candidate) => candidate.id === contact.definitionId);
     if (!threat) return;
     contact.stage = "breach";
-    this.applyEnvironment(run, "hull", -(threat.damage + (run.day - 1) * 2), `threat.${threat.id}.breach`);
+    const incomingDamage = threat.damage + (run.day - 1) * 2;
+    const cropBuffer = run.day === 7 ? Math.min(run.story.finaleHealthBuffer, Math.max(0, incomingDamage - 2)) : 0;
+    if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
+    this.applyEnvironment(run, "hull", -(incomingDamage - cropBuffer), `threat.${threat.id}.breach`);
     this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
     this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
     run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
@@ -200,18 +412,41 @@ export class RunService {
       run.ended = true;
       run.outcome = run.environment.hull <= 0 ? "hull-lost" : "survivor-lost";
       run.lastMessage = run.environment.hull <= 0 ? "車體失去密封，守護協定被迫終止。" : "A-07 生命徵象消失，守護協定被迫終止。";
+    } else if (run.day === 7 && run.story.finaleStage === "contact") {
+      run.phase = "travel";
+      run.activeEventId = "EV050";
+      run.story.finaleStage = "contact";
+      run.lastMessage = `${encounterMessage} ${rationMessage} 三波接觸結束，終點名冊等待查驗。`;
     } else {
-      run.phase = "aftermath";
-      run.lastMessage = `${encounterMessage} ${rationMessage}`;
+      const dueStoryEvent = getDueStoryEvents(run.story, run.day, "aftermath")[0];
+      if (dueStoryEvent) {
+        run.story = consumeStoryEvent(run.story, dueStoryEvent.id);
+        run.phase = "travel";
+        run.activeEventId = dueStoryEvent.eventId;
+        run.lastMessage = `${encounterMessage} ${rationMessage} 黎明紀錄等待確認。`;
+      } else {
+        run.phase = "aftermath";
+        run.lastMessage = `${encounterMessage} ${rationMessage}`;
+      }
     }
   }
 
   public continueAftermath(run: RunState): void {
+    if (run.phase !== "aftermath" || run.ended) {
+      run.lastMessage = "黎明結算已完成，不能重複推進日期。";
+      return;
+    }
     if (run.day >= run.maxDays) {
-      run.phase = "ending";
-      run.ended = true;
-      run.outcome = "victory";
-      run.lastMessage = "灰霧線完成。新的路線資料已寫入守護協定。";
+      if (run.story.endingId) {
+        run.phase = "ending";
+        run.ended = true;
+        run.outcome = "victory";
+      } else {
+        run.phase = "travel";
+        run.activeEventId = "EV050";
+        run.story.finaleStage = "contact";
+        run.lastMessage = "終點名冊尚未完成查驗，必須先做出終局決定。";
+      }
       return;
     }
     const cropReport = this.advanceCrops(run);
@@ -442,7 +677,7 @@ export class RunService {
   }
 
   public getEvent(run: RunState) {
-    return EVENTS.find((event) => event.id === run.activeEventId) ?? EVENTS[0];
+    return [...EVENTS, ...STORY_EVENTS].find((event) => event.id === run.activeEventId);
   }
 
   public getThreat(contact?: ThreatContact) {
@@ -450,9 +685,22 @@ export class RunService {
   }
 
   private createNightContact(run: RunState, wave: number, totalWaves: number): ThreatContact {
+    if (run.day === 7 && wave === 3 && run.story.flags.day4Route) {
+      const threatId = DAY4_BRANCH_DEFINITIONS[run.story.flags.day4Route].day7WaveThree.threatId;
+      const threat = THREATS.find((candidate) => candidate.id === threatId) ?? THREATS[0]!;
+      return {
+        id: `contact-${run.day}-${wave}`,
+        definitionId: threat.id,
+        stage: "approach",
+        secondsLeft: Math.max(7, threat.warningSeconds),
+        wave,
+        totalWaves,
+      };
+    }
+    const standardThreats = THREATS.filter((threat) => threat.id === "T002" || threat.id === "T003");
     const orderRng = createRng(run.seed, "threat-order");
-    const offset = Math.floor(orderRng() * THREATS.length);
-    const threat = THREATS[(offset + run.day + wave - 2) % THREATS.length] ?? THREATS[0]!;
+    const offset = Math.floor(orderRng() * standardThreats.length);
+    const threat = standardThreats[(offset + run.day + wave - 2) % standardThreats.length] ?? standardThreats[0]!;
     return {
       id: `contact-${run.day}-${wave}`,
       definitionId: threat.id,
@@ -467,6 +715,7 @@ export class RunService {
     const contact = run.activeContact;
     const wave = contact?.wave ?? 1;
     const totalWaves = contact?.totalWaves ?? 1;
+    if (run.day === 7) run.story.completedContactWaves = Math.max(run.story.completedContactWaves, wave);
     if (run.environment.hull > 0 && run.survivor.health > 0 && wave < totalWaves) {
       const nextWave = wave + 1;
       run.activeContact = this.createNightContact(run, nextWave, totalWaves);
@@ -476,6 +725,23 @@ export class RunService {
     run.lastMessage = `${result} 今夜 ${totalWaves} 次接觸已結束。`;
     this.finishNight(run);
     return true;
+  }
+
+  private recordBranchEvidence(run: RunState): void {
+    switch (run.story.flags.day4Route) {
+      case "GO":
+        run.story.flags.isolationTraceCount = Math.min(2, run.story.flags.isolationTraceCount + 1);
+        break;
+      case "DETOUR":
+        run.story.flags.routeSampleCount = Math.min(2, run.story.flags.routeSampleCount + 1);
+        break;
+      case "STOP":
+        run.story.flags.manifestCrossChecks = Math.min(2, run.story.flags.manifestCrossChecks + 1);
+        break;
+      default:
+        return;
+    }
+    run.story = refreshTrueRouteData(run.story);
   }
 
   private advanceCrops(run: RunState): string {

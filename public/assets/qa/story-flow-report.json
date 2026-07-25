@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "day": 7,
+  "day4Route": "GO",
+  "completedContactWaves": 3,
+  "finalDecision": "open",
+  "endingId": "arrival-unverified",
+  "encounteredThreats": [
+    "T003",
+    "T002",
+    "T006"
+  ],
+  "screenshots": 3,
+  "videos": 1
+}

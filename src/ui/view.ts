@@ -6,6 +6,40 @@ import { icons } from "./icons";
 
 type ActionHandler = (action: string, value?: string) => void;
 
+type StoryChoicePresentation = {
+  risk?: "low" | "medium" | "high" | "irreversible";
+  tags?: string[];
+  visibleCost?: string;
+  permanentConsequence?: string;
+  disabledReason?: string;
+  unavailableReason?: string;
+  available?: boolean;
+  requirement?: { minimum?: Record<string, number> };
+  requirements?: {
+    allFlags?: string[];
+    minimum?: Record<string, number>;
+    a07ConsentOrTech?: string;
+  };
+  consequence?: {
+    resourceDelta?: Record<string, number>;
+    survivorDelta?: Record<string, number>;
+  };
+};
+
+type StoryEventPresentation = {
+  forced?: boolean;
+  forceResolution?: boolean;
+};
+
+type StoryResultSnapshot = {
+  flags: {
+    day4Route: "GO" | "DETOUR" | "STOP" | null;
+  };
+  finalDecision: "open" | "seal" | "reroute" | "terminate" | null;
+  endingId: "arrival" | "quarantine" | "reroute" | "protocol-terminated" | "arrival-unverified" | null;
+  endingReasons: string[];
+};
+
 const LEDGER_LABELS: Record<string, string> = {
   energy: "電量",
   fuel: "燃料",
@@ -26,6 +60,115 @@ const LEDGER_LABELS: Record<string, string> = {
   hull: "車體",
   weight: "負重",
 };
+
+const STORY_RISK_LABELS: Record<NonNullable<StoryChoicePresentation["risk"]>, string> = {
+  low: "低風險",
+  medium: "中風險",
+  high: "高風險",
+  irreversible: "不可逆",
+};
+
+const DAY4_CHOICE_SUMMARIES: Record<string, { carriage: string; data: string; wave: string }> = {
+  GO: { carriage: "隔離間", data: "逆向定位 2 次", wave: "W3・靜默群 T006" },
+  DETOUR: { carriage: "電池陣", data: "路線抽樣 2 次", wave: "W3・霧噬藤 T004" },
+  STOP: { carriage: "採樣室", data: "名冊交叉比對 2 次", wave: "W3・回聲乘客 T005" },
+};
+
+const DAY4_RESULT_LABELS: Record<string, string> = {
+  GO: "沿線前進・隔離間",
+  DETOUR: "改道搜索・電池陣",
+  STOP: "停車查證・採樣室",
+};
+
+const FINAL_DECISION_LABELS: Record<string, string> = {
+  open: "交還控制並開門",
+  seal: "啟動封鎖",
+  reroute: "改寫目的地",
+  terminate: "終止守夜協定",
+};
+
+const STORY_ENDING_TITLES: Record<string, string> = {
+  arrival: "共同抵達",
+  quarantine: "封鎖月台",
+  reroute: "改寫終點",
+  "protocol-terminated": "協定終止",
+  "arrival-unverified": "未確認抵達",
+};
+
+function storyChoiceReason(run: RunState, choice: GameEvent["choices"][number]): string | undefined {
+  const presentation = choice as GameEvent["choices"][number] & StoryChoicePresentation;
+  if (presentation.disabledReason) return presentation.disabledReason;
+  if (presentation.unavailableReason) return presentation.unavailableReason;
+  const requirements = presentation.requirements;
+  const storyFlags = ((run as RunState & { story?: StoryResultSnapshot }).story?.flags ?? {}) as unknown as Record<string, unknown>;
+  const missingFlags = requirements?.allFlags?.filter((flag) => !storyFlags[flag]) ?? [];
+  if (missingFlags.length > 0) {
+    const labels: Record<string, string> = {
+      quarantinePrepared: "尚未建立隔離封鎖",
+      trueRouteData: "尚未取得真實路線資料",
+      clause7Read: "尚未讀完第七條",
+    };
+    return missingFlags.map((flag) => labels[flag] ?? `缺少 ${flag}`).join("、");
+  }
+  if (requirements?.a07ConsentOrTech) {
+    const authorKnown = Boolean(storyFlags.authorKnown);
+    const consentGranted = run.survivor.trust >= 60 || (run.survivor.trust >= 40 && authorKnown);
+    if (!consentGranted && !run.techOwned.includes(requirements.a07ConsentOrTech)) {
+      return `A-07 尚未同意；需要 ${requirements.a07ConsentOrTech} 覆寫`;
+    }
+  }
+  const minimum = requirements?.minimum ?? presentation.requirement?.minimum;
+  if (minimum) {
+    const current: Record<string, number> = { ...run.resources, ...run.survivor };
+    const missing = Object.entries(minimum)
+      .filter(([key, value]) => (current[key] ?? 0) < value)
+      .map(([key, value]) => `${LEDGER_LABELS[key] ?? key} ${value}`);
+    if (missing.length > 0) return `條件不足：${missing.join("、")}`;
+  }
+  const resourceDelta = presentation.consequence?.resourceDelta ?? choice.deltas;
+  const unaffordable = Object.entries(resourceDelta ?? {}).find(([key, delta]) => typeof delta === "number" && delta < 0 && run.resources[key as keyof typeof run.resources] + delta < 0);
+  if (unaffordable) return `${LEDGER_LABELS[unaffordable[0]] ?? unaffordable[0]}不足`;
+  if (presentation.available === false) return "條件尚未完成";
+  return undefined;
+}
+
+function day4ChoiceSummary(eventId: string, choice: GameEvent["choices"][number]): string {
+  if (eventId !== "EV044") return "";
+  const summary = DAY4_CHOICE_SUMMARIES[choice.id];
+  if (!summary) return "";
+  return `<span class="choice-permanent">
+    <b>永久車廂・${escapeText(summary.carriage)}</b>
+    <small>資料取得・${escapeText(summary.data)}</small>
+    <small>${escapeText(summary.wave)}</small>
+  </span>`;
+}
+
+function storyChoiceCard(run: RunState, event: GameEvent, choice: GameEvent["choices"][number], preview: boolean): string {
+  const presentation = choice as GameEvent["choices"][number] & StoryChoicePresentation;
+  const reason = storyChoiceReason(run, choice);
+  const disabled = preview || Boolean(reason);
+  const risk = presentation.risk;
+  const tags = presentation.tags ?? [];
+  const visibleCost = presentation.visibleCost ?? choice.cost ?? "無直接成本";
+  const known = choice.known ?? presentation.permanentConsequence ?? "選擇後立即結算";
+  const classes = [
+    "choice-card",
+    risk ? `risk-${risk}` : "",
+    reason ? "is-unavailable" : "",
+  ].filter(Boolean).join(" ");
+  return `<button class="${classes}" data-action="event-choice" data-value="${escapeText(choice.id)}" ${disabled ? "disabled" : ""} ${reason ? `aria-describedby="choice-reason-${escapeText(event.id)}-${escapeText(choice.id)}"` : ""}>
+    <span class="choice-card__index" aria-hidden="true">${escapeText(choice.id)}</span>
+    <span class="choice-card__content">
+      <span class="choice-card__heading"><strong>${escapeText(choice.label)}</strong>${risk ? `<em class="risk-badge">${escapeText(STORY_RISK_LABELS[risk])}</em>` : ""}</span>
+      ${tags.length > 0 ? `<span class="choice-tags" aria-label="分類標籤">${tags.map((tag) => `<i>${escapeText(tag)}</i>`).join("")}</span>` : ""}
+      <span class="choice-visible-cost"><b>直接成本</b>${escapeText(visibleCost)}</span>
+      <small class="choice-known">${escapeText(known)}</small>
+      ${day4ChoiceSummary(event.id, choice)}
+      ${reason ? `<span class="choice-disabled-reason" id="choice-reason-${escapeText(event.id)}-${escapeText(choice.id)}"><b>目前不可選</b>${escapeText(reason)}</span>` : ""}
+      ${preview ? `<span class="choice-disabled-reason"><b>圖鑑模式</b>不會推進或消耗資源</span>` : ""}
+    </span>
+  </button>`;
+}
 
 function button(action: string, label: string, options: { value?: string; primary?: boolean; disabled?: boolean; icon?: string; detail?: string; className?: string } = {}): string {
   const classes = ["action-button", options.primary ? "action-button--primary" : "", options.className ?? ""].filter(Boolean).join(" ");
@@ -215,19 +358,34 @@ function carriageScreen(state: AppState): string {
       ? mealPrepPanel(run)
       : state.activeCarriageId === "greenhouse" ? cropQuickPicker(state, run) : "";
   const activeCarriage = CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)!;
-  const counterActions = threat?.id === "T003"
-    ? [
-        { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
-        { id: "decoy", icon: "◎", label: "誘餌廣播", cost: "E 6" },
-        { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
-      ]
-    : [
-        { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
-        { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
-        { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
-      ];
+  const counterActions = {
+    T003: [
+      { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+      { id: "decoy", icon: "◎", label: "誘餌廣播", cost: "E 6" },
+      { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+    ],
+    T004: [
+      { id: "drag-cutter", icon: "剪", label: "拖動割具斷藤", cost: "點按割除根節" },
+      { id: "close-door", icon: "門", label: "關閉貨艙門", cost: "無法清除根節" },
+      { id: "feed-power", icon: icons.power, label: "水培槽增壓", cost: "可能加速蔓延" },
+    ],
+    T005: [
+      { id: "match-echo", icon: "≋", label: "比對色形節拍", cost: "選出相同回聲" },
+      { id: "invert-signal", icon: "⇄", label: "反轉訊號", cost: "可能誤判" },
+      { id: "open-hatch", icon: "門", label: "打開觀測窗", cost: "可能誤判" },
+    ],
+    T006: [
+      { id: "trace-leaves", icon: "葉", label: "循落葉找根源", cost: "沿溫室痕跡定位" },
+      { id: "trace-meter", icon: "錶", label: "讀取根部電表", cost: "以耗電異常定位" },
+      { id: "flood-light", icon: "光", label: "開啟探照燈", cost: "群體不受光線影響" },
+    ],
+  }[threat?.id ?? ""] ?? [
+    { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+    { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
+    { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+  ];
   const drawerOpen = !night && (state.decorating || state.carriagePanel !== "scene");
-  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}">
+  return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}" data-threat-id="${threat?.id ?? ""}">
     ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
     ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "Ⅱ"}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
     ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
@@ -263,15 +421,24 @@ function routeScreen(state: AppState): string {
 function eventScreen(state: AppState, event: GameEvent | undefined): string {
   const run = state.run;
   if (!run || !event) return "";
-  return `<section class="screen screen--event ${event.urgent ? "is-urgent" : ""}" data-screen="SCR-EV-${event.urgent ? "B" : "A"}">
-    ${compactHeader(run, state.eventPreview ? "事件圖鑑" : `第 ${run.day} 日・${event.phase === "night" ? "夜間" : "行車"}`, state.eventPreview ? `${event.id}・已發現事件` : event.id, state.eventPreview ? "hub" : "route")}
+  const presentation = event as GameEvent & StoryEventPresentation;
+  const forced = Boolean(presentation.forced ?? presentation.forceResolution);
+  const finalChoice = event.id === "EV051";
+  const day4Branch = event.id === "EV044";
+  const backAction = state.eventPreview ? "hub" : forced ? undefined : "route";
+  const screenClasses = ["screen", "screen--event", event.urgent ? "is-urgent" : "", forced ? "is-forced-story" : "", finalChoice ? "is-final-choice" : "", day4Branch ? "is-day4-branch" : ""].filter(Boolean).join(" ");
+  return `<section class="${screenClasses}" data-screen="SCR-EV-${event.urgent ? "B" : "A"}" data-event-id="${escapeText(event.id)}" data-forced="${forced}">
+    ${compactHeader(run, state.eventPreview ? "事件圖鑑" : `第 ${run.day} 日・${event.phase === "night" ? "夜間" : "行車"}`, state.eventPreview ? `${event.id}・已發現事件` : forced ? `${event.id}・必須決定` : event.id, backAction)}
     <article class="event-card panel">
       <div class="event-art event-art--${event.artKey.replace("event.", "")}" role="img" aria-label="${escapeText(event.title)}事件插圖"><span></span></div>
       ${event.urgent ? `<div class="event-urgency" role="status"><span>緊急事件</span><strong>警戒</strong></div>` : ""}
+      ${forced && !state.eventPreview ? `<div class="forced-story-notice" role="status"><b>路線鎖定</b><span>完成這項決定後才能繼續行車</span></div>` : ""}
       <p class="event-id">${event.id}・${event.phase === "night" ? "夜間" : "行車"}</p>
       <h2>${escapeText(event.title)}</h2><p>${escapeText(event.body)}</p>
-      <div class="event-choices">${event.choices.map((choice, index) => { const affordable = Object.entries(choice.deltas).every(([key, delta]) => typeof delta !== "number" || delta >= 0 || run.resources[key as keyof typeof run.resources] + delta >= 0); return `<button class="choice-card ${index === 1 ? "is-selected" : ""}" data-action="event-choice" data-value="${choice.id}" ${affordable && !state.eventPreview ? "" : "disabled"}><b>${choice.id}</b><span><strong>${escapeText(choice.label)}</strong><small>${affordable ? escapeText(choice.cost) : "資源不足"}　｜　${escapeText(choice.known)}</small></span></button>`; }).join("")}</div>
-      <small class="hold-hint">${state.eventPreview ? "圖鑑模式不會推進時間或消耗資源" : "長按可查看科技修正；選擇後立即結算"}</small>
+      ${finalChoice ? `<p class="final-choice-guide"><b>終局操作</b>四個決定只會確認一次；未達條件的選項仍列出原因。</p>` : ""}
+      ${finalChoice || day4Branch ? `<p class="choice-scroll-cue" role="note">↓ 向下滑動查看全部 ${event.choices.length} 個選項</p>` : ""}
+      <div class="event-choices" aria-label="${finalChoice ? "四項終局決定" : day4Branch ? "三項永久路線分支" : "事件選項"}">${event.choices.map((choice) => storyChoiceCard(run, event, choice, state.eventPreview)).join("")}</div>
+      <small class="hold-hint">${state.eventPreview ? "圖鑑模式不會推進時間或消耗資源" : forced ? "這是必要故事節點；確認前請核對直接成本與永久後果" : "長按可查看科技修正；選擇後立即結算"}</small>
     </article>
   </section>`;
 }
@@ -303,7 +470,7 @@ function techScreen(state: AppState): string {
     <div class="protocol-data pill"><span>協定資料</span><strong>${run.resources.data}</strong></div>
     <div class="branch-tabs">${["能源", "居住", "農業", "防禦", "情報"].map((branch) => { const available = TECH_NODES.some((node) => node.branch === branch); return `<button class="${state.techBranch === branch ? "is-selected" : ""}" data-action="select-tech-branch" data-value="${branch}" ${available ? "" : "disabled"}>${branch}</button>`; }).join("")}</div>
     <div class="tech-tree panel"><svg viewBox="0 0 336 360"><path d="M42 64 L84 146 L168 222 L244 302"/><path d="M294 64 L252 146 L168 222"/><path d="M84 146 L252 146"/></svg>
-      ${TECH_NODES.map((node, index) => { const positions = [[12, 15], [87, 15], [25, 38], [75, 38], [50, 62]]; const pos = positions[index] ?? [50, 50]; const owned = run.techOwned.includes(node.id); const available = node.prerequisite.every((id) => run.techOwned.includes(id)); return `<button class="tech-node ${owned ? "is-owned" : available ? "is-available" : "is-locked"} ${state.selectedTechId === node.id ? "is-selected" : ""}" style="--x:${pos[0]}%;--y:${pos[1]}%" data-action="select-tech" data-value="${node.id}"><span>${owned ? "✓" : node.id}</span><small>${node.name}</small></button>`; }).join("")}
+      ${TECH_NODES.map((node, index) => { const positions = [[15, 14], [50, 14], [85, 14], [15, 41], [50, 41], [85, 41], [32, 70], [68, 70]]; const pos = positions[index] ?? [50, 88]; const owned = run.techOwned.includes(node.id); const available = node.prerequisite.every((id) => run.techOwned.includes(id)); return `<button class="tech-node ${owned ? "is-owned" : available ? "is-available" : "is-locked"} ${state.selectedTechId === node.id ? "is-selected" : ""}" style="--x:${pos[0]}%;--y:${pos[1]}%" data-action="select-tech" data-value="${node.id}"><span>${owned ? "✓" : node.id}</span><small>${node.name}</small></button>`; }).join("")}
     </div>
     ${selected ? `<article class="tech-detail panel"><div><strong>${selected.id}・${selected.name}</strong><span class="pill">${selected.branch}</span></div><p>${selected.description}</p><p>前置：${selected.prerequisite.length ? selected.prerequisite.join("＋") : "無"}　｜　成本 ${selected.cost}</p>${button("unlock-tech", selectedOwned ? "已解鎖" : !selectedReady ? "前置未解鎖" : !selectedAffordable ? "資料不足" : "解鎖節點", { value: selected.id, primary: !selectedOwned && selectedReady && selectedAffordable, icon: icons.tech, disabled: selectedOwned || !selectedReady || !selectedAffordable })}</article>` : ""}
   </section>`;
@@ -316,14 +483,23 @@ function resultScreen(state: AppState): string {
   const victory = run.outcome === "victory" || (ending && run.outcome === "active");
   const finalNight = !ending && run.day >= run.maxDays;
   const recent = run.ledger.slice(-4);
+  const story = (run as RunState & { story?: StoryResultSnapshot }).story;
+  const storyResult = ending && Boolean(story);
+  const mechanicalFailure = run.outcome === "hull-lost" || run.outcome === "survivor-lost";
+  const storyTitle = story?.endingId ? STORY_ENDING_TITLES[story.endingId] ?? "灰霧線結局" : mechanicalFailure ? "守護終止" : "灰霧線結局";
+  const storyBranch = story?.flags.day4Route ? DAY4_RESULT_LABELS[story.flags.day4Route] ?? story.flags.day4Route : "尚未選擇永久分支";
+  const storyReasons = story?.endingReasons.length
+    ? story.endingReasons
+    : [run.outcome === "hull-lost" ? "車體完整度歸零" : run.outcome === "survivor-lost" ? "A-07 生命訊號歸零" : "終局條件已鎖定"];
+  const returnToHub = storyResult ? !mechanicalFailure : victory;
   return `<section class="screen screen--result ${ending ? "is-ending" : ""}" data-screen="SCR-RS-${ending ? "B" : "A"}">
-    ${compactHeader(run, ending ? victory ? "路線完成" : "守護終止" : `第 ${run.day} 夜結算`, ending ? victory ? "灰霧線" : "存檔已保留" : "自動存檔成功")}
+    ${compactHeader(run, storyResult ? storyTitle : ending ? victory ? "路線完成" : "守護終止" : `第 ${run.day} 夜結算`, storyResult ? `灰霧線・${storyBranch}` : ending ? victory ? "灰霧線" : "存檔已保留" : "自動存檔成功")}
     <article class="result-card panel">
-      ${ending ? victory ? `<h1>改道</h1><p class="ending-copy">列車穿過封鎖線後沒有停下。A-07 將新的終點寫入守護協定，而你第一次選擇不服從舊座標。</p>` : `<h1>終止</h1><p class="ending-copy">${run.outcome === "hull-lost" ? "最後一道車體隔離門失去密封，夜風灌進溫室車廂。" : "A-07 的生命訊號歸零，列車仍沿著沒有終點的軌道前進。"}</p>` : `<div class="ring-row"><div class="ring-meter" style="--value:${run.survivor.sleep}"><span><strong>${run.survivor.sleep}</strong><small>睡眠</small></span></div><div class="ring-meter" style="--value:${run.environment.hull}"><span><strong>${run.environment.hull}%</strong><small>車體完整</small></span></div></div>`}
-      <h2>${ending ? victory ? "達成條件" : "失敗原因" : "資源變化"}</h2>
-      <div class="result-list">${ending ? victory ? `<div><span>信任</span><strong>${run.survivor.trust}/100</strong></div><div><span>感染</span><strong>${run.survivor.infection}/100</strong></div><div><span>終局選擇</span><strong>拒絕舊協定</strong></div>` : `<div><span>健康</span><strong>${run.survivor.health}/100</strong></div><div><span>車體</span><strong>${run.environment.hull}/100</strong></div><div><span>終止階段</span><strong>第 ${run.day} 夜</strong></div>` : recent.map((entry) => `<div><span>${escapeText(LEDGER_LABELS[entry.key] ?? entry.key)}</span><strong class="${entry.delta < 0 ? "is-negative" : "is-positive"}">${formatSigned(entry.delta)}</strong><small>${escapeText(entry.source)}</small></div>`).join("")}</div>
-      <p class="aftermath-note">${escapeText(run.lastMessage)}</p>
-      ${button(ending ? victory ? "hub" : "new-game" : "next-day", ending ? victory ? "返回局外中心" : "重新啟動守護協定" : finalNight ? "查看路線結局" : `進入第 ${run.day + 1} 日整備`, { primary: true, icon: ending && victory ? icons.hub : icons.play, detail: ending && !victory ? "從第 1 日重新規劃" : finalNight ? `完成 ${run.maxDays} 夜守望` : `協定資料 +${ending ? 4 : 1}` })}
+      ${storyResult ? `<div class="story-ending-mark"><span>${escapeText(story?.endingId ?? "mechanical-stop")}</span><b>第 ${run.day} 日・灰霧線</b></div><h1>${escapeText(storyTitle)}</h1><p class="ending-copy">${escapeText(run.lastMessage ?? "列車已完成本局最後一次守護判定。")}</p>` : ending ? victory ? `<h1>改道</h1><p class="ending-copy">列車穿過封鎖線後沒有停下。A-07 將新的終點寫入守護協定，而你第一次選擇不服從舊座標。</p>` : `<h1>終止</h1><p class="ending-copy">${run.outcome === "hull-lost" ? "最後一道車體隔離門失去密封，夜風灌進溫室車廂。" : "A-07 的生命訊號歸零，列車仍沿著沒有終點的軌道前進。"}</p>` : `<div class="ring-row"><div class="ring-meter" style="--value:${run.survivor.sleep}"><span><strong>${run.survivor.sleep}</strong><small>睡眠</small></span></div><div class="ring-meter" style="--value:${run.environment.hull}"><span><strong>${run.environment.hull}%</strong><small>車體完整</small></span></div></div>`}
+      <h2>${storyResult ? "結局成立原因" : ending ? victory ? "達成條件" : "失敗原因" : "資源變化"}</h2>
+      ${storyResult ? `<ol class="ending-reasons">${storyReasons.map((reason) => `<li>${escapeText(reason)}</li>`).join("")}</ol><div class="story-result-facts"><div><span>Day 4 永久分支</span><strong>${escapeText(storyBranch)}</strong></div><div><span>終局操作</span><strong>${escapeText(story?.finalDecision ? FINAL_DECISION_LABELS[story.finalDecision] ?? story.finalDecision : "未完成")}</strong></div><div><span>信任／感染</span><strong>${run.survivor.trust}／${run.survivor.infection}</strong></div></div>` : `<div class="result-list">${ending ? victory ? `<div><span>信任</span><strong>${run.survivor.trust}/100</strong></div><div><span>感染</span><strong>${run.survivor.infection}/100</strong></div><div><span>終局選擇</span><strong>拒絕舊協定</strong></div>` : `<div><span>健康</span><strong>${run.survivor.health}/100</strong></div><div><span>車體</span><strong>${run.environment.hull}/100</strong></div><div><span>終止階段</span><strong>第 ${run.day} 夜</strong></div>` : recent.map((entry) => `<div><span>${escapeText(LEDGER_LABELS[entry.key] ?? entry.key)}</span><strong class="${entry.delta < 0 ? "is-negative" : "is-positive"}">${formatSigned(entry.delta)}</strong><small>${escapeText(entry.source)}</small></div>`).join("")}</div>`}
+      <p class="aftermath-note">${escapeText(run.lastMessage ?? "")}</p>
+      ${button(ending ? returnToHub ? "hub" : "new-game" : "next-day", ending ? returnToHub ? "返回局外中心" : "重新啟動守護協定" : finalNight ? "查看路線結局" : `進入第 ${run.day + 1} 日整備`, { primary: true, icon: ending && returnToHub ? icons.hub : icons.play, detail: ending && !returnToHub ? "從第 1 日重新規劃" : finalNight ? `完成 ${run.maxDays} 夜守望` : `協定資料 +${ending ? 4 : 1}` })}
     </article>
   </section>`;
 }

@@ -82,9 +82,9 @@ describe("shipping art", () => {
     }
   });
 
-  it("bumps the offline cache so installed games receive route-risk night waves", () => {
+  it("bumps the offline cache so installed games receive the gray-fog story", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.8.0-route-risk-waves');
+    expect(serviceWorker).toContain('night-train-v0.9.0-gray-fog-story');
   });
 
   it("wires every rendered button action to the application controller", () => {

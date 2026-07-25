@@ -289,7 +289,7 @@ try {
   assert((await page.locator(".route-summary").textContent())?.includes("2 波"), "medium-risk route visibly promises two night contacts");
   await clickAction("confirm-route", "RN02");
   await page.waitForSelector(".screen--event");
-  await clickAction("event-choice", "B");
+  await clickAction("event-choice", "full");
   await page.waitForSelector(".screen--carriage.is-night");
 
   const alert = page.getByRole("alert");

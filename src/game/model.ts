@@ -1,4 +1,5 @@
 import { DECORATIONS, DECORATION_SLOTS, MODULES } from "./content";
+import { createDefaultStoryState } from "./story";
 import type { AppState, CropPlot, DecorationPlacement, RunState, SettingsState } from "./types";
 
 export const DEFAULT_SETTINGS: SettingsState = {
@@ -26,7 +27,7 @@ export function createCropPlots(): CropPlot[] {
 
 export function createRun(seed = `${Date.now()}`): RunState {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     seed,
     day: 1,
     maxDays: 7,
@@ -50,6 +51,7 @@ export function createRun(seed = `${Date.now()}`): RunState {
     })),
     decorations: createDecorationPlacements(),
     crops: createCropPlots(),
+    story: createDefaultStoryState(),
     techOwned: [],
     flags: [],
     ledger: [],

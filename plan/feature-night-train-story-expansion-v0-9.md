@@ -14,6 +14,12 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 
 本計畫把 [v0.9 灰霧線故事規格](../spec/spec-design-story-expansion-v0-9.md) 拆成可獨立派工、可自動驗收的施工任務。Codex 保持唯一整合與提交控制者；Claude Opus 5 已提供故事初稿；Grok CLI 已在驗證登入後完成獨立反向審查；工程、美術與 QA 代理只提交可稽核的修改或 findings。
 
+## 2026-07-25 可玩故事施工批次
+
+本批已完成 typed StoryState、schema 3 存檔遷移、EV041–EV052、Day 1–7 固定主線、Day 4 三分支、Day 7 固定三波與五結局解析、強制事件防跳過、手機選項／結果 UI、T004–T006 可見反制入口，以及 390×844 Chromium 七日通關錄影。自動驗收為 77 項 Vitest、49 種按鈕／498 項瀏覽器斷言與一輪 GO 分支七日實機通關。
+
+仍保留在後續批次：T004 真正拖放割具、T005 色／形／節拍比對面板、T006 場景葉片／電表判位、三分支各自瀏覽器通關、全新 GPT Image 故事素材、360×640／140% 故事終局專項稽核，以及 iOS Safari／Android Chrome 人工核准。因此本計畫仍維持 `In progress`，本次 PR 不標記 ready。
+
 ## 1. Requirements & Constraints
 
 - **REQ-001**: 完成 Day 1 至 Day 7、Day 4 三分支及 Day 7 三階段終局。

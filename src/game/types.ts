@@ -11,6 +11,13 @@ export type CarriageId = "sleep" | "defense" | "workshop" | "greenhouse" | "kitc
 export type CropId = "lettuce" | "tomato" | "herb";
 export type CropPlotId = "plot-a" | "plot-b";
 export type FeedbackTone = "gain" | "cost" | "relief" | "neutral";
+export type Day4Route = "GO" | "DETOUR" | "STOP";
+export type FinaleStage = "inactive" | "arrival" | "contact" | "decision" | "resolved";
+export type EndingId = "arrival" | "quarantine" | "reroute" | "protocol-terminated" | "arrival-unverified";
+export type CargoConversion = "none" | "isolation-bay" | "battery-array" | "sample-lab";
+export type StoryDuePhase = "dawn" | "prep" | "route" | "travel" | "aftermath";
+export type SignalSampleQuality = "none" | "partial" | "full";
+export type FinalDecision = "open" | "seal" | "reroute" | "terminate";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -134,6 +141,72 @@ export interface ThreatContact {
   resolvedBy?: string;
 }
 
+export interface ScheduledStoryEvent {
+  id: string;
+  eventId: string;
+  dueDay: number;
+  duePhase: StoryDuePhase;
+  sourceEventId: string;
+  sourceChoiceId: string;
+}
+
+export interface StoryFlags {
+  signalSampleQuality: SignalSampleQuality;
+  extraBunk: boolean;
+  duplicateCoordinate: boolean;
+  day4Route: Day4Route | null;
+  rosterGap: boolean;
+  rosterMatch: "unchecked" | "verified" | "pending";
+  a07IdentityKnown: boolean;
+  clause7Read: boolean;
+  authorKnown: boolean;
+  trueRouteData: boolean;
+  routeSampleCount: number;
+  manifestCrossChecks: number;
+  isolationTraceCount: number;
+  hailed: boolean;
+  quarantinePrepared: boolean;
+  overrideUsed: boolean;
+  controlReturned: boolean;
+  toldTruth: boolean;
+  decoderInstalled: boolean;
+  decoderCalibrated: boolean;
+  a07MovedObject: boolean;
+  badgePocketed: boolean;
+  overrideTechUnlocked: boolean;
+  identityMismatchVerified: boolean;
+}
+
+export interface StoryState {
+  version: 1;
+  flags: StoryFlags;
+  cargoConversion: CargoConversion;
+  finaleStage: FinaleStage;
+  completedContactWaves: number;
+  finaleHealthBuffer: number;
+  finalDecision: FinalDecision | null;
+  queue: ScheduledStoryEvent[];
+  seenEventIds: string[];
+  endingId: EndingId | null;
+  endingReasons: string[];
+  dawnLogIds: string[];
+}
+
+export type A07ConsentStatus = "granted" | "granted-with-evidence" | "refused";
+
+export interface A07ConsentEvaluation {
+  status: A07ConsentStatus;
+  consents: boolean;
+  evidenceRequired: boolean;
+  canOverride: boolean;
+  reason: string;
+}
+
+export interface EndingEvaluation {
+  endingId: EndingId;
+  reasons: string[];
+}
+
 export interface LedgerEntry {
   id: string;
   at: number;
@@ -153,7 +226,7 @@ export interface SettingsState {
 }
 
 export interface RunState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   seed: string;
   day: number;
   maxDays: number;
@@ -172,6 +245,7 @@ export interface RunState {
   modules: ModuleInstance[];
   decorations: DecorationPlacement[];
   crops: CropPlot[];
+  story: StoryState;
   techOwned: string[];
   flags: string[];
   ledger: LedgerEntry[];
