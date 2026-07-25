@@ -12,7 +12,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 
 ![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
 
-本計畫把 [v0.9 灰霧線故事規格](../spec/spec-design-story-expansion-v0-9.md) 拆成可獨立派工、可自動驗收的施工任務。Codex 保持唯一整合與提交控制者；Claude Opus 5 提供故事初稿；Grok 只在 CLI 完成驗證登入後執行獨立反向審查；工程、美術與 QA 代理只提交可稽核的修改或 findings。
+本計畫把 [v0.9 灰霧線故事規格](../spec/spec-design-story-expansion-v0-9.md) 拆成可獨立派工、可自動驗收的施工任務。Codex 保持唯一整合與提交控制者；Claude Opus 5 已提供故事初稿；Grok CLI 已在驗證登入後完成獨立反向審查；工程、美術與 QA 代理只提交可稽核的修改或 findings。
 
 ## 1. Requirements & Constraints
 
@@ -46,8 +46,8 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 |------|-------------|-----------|------|
 | TASK-001 | Codex 解析 `夜行列車_守夜協定_完整遊戲設計文件_GDD_v1.1_視覺製作版.docx`、`src/game/content.ts`、`src/game/types.ts`、`src/game/services.ts`，建立現況與 GDD 約束清單。 | ✅ | 2026-07-25 |
 | TASK-002 | Claude Opus 5 以 `--model opus --effort high` 產出七夜節點、雙角色弧、EV041–EV052、T004–T006、E4、D2、I2、結局及風險初稿；只輸出文字，不讀寫專案。 | ✅ | 2026-07-25 |
-| TASK-003 | Grok CLI 在 `grok models` 顯示有效登入後，以單回合、停用 web、subagents、memory 的輸出模式審查故事，列出矛盾、無聊點、不公平點與具體修正。依賴 TASK-002。 |  |  |
-| TASK-004 | Codex 將已驗證的 Claude 初稿、Grok findings 與玩法稽核整合至 `spec/spec-design-story-expansion-v0-9.md`；不得保留矛盾型別或無法測試的敘事條件。依賴 TASK-003。 |  |  |
+| TASK-003 | Grok CLI 在 `grok models` 顯示有效登入後，以單回合、停用 web、subagents、memory 的輸出模式審查故事，列出矛盾、無聊點、不公平點與具體修正。依賴 TASK-002。 | ✅ | 2026-07-25 |
+| TASK-004 | Codex 將已驗證的 Claude 初稿、Grok findings 與玩法稽核整合至 `spec/spec-design-story-expansion-v0-9.md`；不得保留矛盾型別或無法測試的敘事條件。依賴 TASK-003。 | ✅ | 2026-07-25 |
 
 ### Implementation Phase 2 — Typed story state and migration
 
@@ -103,7 +103,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
 | TASK-024 | 終局工程代理重構 `continueAftermath()`：Day 7 不可直接寫入 victory，必須轉到 `arrival`；之後明確執行三波 contact，再進 `decision`。依賴 TASK-023。 |  |  |
-| TASK-025 | 終局工程代理確保 Day 7 contact 固定三波，來源為 Day 4 分支定義，不與 RN03 `threatLevel=3` 疊加；重新載入不得重複套成本。依賴 TASK-024。 |  |  |
+| TASK-025 | 終局工程代理確保 Day 7 固定為 arrival 45 秒、contact 三波合計 120 秒、decision 45 秒；波次來源為 Day 4 分支定義，不與 RN03 `threatLevel=3` 疊加，重新載入不得重複套成本。依賴 TASK-024。 |  |  |
 | TASK-026 | 結局工程代理新增 `EndingService.evaluateEnding()`，按 protocol-terminated、quarantine、reroute、arrival、arrival-unverified 固定優先序回傳 `endingId` 與 reasons；既有 hull-lost、survivor-lost 保留機械失敗。依賴 TASK-025。 |  |  |
 | TASK-027 | UI 工程代理更新 `src/ui/view.ts` 結果畫面，移除單一改道硬編碼文字，顯示結局標題、成立原因、Day 4 選擇及關鍵旗標。依賴 TASK-026。 |  |  |
 | TASK-028 | 測試代理為五個故事結果與兩個機械失敗建立 fixture，驗證唯一結果、優先序、重新載入及理由文字。依賴 TASK-027。 |  |  |
@@ -145,7 +145,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 - **DEP-001**: `spec/spec-design-story-expansion-v0-9.md` 是所有工程與 QA 的唯一 v0.9 行為契約。
 - **DEP-002**: 現有 TypeScript、Vite、Canvas、PWA、Vitest 與 Playwright 執行環境。
 - **DEP-003**: Claude Code 已驗證的 `claude-opus-5` 文字輸出。
-- **DEP-004**: Grok CLI 有效 OAuth 登入；只影響獨立反向審查，不阻擋本機規格草案保存。
+- **DEP-004**: Grok CLI grok-4.5 已驗證登入並完成獨立審查；審查證據保存於 `docs/GROK_STORY_REVIEW_V0.9.md`。
 - **DEP-005**: GPT Image 生成能力只用於離線製作素材，不進入遊戲執行期。
 - **DEP-006**: GitHub Actions、GitHub Pages 及人工 iOS/Android QA 是發布閘門。
 
@@ -164,6 +164,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 - **FILE-011**: `tools/audit-buttons.mjs` — v0.9 手機按鈕與完整互動稽核。
 - **FILE-012**: `public/assets/art/` 與素材來源清單 — approved GPT 視覺圖及授權證據。
 - **FILE-013**: `README.md` 與公開證據目錄 — 實際預覽圖、影片及可玩連結。
+- **FILE-014**: `docs/GROK_STORY_REVIEW_V0.9.md` — Grok 登入驗證方式、P0/P1 findings、驗收與 Codex disposition。
 
 ## 6. Testing
 
@@ -171,7 +172,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 - **TEST-002**: EV041–EV052 唯一 ID、可達性、成本預覽、transition 與延遲回收測試。
 - **TEST-003**: Day 4 GO、DETOUR、STOP 三分支 Day 5–7 可見差異測試。
 - **TEST-004**: T004、T005、T006 與 E4、D2、I2 操作語法測試。
-- **TEST-005**: Day 7 嚴格三階段、固定三波、不可重複結算測試。
+- **TEST-005**: Day 7 嚴格三階段、固定三波、總時長 ≤210 秒、EV051 唯一 FinalDecision 映射及不可重複結算測試。
 - **TEST-006**: 四種正式結局、一種未確認失敗及兩種機械失敗唯一解析測試。
 - **TEST-007**: 360 × 640、390 × 844、140% 文字、reduced-motion 與 48 px 觸控 Playwright 測試。
 - **TEST-008**: 離線七夜完整流程及 Service Worker 新素材快取測試。
@@ -188,7 +189,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 - **RISK-006**: T005 可能被玩家視為隨機猜測；必須提供前置節奏線索及兩次錯誤後提示。
 - **RISK-007**: T006 在作物全毀時可能無解；必須保留弱電表提示。
 - **RISK-008**: 生成素材可能與設計稿透視或互動熱區不符；TASK-029 先定 brief，TASK-030 只接入 approved asset。
-- **RISK-009**: Grok OAuth 失效會延後獨立審查；不得降低 TASK-003 的完成標準或冒名替代。
+- **RISK-009**: Grok findings 可能與 GDD、現有型別或 Claude 初稿衝突；只有 Codex 可在核對原始碼與可測條件後合併，Grok 不直接改檔或發布。
 - **ASSUMPTION-001**: v0.8 的 42 個單元測試及現有瀏覽器稽核是 v0.9 回歸基線。
 - **ASSUMPTION-002**: 既有五節車廂與兩個 CropPlot 保留，貨運用途區以狀態圖層而非第六節車廂實作。
 - **ASSUMPTION-003**: 人工 iOS Safari 與 Android Chrome 驗收由專案擁有者或指定測試者完成。
@@ -196,6 +197,7 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 ## 8. Related Specifications / Further Reading
 
 - [v0.9 灰霧線七夜故事擴充規格](../spec/spec-design-story-expansion-v0-9.md)
+- [Grok v0.9 故事紅隊審查](../docs/GROK_STORY_REVIEW_V0.9.md)
 - [手機瀏覽器改編規格](../spec/spec-design-mobile-browser-adaptation.md)
 - [v0.8 垂直切片計畫](./feature-night-train-vertical-slice-1.md)
 - [GDD v1.1 原始文件](../夜行列車_守夜協定_完整遊戲設計文件_GDD_v1.1_視覺製作版.docx)
