@@ -408,6 +408,8 @@ try {
   await compactPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
   await compactPage.locator('[data-action="new-game"]:not([disabled])').first().click();
   await compactPage.waitForSelector(".screen--carriage.is-observation-mode");
+  // Measure the settled layout, not the 520ms panel-rise entrance transform.
+  await compactPage.waitForTimeout(650);
   compactLayoutMetrics = await compactPage.evaluate(() => {
     const selector = document.querySelector(".carriage-selector")?.getBoundingClientRect();
     const toast = document.querySelector(".toast-message")?.getBoundingClientRect();

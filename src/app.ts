@@ -4,7 +4,7 @@ import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, FeedbackTone, ModuleCategory, RationMode, RunState, ScreenId, TechBranch } from "./game/types";
+import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, FeedbackTone, ModuleCategory, RationMode, RunState, ScreenId, TechBranch, ThreatInteractionCommand } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -36,8 +36,9 @@ export class NightTrainApp {
 
   private async handleAction(action: string, value?: string): Promise<void> {
     await this.audio.enable();
-    if (this.state.settings.sound) this.audio.cue("tap");
     const run = this.state.run;
+    const silentThreatAction = action === "threat-interact" && run?.activeContact?.definitionId === "T006";
+    if (this.state.settings.sound && !silentThreatAction) this.audio.cue("tap");
     const ledgerStart = run?.ledger.length ?? 0;
     const actionPointsBefore = run?.actionPoints;
     this.state.actionFeedback = [];
@@ -58,6 +59,7 @@ export class NightTrainApp {
       case "continue": {
         const loaded = await this.saveService.load();
         this.state.run = loaded.run;
+        if (loaded.run) this.runService.ensureThreatInteraction(loaded.run);
         this.state.nightPaused = false;
         this.state.eventPreview = false;
         this.state.routePreview = false;
@@ -185,7 +187,7 @@ export class NightTrainApp {
           if (resolved) {
             this.state.nightPaused = false;
             if (run.phase === "night") {
-              if (this.state.settings.sound) this.audio.cue("warning");
+              if (this.state.settings.sound && run.activeContact?.definitionId !== "T006") this.audio.cue("warning");
             } else {
               clearInterval(this.nightTimer);
               this.state.screen = this.screenForPhase();
@@ -194,6 +196,26 @@ export class NightTrainApp {
             await this.persist();
           }
         }
+        break;
+      case "threat-interact":
+        if (run && value) {
+          const resolvedThreatId = run.activeContact?.definitionId;
+          const result = this.runService.interactThreat(run, value as ThreatInteractionCommand);
+          if (result.accepted) await this.persist();
+          if (result.resolved) {
+            this.state.nightPaused = false;
+            if (run.phase === "night") {
+              if (this.state.settings.sound && run.activeContact?.definitionId !== "T006") this.audio.cue("warning");
+            } else {
+              clearInterval(this.nightTimer);
+              this.state.screen = this.screenForPhase();
+              if (this.state.settings.sound && resolvedThreatId !== "T006") this.audio.cue("safe");
+            }
+          }
+        }
+        break;
+      case "arm-threat-tool":
+        // GameView owns the transient cutter selection/drag state.
         break;
       case "next-day":
         if (run) {
@@ -447,12 +469,13 @@ export class NightTrainApp {
       const run = this.state.run;
       if (!run || run.phase !== "night" || this.state.settings.noCountdown || this.state.nightPaused) return;
       this.state.actionFeedback = [];
+      const threatBeforeTick = run.activeContact?.definitionId;
       this.runService.tickNight(run);
       const phaseAfterTick: string = run.phase;
       if (phaseAfterTick === "aftermath" || phaseAfterTick === "ending" || (phaseAfterTick === "travel" && Boolean(run.activeEventId))) {
         clearInterval(this.nightTimer);
         this.state.screen = this.screenForPhase();
-        if (this.state.settings.sound) this.audio.cue("breach");
+        if (this.state.settings.sound && threatBeforeTick !== "T006") this.audio.cue("breach");
         void this.persist();
       }
       this.render();

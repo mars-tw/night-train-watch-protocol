@@ -47,3 +47,14 @@ npm run audit:buttons
 npm run capture:playability
 npm run capture:video
 ```
+
+## 2026-07-26 灰霧線三分支專項
+
+`npm run audit:story` 現在預設依序完成 GO、DETOUR、STOP 三局七日流程。Day 7 第三波分別強制為 T006、T004、T005，且舊式 `.emergency-actions` 不再被視為合格：
+
+- T004 由 Playwright 把 `[data-threat-tool="cutter"]` 真實拖到權威狀態指定的 `plot-a` 或 `plot-b`。
+- T005 點選權威狀態指定的色／形／節拍訊號卡；單元測試另驗證第一次誤判零傷害、第二次誤判健康 −2。
+- T006 只使用葉片或電表視覺線索；遊戲控制器不播放該威脅的 tap、warning 或 safe 音效。
+- 三條分支都在 360×640、140% 文字下檢查 EV051、EV052、結局主要按鈕的尺寸、中心命中、面板寬度與水平溢位，結果皆為 0px 溢位。
+
+公開證據為 `public/assets/screenshots/28-story-t004-fog-vine.png` 至 `30-story-t006-silent-crowd.png`、三支 `public/assets/video/night-train-story-v090*.webm`，以及 `public/assets/qa/story-flow-report.json`。

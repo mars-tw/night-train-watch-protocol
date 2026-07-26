@@ -1,7 +1,8 @@
 import type { AppState, CarriageId, ContactStage, ThreatContact } from "./types";
 
 type CarriageArtKey = `carriage-${CarriageId}`;
-type ArtKey = CarriageArtKey | "night" | "menu" | "threat-knocker" | "threat-clinger";
+type StoryThreatArtKey = "threat-t004-scene" | "threat-t005-scene" | "threat-t006-scene";
+type ArtKey = CarriageArtKey | StoryThreatArtKey | "night" | "menu" | "threat-knocker" | "threat-clinger";
 
 const ART_SOURCES: Record<ArtKey, string> = {
   "carriage-sleep": "./assets/art/carriage-sleep.png",
@@ -13,6 +14,9 @@ const ART_SOURCES: Record<ArtKey, string> = {
   menu: "./assets/art/carriage-menu.png",
   "threat-knocker": "./assets/art/threat-knocker.png",
   "threat-clinger": "./assets/art/threat-clinger.png",
+  "threat-t004-scene": "./assets/art/story/threat-fog-vine-gpt-v1.png",
+  "threat-t005-scene": "./assets/art/story/threat-echo-passenger-gpt-v1.png",
+  "threat-t006-scene": "./assets/art/story/threat-silent-crowd-gpt-v1.png",
 };
 
 export class SceneRenderer {
@@ -62,7 +66,12 @@ export class SceneRenderer {
     const contact = state?.run?.activeContact;
     const reducedMotion = this.motionIsReduced();
     const carriageArtKey: CarriageArtKey = `carriage-${state?.activeCarriageId ?? "greenhouse"}`;
-    const artKey: ArtKey = state?.screen === "menu" || state?.screen === "result" ? "menu" : carriageArtKey;
+    const storyThreatArtKey = this.storyThreatArtKey(contact);
+    const artKey: ArtKey = state?.screen === "menu" || state?.screen === "result"
+      ? "menu"
+      : phase === "night" && storyThreatArtKey
+        ? storyThreatArtKey
+        : carriageArtKey;
 
     ctx.save();
     const sway = reducedMotion ? { x: 0, y: 0 } : this.trainSway(time);
@@ -82,6 +91,11 @@ export class SceneRenderer {
       ctx.fillStyle = "rgba(9, 14, 18, 0.74)";
       ctx.fillRect(0, 0, 720, 1280);
     }
+  }
+
+  private storyThreatArtKey(contact: ThreatContact | undefined): StoryThreatArtKey | undefined {
+    if (!contact || !["T004", "T005", "T006"].includes(contact.definitionId)) return undefined;
+    return `threat-${contact.definitionId.toLowerCase()}-scene` as StoryThreatArtKey;
   }
 
   private drawArt(key: ArtKey): boolean {
@@ -255,6 +269,8 @@ export class SceneRenderer {
   }
 
   private drawThreat(contact: ThreatContact, time: number, reducedMotion: boolean): void {
+    // T004–T006 use full scene plates with readable HTML interaction zones.
+    if (this.storyThreatArtKey(contact)) return;
     const key: ArtKey = contact.definitionId === "T003" ? "threat-clinger" : "threat-knocker";
     const image = this.images.get(key);
     const ctx = this.context;

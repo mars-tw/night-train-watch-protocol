@@ -18,6 +18,19 @@ export type CargoConversion = "none" | "isolation-bay" | "battery-array" | "samp
 export type StoryDuePhase = "dawn" | "prep" | "route" | "travel" | "aftermath";
 export type SignalSampleQuality = "none" | "partial" | "full";
 export type FinalDecision = "open" | "seal" | "reroute" | "terminate";
+export type ThreatSignalId = "sig-a" | "sig-b";
+export type ThreatSignalColor = "amber" | "cyan" | "red";
+export type ThreatSignalShape = "diamond" | "circle" | "triangle";
+export type ThreatSignalRhythm = "short-short-long" | "long-short-short" | "short-long-short";
+export type ThreatClue = "color" | "shape" | "rhythm";
+export type ThreatInteractionVerb = "cutter" | "signal" | "trace";
+export type ThreatInteractionValue = CropPlotId | ThreatSignalId | "leaves" | "meter";
+export type ThreatInteractionCommand =
+  | `cutter:${CropPlotId}`
+  | `signal:${ThreatSignalId}`
+  | "trace:leaves"
+  | "trace:meter";
+export type ThreatInteractionStatus = "resolved" | "incorrect" | "invalid" | "unsupported";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -131,6 +144,55 @@ export interface ThreatDefinition {
   artKey: string;
 }
 
+export interface ThreatSignal {
+  id: ThreatSignalId;
+  color: ThreatSignalColor;
+  shape: ThreatSignalShape;
+  rhythm: ThreatSignalRhythm;
+}
+
+export interface T004InteractionState {
+  kind: "T004";
+  targetPlotId: CropPlotId;
+  attempts: number;
+  lastAttemptPlotId?: CropPlotId;
+  targetRevealed: boolean;
+}
+
+export interface T005InteractionState {
+  kind: "T005";
+  signals: ThreatSignal[];
+  clues: ThreatSignal[];
+  targetSignalId: ThreatSignalId;
+  attempts: number;
+  wrongAttempts: number;
+  lastAttemptSignalId?: ThreatSignalId;
+  revealedClues: ThreatClue[];
+  secondMissPenaltyApplied: boolean;
+}
+
+export interface T006InteractionState {
+  kind: "T006";
+  mode: "leaf" | "meter";
+  traceTarget: CropPlotId | "meter";
+  targetPlotId?: CropPlotId;
+  attempts: number;
+  lastAttempt?: "leaves" | "meter";
+}
+
+export type ThreatInteractionState =
+  | T004InteractionState
+  | T005InteractionState
+  | T006InteractionState;
+
+export interface ThreatInteractionResult {
+  status: ThreatInteractionStatus;
+  accepted: boolean;
+  resolved: boolean;
+  healthDelta: number;
+  message: string;
+}
+
 export interface ThreatContact {
   id: string;
   definitionId: string;
@@ -139,6 +201,7 @@ export interface ThreatContact {
   wave?: number;
   totalWaves?: number;
   resolvedBy?: string;
+  interaction?: ThreatInteractionState;
 }
 
 export interface ScheduledStoryEvent {

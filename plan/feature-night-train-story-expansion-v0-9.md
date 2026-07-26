@@ -2,7 +2,7 @@
 goal: 將灰霧線七夜故事擴充施工為可見、可點、可存檔及可測的 v0.9 手機遊戲
 version: 0.9.0
 date_created: 2026-07-25
-last_updated: 2026-07-25
+last_updated: 2026-07-26
 owner: Codex controller
 status: 'In progress'
 tags: [feature, narrative, gameplay, mobile-web, assets, qa]
@@ -14,11 +14,11 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 
 本計畫把 [v0.9 灰霧線故事規格](../spec/spec-design-story-expansion-v0-9.md) 拆成可獨立派工、可自動驗收的施工任務。Codex 保持唯一整合與提交控制者；Claude Opus 5 已提供故事初稿；Grok CLI 已在驗證登入後完成獨立反向審查；工程、美術與 QA 代理只提交可稽核的修改或 findings。
 
-## 2026-07-25 可玩故事施工批次
+## 2026-07-26 可玩威脅與三分支驗收批次
 
-本批已完成 typed StoryState、schema 3 存檔遷移、EV041–EV052、Day 1–7 固定主線、Day 4 三分支、Day 7 固定三波與五結局解析、強制事件防跳過、手機選項／結果 UI、T004–T006 可見反制入口，以及 390×844 Chromium 七日通關錄影。自動驗收為 77 項 Vitest、49 種按鈕／498 項瀏覽器斷言與一輪 GO 分支七日實機通關。
+前一批已完成 typed StoryState、schema 3 存檔遷移、EV041–EV052、Day 1–7 固定主線、Day 4 三分支、Day 7 固定三波與五結局解析、強制事件防跳過及手機選項／結果 UI。本批把 T004–T006 從可見入口升級成各自的權威互動：割具真拖放、色／形／節拍比對、無聲葉片／電表判位；三張 GPT 9:16 場景由 Canvas runtime 實際載入。自動驗收為 91 項 Vitest、49 種按鈕／498 項瀏覽器斷言，以及 GO、DETOUR、STOP 三局七日 Chromium 通關。
 
-仍保留在後續批次：T004 真正拖放割具、T005 色／形／節拍比對面板、T006 場景葉片／電表判位、三分支各自瀏覽器通關、全新 GPT Image 故事素材、360×640／140% 故事終局專項稽核，以及 iOS Safari／Android Chrome 人工核准。因此本計畫仍維持 `In progress`，本次 PR 不標記 ready。
+本批也完成 360×640／140% 故事終局專項、三個威脅操作前截圖與三支分支錄影，全部同步至開源 `public/assets`。仍保留 iOS Safari／Android Chrome 人工核准，因此本計畫維持 `In progress`，Draft PR 不標記 ready。
 
 ## 1. Requirements & Constraints
 
@@ -96,9 +96,9 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-019 | 威脅工程代理在 `src/game/content.ts` 與 Threat Director 實作 T004：鎖定種植槽，割具拖放成功前禁止澆水與收成。依賴 TASK-018。 |  |  |
-| TASK-020 | 威脅工程代理實作 T005：名冊面板節奏比對、錯誤健康成本、兩次錯誤後明確提示，避免隨機猜測。依賴 TASK-018。 |  |  |
-| TASK-021 | 威脅工程代理實作 T006：關閉音訊及敲窗提示，以葉片震動和電表抖動判位；無作物時保留較弱但可完成的電表提示。依賴 TASK-018。 |  |  |
+| TASK-019 | 威脅工程代理在 `src/game/content.ts` 與 Threat Director 實作 T004：鎖定種植槽，割具拖放成功前禁止澆水與收成。依賴 TASK-018。 | ✅ | 2026-07-26 |
+| TASK-020 | 威脅工程代理實作 T005：名冊面板節奏比對、錯誤健康成本、兩次錯誤後明確提示，避免隨機猜測。依賴 TASK-018。 | ✅ | 2026-07-26 |
+| TASK-021 | 威脅工程代理實作 T006：關閉音訊及敲窗提示，以葉片震動和電表抖動判位；無作物時保留較弱但可完成的電表提示。依賴 TASK-018。 | ✅ | 2026-07-26 |
 | TASK-022 | 科技工程代理實作 E4、D2、I2；分別新增條文解碼槽位、根系偵測點及覆寫後手動例行工作，不得只給被動數值。依賴 TASK-019、TASK-020、TASK-021。 |  |  |
 | TASK-023 | 測試代理驗證 T004 拖放解鎖、T005 線索與錯誤提示、T006 有作物及無作物判位、E4 槽位排擠、D2 覆蓋範圍及 I2 操作成本。依賴 TASK-022。 |  |  |
 
@@ -131,9 +131,9 @@ tags: [feature, narrative, gameplay, mobile-web, assets, qa]
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-033 | QA 代理執行 `npm run check`、完整故事測試、資產檢查與 Playwright 按鈕稽核；任何失敗都必須回到對應工程任務修正。依賴 TASK-028、TASK-032。 |  |  |
-| TASK-034 | 瀏覽器 QA 代理在真實 Chromium 以 GO、DETOUR、STOP 各玩一輪關鍵節點，確認按鈕、拖放、作物、威脅、分支及結局可見可用；保存截圖、trace 與操作計數。依賴 TASK-033。 |  |  |
-| TASK-035 | 證據代理使用候選 build 錄製直式遊玩影片，至少包含種植、物件拖放、Day 4 車廂改變、T004/T005/T006、Day 7 與結果；同步更新 README 預覽圖、影片連結及版本說明。依賴 TASK-034。 |  |  |
+| TASK-033 | QA 代理執行 `npm run check`、完整故事測試、資產檢查與 Playwright 按鈕稽核；任何失敗都必須回到對應工程任務修正。依賴 TASK-028、TASK-032。 | ✅ | 2026-07-26 |
+| TASK-034 | 瀏覽器 QA 代理在真實 Chromium 以 GO、DETOUR、STOP 各玩一輪關鍵節點，確認按鈕、拖放、作物、威脅、分支及結局可見可用；保存截圖、trace 與操作計數。依賴 TASK-033。 | ✅ | 2026-07-26 |
+| TASK-035 | 證據代理使用候選 build 錄製直式遊玩影片，至少包含種植、物件拖放、Day 4 車廂改變、T004/T005/T006、Day 7 與結果；同步更新 README 預覽圖、影片連結及版本說明。依賴 TASK-034。 | ✅ | 2026-07-26 |
 | TASK-036 | 開源稽核代理檢查 LICENSE、素材來源、GPT 生成記錄、README、預覽圖與影片，確認 clone 後能安裝、建置及離線執行。依賴 TASK-035。 |  |  |
 | TASK-037 | Codex controller 審查 diff、測試、瀏覽器證據與開源稽核後提交並推送 `codex/story-expansion-v090`，建立 draft PR；未完成 Grok 審查或自動 QA 時不得標 ready。依賴 TASK-003、TASK-036。 |  |  |
 | TASK-038 | 人工手機 QA 在 iOS Safari 與 Android Chrome 各完成一輪關鍵流程並核准；只有核准後才可合併、部署 GitHub Pages 及驗證公開靜態素材 HTTP 200。依賴 TASK-037。 |  |  |

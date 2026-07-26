@@ -381,9 +381,6 @@ describe("authoritative run service", () => {
     const counters: Record<string, string> = {
       T002: "close-shutter",
       T003: "emergency-boost",
-      T004: "drag-cutter",
-      T005: "match-echo",
-      T006: "trace-leaves",
     };
     run.resources.fuel = 200;
     run.resources.energy = 100;
@@ -403,9 +400,19 @@ describe("authoritative run service", () => {
         expect(service.resolveEvent(run, choice)).toBe(true);
       }
       while (run.phase === "night" && run.activeContact) {
-        const contactId = run.activeContact.definitionId;
+        const contact = run.activeContact;
+        const contactId = contact.definitionId;
         contacts.add(contactId);
-        expect(service.counterThreat(run, counters[contactId]!)).toBe(true);
+        if (contact.interaction?.kind === "T004") {
+          expect(service.interactThreat(run, `cutter:${contact.interaction.targetPlotId}`).resolved).toBe(true);
+        } else if (contact.interaction?.kind === "T005") {
+          expect(service.interactThreat(run, `signal:${contact.interaction.targetSignalId}`).resolved).toBe(true);
+        } else if (contact.interaction?.kind === "T006") {
+          const command = contact.interaction.mode === "leaf" ? "trace:leaves" : "trace:meter";
+          expect(service.interactThreat(run, command).resolved).toBe(true);
+        } else {
+          expect(service.counterThreat(run, counters[contactId]!)).toBe(true);
+        }
       }
       if (run.phase === "aftermath") service.continueAftermath(run);
     }

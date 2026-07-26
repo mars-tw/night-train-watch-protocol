@@ -42,13 +42,25 @@ describe("shipping art", () => {
     expect(existsSync(resolve(workspace, "tools/process-crop-sheets.py"))).toBe(true);
   });
 
+  it("ships three GPT-authored story threat scenes and wires each into the runtime renderer", () => {
+    const storyThreats = ["threat-fog-vine-gpt-v1.png", "threat-echo-passenger-gpt-v1.png", "threat-silent-crowd-gpt-v1.png"];
+    for (const asset of storyThreats) {
+      expect(existsSync(resolve(workspace, "public/assets/art/story", asset))).toBe(true);
+      expect(renderer).toContain(asset);
+    }
+  });
+
   it("commits the audited mobile gameplay previews to the open-source project", () => {
-    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png", "22-swipe-guidance.png", "23-action-feedback.png", "24-route-risk-waves.png"];
+    const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png", "22-swipe-guidance.png", "23-action-feedback.png", "24-route-risk-waves.png", "28-story-t004-fog-vine.png", "29-story-t005-echo-passenger.png", "30-story-t006-silent-crowd.png"];
     for (const preview of previews) {
       expect(existsSync(resolve(workspace, "public/assets/screenshots", preview)), `${preview} should be public`).toBe(true);
     }
     const readme = readFileSync(resolve(workspace, "README.md"), "utf8");
     for (const preview of previews) expect(readme).toContain(preview);
+    for (const video of ["night-train-story-v090.webm", "night-train-story-v090-detour.webm", "night-train-story-v090-stop.webm"]) {
+      expect(existsSync(resolve(workspace, "public/assets/video", video))).toBe(true);
+      expect(readme).toContain(video);
+    }
     expect(existsSync(resolve(workspace, "public/assets/qa/mobile-playability-report.json"))).toBe(true);
   });
 
@@ -63,6 +75,14 @@ describe("shipping art", () => {
     expect(renderer).toContain("drawThreatImpact");
     expect(animationCss).toContain("prefers-reduced-motion");
     expect(view).toContain("contact-stage-${contact?.stage");
+  });
+
+  it("keeps the silent crowd encounter free of tap and wave-warning audio cues", () => {
+    const app = readFileSync(resolve(workspace, "src/app.ts"), "utf8");
+    expect(app).toContain('action === "threat-interact" && run?.activeContact?.definitionId === "T006"');
+    expect(app).toContain('run.activeContact?.definitionId !== "T006"');
+    expect(app).toContain('resolvedThreatId !== "T006"');
+    expect(app).toContain('threatBeforeTick !== "T006"');
   });
 
   it("ships visible mobile game-feel feedback instead of code-only controls", () => {
@@ -84,7 +104,7 @@ describe("shipping art", () => {
 
   it("bumps the offline cache so installed games receive the gray-fog story", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.9.0-gray-fog-story');
+    expect(serviceWorker).toContain('night-train-v0.9.0-threat-interactions-r2');
   });
 
   it("wires every rendered button action to the application controller", () => {
@@ -98,6 +118,7 @@ describe("shipping art", () => {
       "select-tech-branch", "unlock-tech", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
       "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "place-decoration", "reset-decor", "finish-decor",
       "select-carriage", "select-crop", "plant-crop", "water-crops", "harvest-crop", "workshop-scrap", "cook-meal",
+      "arm-threat-tool", "threat-interact",
     ];
 
     expect(buttonTags.length).toBeGreaterThan(20);

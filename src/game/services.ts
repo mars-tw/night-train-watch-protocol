@@ -36,6 +36,12 @@ import type {
   RunState,
   SurvivorKey,
   ThreatContact,
+  ThreatInteractionCommand,
+  ThreatInteractionResult,
+  ThreatInteractionState,
+  ThreatInteractionValue,
+  ThreatInteractionVerb,
+  ThreatSignal,
 } from "./types";
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
@@ -46,6 +52,20 @@ export const COUNTER_COSTS: Record<string, Partial<Record<ResourceKey, number>>>
   "emergency-boost": { fuel: -4 },
   decoy: { energy: -6 },
 };
+
+const THREAT_INTERACTION_COMMANDS = new Set<ThreatInteractionCommand>([
+  "cutter:plot-a",
+  "cutter:plot-b",
+  "signal:sig-a",
+  "signal:sig-b",
+  "trace:leaves",
+  "trace:meter",
+]);
+
+const T005_SIGNAL_CLUES: readonly ThreatSignal[] = [
+  { id: "sig-a", color: "amber", shape: "diamond", rhythm: "short-short-long" },
+  { id: "sig-b", color: "cyan", shape: "circle", rhythm: "long-short-short" },
+];
 
 function isStoryChoice(choice: EventChoice): choice is StoryContentChoice {
   return "consequence" in choice;
@@ -379,6 +399,10 @@ export class RunService {
     if (!contact) return false;
     const threat = THREATS.find((candidate) => candidate.id === contact.definitionId);
     if (!threat) return false;
+    if (contact.interaction) {
+      run.lastMessage = "這個接觸需要在可見線索上指定目標，不能用舊式一鍵反制跳過。";
+      return false;
+    }
     const readiness = counterReadiness(run, counterId);
     if (!readiness.available) {
       run.lastMessage = `反制未啟動：${readiness.reason}。`;
@@ -397,6 +421,54 @@ export class RunService {
     contact.secondsLeft = Math.max(1, contact.secondsLeft - 2);
     run.lastMessage = "反制無效，接觸仍在升級。";
     return false;
+  }
+
+  public interactThreat(run: RunState, command: ThreatInteractionCommand): ThreatInteractionResult;
+  public interactThreat(
+    run: RunState,
+    verb: ThreatInteractionVerb,
+    value: ThreatInteractionValue,
+  ): ThreatInteractionResult;
+  public interactThreat(
+    run: RunState,
+    commandOrVerb: ThreatInteractionCommand | ThreatInteractionVerb,
+    value?: ThreatInteractionValue,
+  ): ThreatInteractionResult {
+    const rawCommand = value === undefined ? commandOrVerb : `${commandOrVerb}:${value}`;
+    if (!THREAT_INTERACTION_COMMANDS.has(rawCommand as ThreatInteractionCommand)) {
+      return this.rejectThreatInteraction(run, "invalid", "無法辨識這個威脅互動指令。");
+    }
+
+    const command = rawCommand as ThreatInteractionCommand;
+    const contact = run.activeContact;
+    const interaction = contact?.interaction ?? this.ensureThreatInteraction(run);
+    if (run.phase !== "night" || !contact || contact.stage === "resolve") {
+      return this.rejectThreatInteraction(run, "invalid", "目前沒有可互動的夜間接觸。");
+    }
+    if (!interaction) {
+      return this.rejectThreatInteraction(run, "unsupported", "這個接觸仍使用標準緊急反制。");
+    }
+
+    switch (interaction.kind) {
+      case "T004":
+        return this.interactT004(run, contact, interaction, command);
+      case "T005":
+        return this.interactT005(run, contact, interaction, command);
+      case "T006":
+        return this.interactT006(run, contact, interaction, command);
+    }
+  }
+
+  public ensureThreatInteraction(run: RunState): ThreatInteractionState | undefined {
+    const contact = run.activeContact;
+    if (!contact || contact.interaction) return contact?.interaction;
+    const interaction = this.createThreatInteraction(
+      run,
+      contact.definitionId,
+      contact.wave ?? 1,
+    );
+    if (interaction) contact.interaction = interaction;
+    return interaction;
   }
 
   public finishNight(run: RunState): void {
@@ -695,6 +767,7 @@ export class RunService {
         secondsLeft: Math.max(7, threat.warningSeconds),
         wave,
         totalWaves,
+        interaction: this.createThreatInteraction(run, threat.id, wave),
       };
     }
     const standardThreats = THREATS.filter((threat) => threat.id === "T002" || threat.id === "T003");
@@ -708,6 +781,200 @@ export class RunService {
       secondsLeft: Math.max(7, threat.warningSeconds - Math.floor((run.day - 1) / 2)),
       wave,
       totalWaves,
+    };
+  }
+
+  private createThreatInteraction(
+    run: RunState,
+    threatId: string,
+    wave: number,
+  ): ThreatInteractionState | undefined {
+    const rng = createRng(run.seed, `threat-interaction:${run.day}:${wave}:${threatId}`);
+    if (threatId === "T004") {
+      const targetPlotId: CropPlotId = rng() < 0.5 ? "plot-a" : "plot-b";
+      return {
+        kind: "T004",
+        targetPlotId,
+        attempts: 0,
+        targetRevealed: false,
+      };
+    }
+    if (threatId === "T005") {
+      const signals = T005_SIGNAL_CLUES.map((clue) => ({ ...clue }));
+      const targetSignalId = signals[Math.floor(rng() * signals.length)]!.id;
+      return {
+        kind: "T005",
+        signals,
+        clues: signals.map((clue) => ({ ...clue })),
+        targetSignalId,
+        attempts: 0,
+        wrongAttempts: 0,
+        revealedClues: [],
+        secondMissPenaltyApplied: false,
+      };
+    }
+    if (threatId === "T006") {
+      const cropPlots = run.crops.filter((plot) => Boolean(plot.cropId));
+      if (cropPlots.length === 0) {
+        return {
+          kind: "T006",
+          mode: "meter",
+          traceTarget: "meter",
+          attempts: 0,
+        };
+      }
+      const targetPlotId = cropPlots[Math.floor(rng() * cropPlots.length)]!.id;
+      return {
+        kind: "T006",
+        mode: "leaf",
+        traceTarget: targetPlotId,
+        targetPlotId,
+        attempts: 0,
+      };
+    }
+    return undefined;
+  }
+
+  private interactT004(
+    run: RunState,
+    contact: ThreatContact,
+    interaction: Extract<ThreatInteractionState, { kind: "T004" }>,
+    command: ThreatInteractionCommand,
+  ): ThreatInteractionResult {
+    if (!command.startsWith("cutter:")) {
+      return this.rejectThreatInteraction(run, "invalid", "霧噬藤只能用割具拖放到種植槽。");
+    }
+    const attemptedPlotId = command.slice("cutter:".length) as CropPlotId;
+    interaction.attempts += 1;
+    interaction.lastAttemptPlotId = attemptedPlotId;
+    if (attemptedPlotId !== interaction.targetPlotId) {
+      interaction.targetRevealed = true;
+      const targetLabel = interaction.targetPlotId === "plot-a" ? "上層 plot-a" : "下層 plot-b";
+      return this.rejectThreatInteraction(
+        run,
+        "incorrect",
+        `割具落在錯誤槽位；藤蔓根節仍亮在${targetLabel}，可沿發光路徑重試。`,
+        true,
+      );
+    }
+    return this.resolveThreatInteraction(
+      run,
+      contact,
+      command,
+      "割具切斷正確槽位的藤蔓根節，霧噬藤已解除。",
+    );
+  }
+
+  private interactT005(
+    run: RunState,
+    contact: ThreatContact,
+    interaction: Extract<ThreatInteractionState, { kind: "T005" }>,
+    command: ThreatInteractionCommand,
+  ): ThreatInteractionResult {
+    if (!command.startsWith("signal:")) {
+      return this.rejectThreatInteraction(run, "invalid", "回聲乘客需要選擇一個可見訊號。");
+    }
+    const attemptedSignalId = command.slice("signal:".length);
+    if (!interaction.clues.some((clue) => clue.id === attemptedSignalId)) {
+      return this.rejectThreatInteraction(run, "invalid", "選到不存在的訊號。");
+    }
+
+    interaction.attempts += 1;
+    interaction.lastAttemptSignalId = attemptedSignalId as typeof interaction.targetSignalId;
+    if (attemptedSignalId === interaction.targetSignalId) {
+      return this.resolveThreatInteraction(
+        run,
+        contact,
+        command,
+        "色、形與節拍完全吻合，回聲乘客已離開車窗。",
+      );
+    }
+
+    interaction.wrongAttempts += 1;
+    interaction.revealedClues = ["color", "shape", "rhythm"];
+    const targetClue = interaction.clues.find((clue) => clue.id === interaction.targetSignalId)!;
+    if (interaction.wrongAttempts === 1) {
+      return this.rejectThreatInteraction(
+        run,
+        "incorrect",
+        `第一次比對錯誤，不扣健康。目標線索已揭示：${targetClue.color}、${targetClue.shape}、${targetClue.rhythm}。`,
+        true,
+      );
+    }
+
+    let healthDelta = 0;
+    if (!interaction.secondMissPenaltyApplied) {
+      const healthBefore = run.survivor.health;
+      this.applySurvivor(run, "health", -2, "threat.T005.second-miss");
+      healthDelta = run.survivor.health - healthBefore;
+      interaction.secondMissPenaltyApplied = true;
+    }
+    const result = this.rejectThreatInteraction(
+      run,
+      "incorrect",
+      `第二次比對仍錯誤，健康 ${healthDelta}；目標仍是 ${targetClue.color}、${targetClue.shape}、${targetClue.rhythm}。`,
+      true,
+    );
+    return { ...result, healthDelta };
+  }
+
+  private interactT006(
+    run: RunState,
+    contact: ThreatContact,
+    interaction: Extract<ThreatInteractionState, { kind: "T006" }>,
+    command: ThreatInteractionCommand,
+  ): ThreatInteractionResult {
+    if (command !== "trace:leaves" && command !== "trace:meter") {
+      return this.rejectThreatInteraction(run, "invalid", "靜默群只能依葉片或電表判位。");
+    }
+    interaction.attempts += 1;
+    interaction.lastAttempt = command === "trace:leaves" ? "leaves" : "meter";
+    const correct = interaction.mode === "leaf"
+      ? command === "trace:leaves"
+      : command === "trace:meter";
+    if (!correct) {
+      const cue = interaction.mode === "leaf"
+        ? `葉片震動集中在 ${interaction.traceTarget}，不是電表。`
+        : "目前沒有作物；35% 強度的電表抖動仍是可完成線索。";
+      return this.rejectThreatInteraction(run, "incorrect", `判位錯誤，靜默群未散。${cue}`, true);
+    }
+    const result = interaction.mode === "leaf"
+      ? `已依 ${interaction.traceTarget} 的葉片震動確認方位，靜默群退開。`
+      : "無作物備援成立；已依電表抖動確認方位，靜默群退開。";
+    return this.resolveThreatInteraction(run, contact, command, result);
+  }
+
+  private resolveThreatInteraction(
+    run: RunState,
+    contact: ThreatContact,
+    resolvedBy: ThreatInteractionCommand,
+    message: string,
+  ): ThreatInteractionResult {
+    contact.stage = "resolve";
+    contact.resolvedBy = resolvedBy;
+    this.advanceNightContactOrFinish(run, message);
+    return {
+      status: "resolved",
+      accepted: true,
+      resolved: true,
+      healthDelta: 0,
+      message: run.lastMessage ?? message,
+    };
+  }
+
+  private rejectThreatInteraction(
+    run: RunState,
+    status: "incorrect" | "invalid" | "unsupported",
+    message: string,
+    accepted = false,
+  ): ThreatInteractionResult {
+    run.lastMessage = message;
+    return {
+      status,
+      accepted,
+      resolved: false,
+      healthDelta: 0,
+      message,
     };
   }
 

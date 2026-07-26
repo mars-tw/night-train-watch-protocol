@@ -2709,3 +2709,589 @@
     font-size: calc(34px * var(--text-scale, 1));
   }
 }
+
+/* v0.9 tactile finale encounters --------------------------------------- */
+
+.threat-interaction-panel {
+  position: absolute;
+  z-index: 44;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 12px;
+  max-height: min(250px, 40svh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid rgba(226, 168, 93, 0.78);
+  background:
+    linear-gradient(110deg, rgba(226, 168, 93, 0.08), transparent 38%),
+    rgba(7, 14, 18, 0.96);
+  box-shadow: 0 -14px 34px rgba(2, 7, 10, 0.36);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.threat-operation-header {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(137, 183, 199, 0.22);
+}
+
+.threat-operation-header > span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.threat-operation-header small {
+  color: var(--color-action);
+  font: 800 calc(8px * var(--text-scale, 1)) / 1.1 var(--font-data);
+  letter-spacing: 0.09em;
+}
+
+.threat-operation-header strong {
+  overflow: hidden;
+  font-size: calc(13px * var(--text-scale, 1));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.threat-attempts {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 7px 9px;
+  border: 1px solid rgba(226, 168, 93, 0.46);
+  border-radius: 999px;
+  color: #f4d6a6;
+  font: 800 calc(9px * var(--text-scale, 1)) / 1 var(--font-data);
+}
+
+.threat-operation-instruction {
+  margin: 7px 0;
+  color: var(--color-text-muted);
+  font-size: calc(9px * var(--text-scale, 1));
+  line-height: 1.35;
+}
+
+.vine-operation {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.vine-cutter,
+.vine-plot,
+.echo-signal-card,
+.silent-sensor-card {
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid rgba(137, 183, 199, 0.48);
+  border-radius: 9px;
+  background: rgba(17, 29, 35, 0.9);
+  color: var(--color-text);
+}
+
+.vine-cutter {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-height: 94px;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  transform: translate(var(--drag-x, 0), var(--drag-y, 0));
+  border-color: rgba(226, 168, 93, 0.7);
+  background:
+    linear-gradient(145deg, rgba(226, 168, 93, 0.19), transparent 55%),
+    rgba(14, 22, 26, 0.98);
+  touch-action: none;
+  user-select: none;
+}
+
+.vine-cutter > span {
+  color: #f4d6a6;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.vine-cutter strong {
+  font-size: calc(11px * var(--text-scale, 1));
+}
+
+.vine-cutter small {
+  color: var(--color-text-muted);
+  font-size: calc(7px * var(--text-scale, 1));
+}
+
+.vine-cutter.is-grabbed {
+  z-index: 70;
+  border-color: #fff2ce;
+  box-shadow: 0 8px 22px rgba(226, 168, 93, 0.38);
+}
+
+.threat-interaction--vine.is-tool-armed .vine-cutter {
+  border-color: #fff2ce;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 242, 206, 0.22), transparent 44%),
+    rgba(40, 31, 20, 0.98);
+  box-shadow: 0 0 0 2px rgba(226, 168, 93, 0.18);
+}
+
+.vine-plots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.vine-plot {
+  display: grid;
+  min-height: 94px;
+  align-content: center;
+  gap: 3px;
+  padding: 6px;
+  border-color: rgba(176, 86, 74, 0.74);
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.vine-plot__bed {
+  position: relative;
+  display: flex !important;
+  height: 35px;
+  align-items: end;
+  justify-content: space-around;
+  overflow: hidden;
+  border-bottom: 4px solid #74583f;
+  background: linear-gradient(180deg, rgba(92, 139, 93, 0.08), rgba(41, 66, 44, 0.42));
+}
+
+.vine-plot__bed > i {
+  width: 7px;
+  height: 27px;
+  transform: rotate(-12deg);
+  border-radius: 70% 20%;
+  background: #638d63;
+  box-shadow: 9px 6px 0 #466e51;
+  animation: vinePulse 1.25s ease-in-out infinite alternate;
+}
+
+.vine-plot__bed > i:nth-child(2) {
+  height: 22px;
+  animation-delay: -0.45s;
+}
+
+.vine-plot__bed > i:nth-child(3) {
+  transform: rotate(14deg);
+  animation-delay: -0.8s;
+}
+
+.vine-root {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  color: #bd6659;
+  font-size: 11px;
+}
+
+.vine-plot strong {
+  font-size: calc(10px * var(--text-scale, 1));
+}
+
+.vine-plot small {
+  color: var(--color-text-muted);
+  font-size: calc(7px * var(--text-scale, 1));
+  line-height: 1.2;
+}
+
+.vine-plot.is-drop-target,
+.threat-interaction--vine.is-tool-armed .vine-plot {
+  border-color: #f4d6a6;
+  box-shadow: inset 0 0 0 2px rgba(226, 168, 93, 0.19);
+}
+
+.vine-plot.is-root-target {
+  border-color: #f2b2a5;
+  background: rgba(94, 31, 28, 0.78);
+}
+
+.vine-plot.is-root-target .vine-root {
+  color: #ffe0d8;
+  filter: drop-shadow(0 0 5px #f28e7c);
+}
+
+.vine-plot.was-attempted:not(.is-root-target) {
+  border-style: dashed;
+  opacity: 0.78;
+}
+
+.threat-tool-status,
+.echo-result,
+.silent-static-cue {
+  min-height: 18px;
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: calc(8px * var(--text-scale, 1));
+  line-height: 1.3;
+}
+
+.threat-interaction--vine.is-tool-required .threat-tool-status,
+.echo-result.has-warning {
+  color: #f3b5a9;
+}
+
+.echo-signal-grid,
+.silent-sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.echo-signal-card {
+  position: relative;
+  display: grid;
+  min-height: 126px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: auto 42px auto;
+  align-items: center;
+  gap: 4px 7px;
+  padding: 7px;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.echo-signal-card__number {
+  grid-column: 1 / -1;
+  color: var(--color-info);
+  font: 800 calc(8px * var(--text-scale, 1)) / 1 var(--font-data);
+  letter-spacing: 0.08em;
+}
+
+.echo-signal-card__scope {
+  display: grid !important;
+  width: 44px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  color: #89b7c7;
+  background: rgba(137, 183, 199, 0.09);
+}
+
+.echo-signal-card__scope.is-amber {
+  color: #e2a85d;
+}
+
+.echo-signal-card__scope.is-red {
+  color: #dc796a;
+}
+
+.signal-shape {
+  display: block;
+  width: 19px;
+  height: 19px;
+  border: 3px solid currentColor;
+}
+
+.signal-shape.is-diamond {
+  transform: rotate(45deg);
+}
+
+.signal-shape.is-circle {
+  border-radius: 50%;
+}
+
+.signal-shape.is-triangle {
+  width: 0;
+  height: 0;
+  border: 0;
+  border-right: 11px solid transparent;
+  border-bottom: 20px solid currentColor;
+  border-left: 11px solid transparent;
+}
+
+.signal-rhythm {
+  display: flex !important;
+  height: 36px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+  border-bottom: 1px solid rgba(137, 183, 199, 0.32);
+}
+
+.signal-rhythm i {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background: #c9e1e8;
+  box-shadow: 0 0 6px rgba(137, 183, 199, 0.58);
+}
+
+.signal-rhythm i.is-short {
+  width: 9px;
+}
+
+.signal-rhythm i.is-long {
+  width: 24px;
+}
+
+.signal-traits {
+  display: flex !important;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.signal-traits small {
+  padding: 3px 4px;
+  border: 1px solid rgba(137, 183, 199, 0.25);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: calc(6px * var(--text-scale, 1));
+}
+
+.echo-signal-card.is-obscured .echo-signal-card__scope,
+.echo-signal-card.is-obscured .signal-rhythm {
+  filter: grayscale(0.75) blur(0.35px);
+  opacity: 0.72;
+}
+
+.echo-signal-card.has-clues {
+  border-color: rgba(226, 168, 93, 0.68);
+}
+
+.echo-signal-card.was-wrong {
+  border-color: #bf6659;
+  background: rgba(79, 31, 29, 0.72);
+}
+
+.signal-miss {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #f3b5a9;
+  font-size: calc(7px * var(--text-scale, 1));
+}
+
+.silent-sensor-card {
+  display: grid;
+  min-height: 128px;
+  align-content: space-between;
+  gap: 5px;
+  padding: 7px;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.silent-sensor-card strong {
+  font-size: calc(10px * var(--text-scale, 1));
+}
+
+.silent-sensor-card > small {
+  color: var(--color-text-muted);
+  font-size: calc(7px * var(--text-scale, 1));
+}
+
+.leaf-observation-grid {
+  display: grid !important;
+  min-height: 67px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.leaf-observation-zone {
+  display: grid !important;
+  min-width: 0;
+  place-content: center;
+  place-items: center;
+  gap: 1px;
+  border: 1px solid rgba(99, 141, 99, 0.42);
+  border-radius: 5px;
+  background: rgba(44, 76, 51, 0.2);
+}
+
+.leaf-observation-zone .leaf {
+  display: inline-block;
+  color: #6f9d70;
+  font-size: 12px;
+  transform-origin: 50% 100%;
+}
+
+.leaf-observation-zone .leaf-b {
+  margin-left: 8px;
+  color: #477153;
+}
+
+.leaf-observation-zone b,
+.leaf-observation-zone small {
+  font-size: calc(6px * var(--text-scale, 1));
+}
+
+.leaf-observation-zone small {
+  color: var(--color-text-muted);
+}
+
+.leaf-observation-zone.is-trembling {
+  border-color: #aad19c;
+  background: rgba(86, 126, 76, 0.32);
+}
+
+.leaf-observation-zone.is-trembling .leaf {
+  animation: leafTremble 0.34s ease-in-out infinite alternate;
+}
+
+.leaf-observation-zone.is-trembling .leaf-b {
+  animation-delay: -0.17s;
+}
+
+.root-meter {
+  position: relative;
+  display: block !important;
+  width: 112px;
+  max-width: 100%;
+  height: 67px;
+  justify-self: center;
+  overflow: hidden;
+  border: 1px solid rgba(137, 183, 199, 0.58);
+  border-radius: 64px 64px 8px 8px;
+  background:
+    radial-gradient(circle at 50% 94%, rgba(226, 168, 93, 0.3) 0 7px, transparent 8px),
+    repeating-conic-gradient(from 226deg at 50% 94%, rgba(137, 183, 199, 0.8) 0 1deg, transparent 1deg 13deg),
+    rgba(10, 22, 27, 0.95);
+}
+
+.root-meter > b {
+  position: absolute;
+  bottom: 5px;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 49px;
+  transform: rotate(var(--meter-angle, 0deg));
+  transform-origin: 50% 100%;
+  border-radius: 999px;
+  background: #f2b369;
+  box-shadow: 0 0 7px rgba(242, 179, 105, 0.7);
+  animation: meterTwitch 0.8s ease-in-out infinite alternate;
+}
+
+.root-meter > em {
+  position: absolute;
+  bottom: 7px;
+  left: calc(50% + 9px);
+  color: var(--color-text-muted);
+  font: 800 7px/1 var(--font-data);
+}
+
+.silent-static-cue {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  color: #f4d6a6;
+}
+
+.silent-static-cue > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgba(226, 168, 93, 0.54);
+  border-radius: 50%;
+}
+
+@keyframes vinePulse {
+  from { transform: rotate(-13deg) translateY(1px); }
+  to { transform: rotate(8deg) translateY(-2px); }
+}
+
+@keyframes leafTremble {
+  from { transform: rotate(-10deg) translateX(-1px); }
+  to { transform: rotate(13deg) translateX(1px); }
+}
+
+@keyframes meterTwitch {
+  from { margin-left: -2px; }
+  to { margin-left: 2px; }
+}
+
+.reduce-motion .vine-plot__bed > i,
+.reduce-motion .leaf-observation-zone.is-trembling .leaf,
+.reduce-motion .root-meter > b {
+  animation: none;
+}
+
+.reduce-motion .silent-static-cue {
+  display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vine-plot__bed > i,
+  .leaf-observation-zone.is-trembling .leaf,
+  .root-meter > b {
+    animation: none;
+  }
+
+  .silent-static-cue {
+    display: flex;
+  }
+}
+
+@media (max-height: 700px) {
+  .threat-interaction-panel {
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+    max-height: min(238px, 38svh);
+    padding: 8px;
+  }
+
+  .screen--carriage[data-threat-id="T004"] .emergency-power,
+  .screen--carriage[data-threat-id="T005"] .emergency-power,
+  .screen--carriage[data-threat-id="T006"] .emergency-power {
+    display: none;
+  }
+
+  .screen--carriage[data-threat-id="T004"] .toast-message,
+  .screen--carriage[data-threat-id="T005"] .toast-message,
+  .screen--carriage[data-threat-id="T006"] .toast-message {
+    bottom: 252px;
+  }
+
+  .threat-operation-instruction {
+    margin: 5px 0;
+  }
+
+  .echo-signal-card,
+  .silent-sensor-card {
+    min-height: 112px;
+  }
+}
+
+@media (max-width: 370px) {
+  .threat-interaction-panel {
+    right: 7px;
+    left: 7px;
+  }
+
+  .vine-operation {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .vine-plots,
+  .echo-signal-grid,
+  .silent-sensor-grid {
+    gap: 5px;
+  }
+
+  .echo-signal-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+    padding: 6px;
+  }
+
+  .echo-signal-card__scope {
+    width: 38px;
+  }
+}

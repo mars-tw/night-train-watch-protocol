@@ -1,6 +1,6 @@
 import { CARRIAGES, CROPS, DECORATIONS, DECORATION_SLOTS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
 import { counterReadiness, getNightPowerDemand } from "../game/services";
-import type { AppState, CarriageId, GameEvent, RunState } from "../game/types";
+import type { AppState, CarriageId, GameEvent, RunState, ThreatContact, ThreatSignal, ThreatSignalRhythm } from "../game/types";
 import { escapeText, formatSigned } from "./dom";
 import { icons } from "./icons";
 
@@ -346,6 +346,146 @@ function actionFeedback(state: AppState): string {
   return `<span class="feedback-chips" aria-label="本次數值變化">${state.actionFeedback.map((entry) => `<b class="feedback-chip is-${entry.tone}">${escapeText(entry.label)} ${formatSigned(entry.delta)}</b>`).join("")}</span>`;
 }
 
+const SIGNAL_COLOR_LABELS = {
+  amber: "琥珀",
+  cyan: "青藍",
+  red: "警戒紅",
+} as const;
+
+const SIGNAL_SHAPE_LABELS = {
+  diamond: "菱形",
+  circle: "圓環",
+  triangle: "三角",
+} as const;
+
+const SIGNAL_RHYTHM_LABELS: Record<ThreatSignalRhythm, string> = {
+  "short-short-long": "短・短・長",
+  "long-short-short": "長・短・短",
+  "short-long-short": "短・長・短",
+};
+
+function rhythmBars(rhythm: ThreatSignalRhythm): string {
+  return rhythm.split("-").map((beat) => `<i class="is-${beat}" aria-hidden="true"></i>`).join("");
+}
+
+function signalCard(signal: ThreatSignal, index: number, revealedClues: Set<string>, lastAttemptSignalId?: string): string {
+  const colorVisible = revealedClues.has("color");
+  const shapeVisible = revealedClues.has("shape");
+  const rhythmVisible = revealedClues.has("rhythm");
+  const revealClass = revealedClues.size === 0 ? "is-obscured" : "has-clues";
+  const clueLabels = [
+    colorVisible ? `色 ${SIGNAL_COLOR_LABELS[signal.color]}` : "色 未解析",
+    shapeVisible ? `形 ${SIGNAL_SHAPE_LABELS[signal.shape]}` : "形 未解析",
+    rhythmVisible ? `拍 ${SIGNAL_RHYTHM_LABELS[signal.rhythm]}` : "拍 未解析",
+  ];
+  return `<button class="echo-signal-card ${lastAttemptSignalId === signal.id ? "was-wrong" : ""} ${revealClass}" type="button" data-action="threat-interact" data-value="signal:${signal.id}" aria-label="選擇訊號 ${index + 1}；${clueLabels.join("，")}">
+    <span class="echo-signal-card__number">訊號 ${String(index + 1).padStart(2, "0")}</span>
+    <span class="echo-signal-card__scope is-${signal.color}" aria-hidden="true"><i class="signal-shape is-${signal.shape}"></i></span>
+    <span class="signal-rhythm" aria-label="節拍 ${SIGNAL_RHYTHM_LABELS[signal.rhythm]}">${rhythmBars(signal.rhythm)}</span>
+    <span class="signal-traits">${clueLabels.map((label) => `<small>${escapeText(label)}</small>`).join("")}</span>
+    ${lastAttemptSignalId === signal.id ? `<b class="signal-miss">上次誤判</b>` : ""}
+  </button>`;
+}
+
+function t004InteractionPanel(contact: ThreatContact): string {
+  const interaction = contact.interaction?.kind === "T004" ? contact.interaction : undefined;
+  const targetRevealed = interaction?.targetRevealed ?? false;
+  const attempts = interaction?.attempts ?? 0;
+  const targetPlotId = interaction?.targetPlotId;
+  const plots = (["plot-a", "plot-b"] as const).map((plotId, index) => {
+    const isRevealedTarget = targetRevealed && targetPlotId === plotId;
+    const wasAttempted = interaction?.lastAttemptPlotId === plotId;
+    return `<button class="vine-plot ${isRevealedTarget ? "is-root-target" : ""} ${wasAttempted ? "was-attempted" : ""}" type="button" data-action="threat-interact" data-value="cutter:${plotId}" data-threat-target="${plotId}" data-requires-tool="cutter" aria-label="${index === 0 ? "左側" : "右側"}種植槽${isRevealedTarget ? "，已確認根節" : "，藤蔓纏繞"}">
+      <span class="vine-plot__bed"><i></i><i></i><i></i><b class="vine-root" aria-hidden="true">◆</b></span>
+      <strong>${index === 0 ? "槽 A" : "槽 B"}</strong>
+      <small>${isRevealedTarget ? "根節已顯影・拖入割具" : wasAttempted ? "切割無效・路徑已顯示" : "受感染・等待切割"}</small>
+    </button>`;
+  }).join("");
+  return `<section class="threat-interaction-panel threat-interaction--vine panel" data-testid="threat-interaction" data-threat-id="T004" data-threat-interaction="T004" data-contact-id="${escapeText(contact.id)}" aria-labelledby="threat-operation-title">
+    <header class="threat-operation-header">
+      <span><small>霧藤根節處置</small><strong id="threat-operation-title">保住兩個種植槽</strong></span>
+      <b class="threat-attempts">嘗試 ${attempts}</b>
+    </header>
+    <p class="threat-operation-instruction">拖曳割具到槽位；或先點割具，再點目標槽。</p>
+    <div class="vine-operation">
+      <button class="vine-cutter" type="button" data-action="arm-threat-tool" data-threat-tool="cutter" aria-pressed="false" aria-label="割具；可拖曳，或點一下拿起">
+        <span aria-hidden="true">✂</span><strong>割具</strong><small>拖曳／點選</small>
+      </button>
+      <div class="vine-plots" aria-label="感染種植槽">${plots}</div>
+    </div>
+    <p class="threat-tool-status" role="status">${targetRevealed ? "錯誤路徑已標記；發光根節就是切割目標。" : "兩槽都被霧藤覆蓋，先用割具確認根節。"}</p>
+  </section>`;
+}
+
+function t005InteractionPanel(contact: ThreatContact): string {
+  const interaction = contact.interaction?.kind === "T005" ? contact.interaction : undefined;
+  const fallbackSignals: ThreatSignal[] = [
+    { id: "sig-a", color: "amber", shape: "diamond", rhythm: "short-short-long" },
+    { id: "sig-b", color: "cyan", shape: "circle", rhythm: "short-long-short" },
+  ];
+  const signals = interaction?.signals?.length === 2 ? interaction.signals : fallbackSignals;
+  const attempts = interaction?.attempts ?? 0;
+  const wrongAttempts = interaction?.wrongAttempts ?? 0;
+  const revealedClues = new Set(interaction?.revealedClues ?? []);
+  const resultLine = wrongAttempts === 0
+    ? "兩個求救訊號近乎相同；選出與原始呼叫吻合的一張。"
+    : wrongAttempts === 1
+      ? "首次誤判未扣健康；色、形、節拍線索已全部展開。"
+      : interaction?.secondMissPenaltyApplied
+        ? "第二次誤判：健康 −2。"
+        : "再次核對已揭露線索。";
+  return `<section class="threat-interaction-panel threat-interaction--echo panel" data-testid="threat-interaction" data-threat-id="T005" data-threat-interaction="T005" data-contact-id="${escapeText(contact.id)}" aria-labelledby="threat-operation-title">
+    <header class="threat-operation-header">
+      <span><small>回聲比對台</small><strong id="threat-operation-title">辨認真正的求救訊號</strong></span>
+      <b class="threat-attempts">辨識 ${attempts}/2</b>
+    </header>
+    <p class="threat-operation-instruction">比較色光、輪廓與三拍脈衝，再點選訊號卡。</p>
+    <div class="echo-signal-grid">${signals.map((signal, index) => signalCard(signal, index, revealedClues, interaction?.lastAttemptSignalId)).join("")}</div>
+    <p class="echo-result ${wrongAttempts > 0 ? "has-warning" : ""}" role="status">${resultLine}</p>
+  </section>`;
+}
+
+function t006InteractionPanel(contact: ThreatContact): string {
+  const interaction = contact.interaction?.kind === "T006" ? contact.interaction : undefined;
+  const mode = interaction?.mode ?? "leaf";
+  const targetPlotId = interaction?.targetPlotId ?? "plot-a";
+  const attempts = interaction?.attempts ?? 0;
+  const rootSide = targetPlotId === "plot-b" ? "right" : "left";
+  const leafZones = (["plot-a", "plot-b"] as const).map((plotId, index) => {
+    const active = mode === "leaf" && plotId === targetPlotId;
+    return `<span class="leaf-observation-zone ${active ? "is-trembling" : "is-still"}" aria-label="${index === 0 ? "左側" : "右側"}葉片${active ? "持續晃動" : "靜止"}">
+      <i class="leaf leaf-a" aria-hidden="true">◆</i><i class="leaf leaf-b" aria-hidden="true">◆</i>
+      <b>${index === 0 ? "左葉區" : "右葉區"}</b><small>${active ? "晃動 ▲" : "靜止 ━"}</small>
+    </span>`;
+  }).join("");
+  const meterAngle = mode === "meter" ? (rootSide === "left" ? "-38deg" : "38deg") : "0deg";
+  return `<section class="threat-interaction-panel threat-interaction--silent panel" data-testid="threat-interaction" data-threat-id="T006" data-threat-interaction="T006" data-contact-id="${escapeText(contact.id)}" data-sensor-mode="${mode}" aria-labelledby="threat-operation-title">
+    <header class="threat-operation-header">
+      <span><small>靜默根源感測</small><strong id="threat-operation-title">用無聲線索判位</strong></span>
+      <b class="threat-attempts">判讀 ${attempts}</b>
+    </header>
+    <p class="threat-operation-instruction">沒有敲窗聲。觀察葉片晃動或錶針偏轉，選一種線索追蹤。</p>
+    <div class="silent-sensor-grid">
+      <button class="silent-sensor-card leaf-sensor" type="button" data-action="threat-interact" data-value="trace:leaves" aria-label="循葉片晃動追蹤根源">
+        <span class="leaf-observation-grid">${leafZones}</span>
+        <strong>循葉片找根源</strong><small>${mode === "leaf" ? `${rootSide === "left" ? "左" : "右"}側晃動較強` : "葉片訊號微弱"}</small>
+      </button>
+      <button class="silent-sensor-card meter-sensor" type="button" data-action="threat-interact" data-value="trace:meter" aria-label="用根部電表偏轉追蹤根源">
+        <span class="root-meter" style="--meter-angle:${meterAngle}" aria-hidden="true"><i class="meter-tick tick-left"></i><i class="meter-tick tick-right"></i><b></b><em>V</em></span>
+        <strong>讀取根部電表</strong><small>${mode === "meter" ? `錶針向${rootSide === "left" ? "左" : "右"}偏轉` : "電表維持中線"}</small>
+      </button>
+    </div>
+    <p class="silent-static-cue" role="status"><span aria-hidden="true">${mode === "leaf" ? "葉" : "錶"}</span>${mode === "leaf" ? `${rootSide === "left" ? "左" : "右"}葉區 ▲` : `錶針 ${rootSide === "left" ? "←" : "→"}`}・減少動態時以此符號判讀</p>
+  </section>`;
+}
+
+function threatInteractionPanel(contact: ThreatContact): string {
+  if (contact.definitionId === "T004") return t004InteractionPanel(contact);
+  if (contact.definitionId === "T005") return t005InteractionPanel(contact);
+  if (contact.definitionId === "T006") return t006InteractionPanel(contact);
+  return "";
+}
+
 function carriageScreen(state: AppState): string {
   const run = state.run;
   if (!run) return "";
@@ -384,6 +524,7 @@ function carriageScreen(state: AppState): string {
     { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
     { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
   ];
+  const visibleThreatInteraction = night && contact ? threatInteractionPanel(contact) : "";
   const drawerOpen = !night && (state.decorating || state.carriagePanel !== "scene");
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}" data-threat-id="${threat?.id ?? ""}">
     ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
@@ -395,7 +536,7 @@ function carriageScreen(state: AppState): string {
     ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>接觸 ${contact.wave ?? 1}/${contact.totalWaves ?? 1}・${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
     ${!night ? carriageHotspots(state, run) : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", "M001"], ["暖氣", "M002"], ["溫室", "M003"], ["感測器", "M004"]].map(([label, moduleId]) => { const module = run.modules.find((instance) => instance.definitionId === moduleId); const on = Boolean(module?.active && module.powered); return `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${module ? on ? "ON" : "OFF" : "—"}</b></div>`; }).join("")}</div>` : ""}
-    ${night ? `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state, run) : prepPanel}
+    ${night ? visibleThreatInteraction || `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state, run) : prepPanel}
     <nav class="carriage-dock panel">
       <button data-action="modules"><span>${icons.build}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${icons.power}</span><b>配電</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${icons.meal}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>◇</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${icons.route}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
     </nav>`}
@@ -522,35 +663,67 @@ export class GameView {
   private previousCarriageId?: CarriageId;
   private carriageSwipe: { target: HTMLElement; pointerId: number; startX: number; startY: number; x: number; y: number } | null = null;
   private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean; nearestSlotId?: string } | null = null;
+  private threatToolDrag: { target: HTMLElement; pointerId: number; startX: number; startY: number; moved: boolean; dropTarget?: HTMLElement } | null = null;
   private suppressDecorClick = false;
+  private suppressThreatToolClick = false;
+  private threatToolArmed = false;
+  private threatContactId = "";
 
   public constructor(private readonly root: HTMLElement, private readonly onAction: ActionHandler) {
     this.root.innerHTML = `<main class="game-shell"><div class="game-frame"><canvas id="scene-canvas" aria-hidden="true"></canvas><div id="ui-root"></div></div><p class="rotate-notice">請將裝置轉回直式，守護協定需要完整車廂視野。</p></main>`;
     this.canvas = this.root.querySelector<HTMLCanvasElement>("#scene-canvas")!;
     this.uiRoot = this.root.querySelector<HTMLDivElement>("#ui-root")!;
     this.uiRoot.addEventListener("click", (event) => {
+      const threatTool = (event.target as HTMLElement).closest<HTMLElement>("[data-threat-tool]");
+      if (threatTool) {
+        if (this.suppressThreatToolClick) {
+          this.suppressThreatToolClick = false;
+          return;
+        }
+        this.threatToolArmed = !this.threatToolArmed;
+        this.applyThreatToolArmedState();
+        if ("vibrate" in navigator) navigator.vibrate(this.threatToolArmed ? 12 : 6);
+        return;
+      }
       const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action]");
       if (!target || target.matches(":disabled")) return;
       if (this.suppressDecorClick && target.matches(".decor-item")) {
         this.suppressDecorClick = false;
         return;
       }
+      if (target.dataset.requiresTool === "cutter") {
+        if (!this.threatToolArmed) {
+          const panel = target.closest<HTMLElement>(".threat-interaction--vine");
+          panel?.classList.add("is-tool-required");
+          const status = panel?.querySelector<HTMLElement>(".threat-tool-status");
+          if (status) status.textContent = "先點選割具，再點種植槽；也可以直接把割具拖進槽內。";
+          if ("vibrate" in navigator) navigator.vibrate([10, 30, 10]);
+          return;
+        }
+        this.threatToolArmed = false;
+      }
       if ("vibrate" in navigator) navigator.vibrate(8);
       this.onAction(target.dataset.action ?? "", target.dataset.value);
     });
     this.uiRoot.addEventListener("pointerdown", (event) => {
-      this.startDecorDrag(event);
-      if (!this.decorDrag) this.startCarriageSwipe(event);
+      this.startThreatToolDrag(event);
+      if (!this.threatToolDrag) this.startDecorDrag(event);
+      if (!this.threatToolDrag && !this.decorDrag) this.startCarriageSwipe(event);
     });
     this.uiRoot.addEventListener("pointermove", (event) => {
-      this.moveDecorDrag(event);
-      this.moveCarriageSwipe(event);
+      if (this.threatToolDrag) this.moveThreatToolDrag(event);
+      else {
+        this.moveDecorDrag(event);
+        this.moveCarriageSwipe(event);
+      }
     });
     this.uiRoot.addEventListener("pointerup", (event) => {
-      if (this.decorDrag) this.finishDecorDrag(event);
+      if (this.threatToolDrag) this.finishThreatToolDrag(event);
+      else if (this.decorDrag) this.finishDecorDrag(event);
       else this.finishCarriageSwipe(event);
     });
     this.uiRoot.addEventListener("pointercancel", () => {
+      this.cancelThreatToolDrag();
       this.cancelDecorDrag();
       this.cancelCarriageSwipe();
     });
@@ -558,6 +731,77 @@ export class GameView {
 
   public getCanvas(): HTMLCanvasElement {
     return this.canvas;
+  }
+
+  private startThreatToolDrag(event: PointerEvent): void {
+    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-threat-tool='cutter']");
+    if (!target || !target.closest(".threat-interaction--vine")) return;
+    target.setPointerCapture(event.pointerId);
+    this.threatToolDrag = { target, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false };
+    target.classList.add("is-grabbed");
+  }
+
+  private moveThreatToolDrag(event: PointerEvent): void {
+    const drag = this.threatToolDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (Math.hypot(dx, dy) > 5) drag.moved = true;
+    if (!drag.moved) return;
+    drag.target.style.setProperty("--drag-x", `${dx}px`);
+    drag.target.style.setProperty("--drag-y", `${dy}px`);
+    let activeTarget: HTMLElement | undefined;
+    for (const plot of this.uiRoot.querySelectorAll<HTMLElement>(".vine-plot[data-threat-target]")) {
+      const rect = plot.getBoundingClientRect();
+      const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+      plot.classList.toggle("is-drop-target", inside);
+      if (inside) activeTarget = plot;
+    }
+    drag.dropTarget = activeTarget;
+    event.preventDefault();
+  }
+
+  private finishThreatToolDrag(event: PointerEvent): void {
+    const drag = this.threatToolDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const actionValue = drag.dropTarget?.dataset.value;
+    this.resetThreatToolDrag();
+    this.threatToolDrag = null;
+    if (!drag.moved) return;
+    this.suppressThreatToolClick = true;
+    window.setTimeout(() => { this.suppressThreatToolClick = false; }, 0);
+    this.threatToolArmed = false;
+    if (actionValue) {
+      if ("vibrate" in navigator) navigator.vibrate(18);
+      this.onAction("threat-interact", actionValue);
+    } else {
+      const status = this.uiRoot.querySelector<HTMLElement>(".threat-tool-status");
+      if (status) status.textContent = "割具未落在槽位內；可重拖一次，或點割具後再點槽位。";
+    }
+    event.preventDefault();
+  }
+
+  private cancelThreatToolDrag(): void {
+    this.resetThreatToolDrag();
+    this.threatToolDrag = null;
+  }
+
+  private resetThreatToolDrag(): void {
+    const target = this.threatToolDrag?.target;
+    target?.classList.remove("is-grabbed");
+    target?.style.removeProperty("--drag-x");
+    target?.style.removeProperty("--drag-y");
+    this.uiRoot.querySelectorAll(".vine-plot.is-drop-target").forEach((plot) => plot.classList.remove("is-drop-target"));
+  }
+
+  private applyThreatToolArmedState(): void {
+    const panel = this.uiRoot.querySelector<HTMLElement>(".threat-interaction--vine");
+    const cutter = panel?.querySelector<HTMLElement>("[data-threat-tool='cutter']");
+    panel?.classList.toggle("is-tool-armed", this.threatToolArmed);
+    panel?.classList.remove("is-tool-required");
+    cutter?.setAttribute("aria-pressed", String(this.threatToolArmed));
+    const status = panel?.querySelector<HTMLElement>(".threat-tool-status");
+    if (status && this.threatToolArmed) status.textContent = "割具已拿起；現在點選要切割的種植槽。";
   }
 
   private startDecorDrag(event: PointerEvent): void {
@@ -665,6 +909,10 @@ export class GameView {
   }
 
   public render(state: AppState, hasSave: boolean, activeEvent?: GameEvent): void {
+    this.cancelThreatToolDrag();
+    const activeThreatContactId = state.run?.activeContact?.id ?? "";
+    if (activeThreatContactId !== this.threatContactId) this.threatToolArmed = false;
+    this.threatContactId = activeThreatContactId;
     const screen = {
       menu: () => menuScreen(state, hasSave),
       hub: () => hubScreen(state),
@@ -677,6 +925,7 @@ export class GameView {
       settings: () => settingsScreen(state),
     }[state.screen];
     this.uiRoot.innerHTML = screen();
+    if (this.threatToolArmed) this.applyThreatToolArmedState();
     const screenKey = [state.screen, state.run?.phase ?? "", state.run?.activeEventId ?? "", state.run?.activeContact?.id ?? ""].join(":");
     if (screenKey !== this.previousScreenKey) this.uiRoot.querySelector(".screen")?.classList.add("screen-enter");
     this.previousScreenKey = screenKey;

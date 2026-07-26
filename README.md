@@ -9,7 +9,8 @@
 - 完整七夜旅程：整備 → 路線 → 行車事件 → 夜襲 → 黎明結算 → 結局。
 - v0.9「灰霧線」以 EV041–EV052 串成固定七日主線；Day 4 的 GO／DETOUR／STOP 會永久改變貨運用途、真實路線資料取得方式與 Day 7 第三波威脅。
 - Day 7 不再直接跳結局：玩家必須完成終點呼叫、固定三波接觸、身分查驗、四項終局決定與最後一句，結果畫面會列出成立原因、Day 4 分支及最後操作。
-- T004 霧噬藤、T005 回聲乘客與 T006 靜默群都有各自可見、可點的反制按鈕；成熟作物會在 Day 7 提供可消耗的車體傷害緩衝。
+- T004 霧噬藤不再是一鍵按鈕：玩家要把割具拖到受感染的種植槽，手機也可用「先拿割具、再點槽」；T005 以兩張色／形／三拍訊號卡比對，首錯只揭示線索、第二錯才扣健康；T006 完全移除敲窗音訊提示，改讀左右葉片與電表錶針。成熟作物仍會在 Day 7 提供可消耗的車體傷害緩衝。
+- T004–T006 各自使用一張 GPT 製作、由 Canvas 真正載入的 9:16 威脅場景；互動熱區與背景構圖對齊，不是把素材放進資料夾卻不顯示。
 - 整備階段有 3–5 AP：播種、收成、安撫、維修、工坊回收、烹飪與建造會實際消耗對應資源／行動點；睡眠品質決定隔日 AP。
 - 五節可切換且畫面、配置、操作都不同的車廂：只有臥室保留床鋪；武器物資是裝甲監控站、工坊情報是雙側維修台、溫室是水耕農場、廚房儲藏是固定式列車餐廚。四張專用 GPT v2 底圖不是在同一張臥室上換小道具。
 - 整備畫面採「先看車廂、再叫工具」：預設不再用大選單壓住場景，配電／配餐／佈置都是可收合抽屜；五節車廂功能改成場景內有文字、成本與狀態的操作牌。
@@ -31,6 +32,8 @@
 ## 遊玩影片與畫面
 
 - [v0.9 七日故事實機遊玩影片（WebM）](public/assets/video/night-train-story-v090.webm)
+- [v0.9 DETOUR／T004 割具拖放七日影片（WebM）](public/assets/video/night-train-story-v090-detour.webm)
+- [v0.9 STOP／T005 訊號比對七日影片（WebM）](public/assets/video/night-train-story-v090-stop.webm)
 - [直式遊玩影片（WebM，包含行車與威脅動態）](public/assets/video/night-train-gameplay.webm)
 - [主選單](public/assets/screenshots/01-main-menu.png)
 - [車廂整備](public/assets/screenshots/02-carriage-prep.png)
@@ -78,7 +81,13 @@
 |---|---|---|
 | ![Day 4 三項永久分支](public/assets/screenshots/25-story-day4-branches.png) | ![Day 7 四項終局操作](public/assets/screenshots/26-story-day7-decisions.png) | ![唯一結局與成立原因](public/assets/screenshots/27-story-ending.png) |
 
-v0.9.0 的真人視角驗收不是只檢查函式：Playwright 真的在 390×844 與 360×640 瀏覽器中以可見中心座標點擊與滑動，並檢查中心沒有被透明層或面板攔截。預設 390×844 車廂保有 534px 不被面板切斷的畫面，360×640 保有 327px；最小可點區為 60×48px、底部指令列 70px，49 種操作共通過 498 項瀏覽器斷言。詳見 [手機肉眼可玩性驗收](docs/MOBILE_VISUAL_QA.md)、[全按鈕 JSON 報告](public/assets/qa/mobile-playability-report.json) 與 [七日故事 JSON 報告](public/assets/qa/story-flow-report.json)。
+以下三張是 2026-07-26 三分支七日稽核在 Day 7 第三波「操作前」直接截取，背景、倒數、玩家狀態與可點面板都來自同一個 runtime：
+
+| T004 霧噬藤：拖割具到槽位 | T005 回聲乘客：色形節拍比對 | T006 靜默群：葉片／電表判位 |
+|---|---|---|
+| ![T004 霧噬藤割具拖放](public/assets/screenshots/28-story-t004-fog-vine.png) | ![T005 回聲乘客訊號比對](public/assets/screenshots/29-story-t005-echo-passenger.png) | ![T006 靜默群無聲判位](public/assets/screenshots/30-story-t006-silent-crowd.png) |
+
+v0.9.0 的真人視角驗收不是只檢查函式：Playwright 真的在 390×844 與 360×640 瀏覽器中以可見中心座標點擊、滑動與拖放，並檢查中心沒有被透明層或面板攔截。既有全按鈕流程涵蓋 49 種操作與 498 項斷言；新增故事矩陣則讓 GO、DETOUR、STOP 各完成七日與 Day 7 三波，分別實際解除 T006、T004、T005。360×640／140% 的 EV051、EV052 與結局頁面三條分支皆為 0px 水平溢位。詳見 [手機肉眼可玩性驗收](docs/MOBILE_VISUAL_QA.md)、[全按鈕 JSON 報告](public/assets/qa/mobile-playability-report.json) 與 [七日故事 JSON 報告](public/assets/qa/story-flow-report.json)。
 
 ## 本機執行
 
@@ -113,7 +122,7 @@ npm run capture:playability
 npm run audit:buttons
 ```
 
-七日故事實機通關稽核（固定事件、Day 4 分支、Day 7 三波、四項終局操作、尾聲、存檔結果與同步錄影）：
+七日故事實機通關稽核（預設依序跑 GO／DETOUR／STOP；包含 Day 7 三波、T004 真拖放、T005 訊號卡、T006 無聲判位、360×640／140% 終局、存檔、截圖與分支錄影）：
 
 ```bash
 npm run audit:story

@@ -1,19 +1,287 @@
 {
   "status": "passed",
-  "viewport": {
-    "width": 390,
-    "height": 844
-  },
-  "day": 7,
-  "day4Route": "GO",
-  "completedContactWaves": 3,
-  "finalDecision": "open",
-  "endingId": "arrival-unverified",
-  "encounteredThreats": [
-    "T003",
-    "T002",
-    "T006"
+  "generatedAt": "2026-07-26T07:43:04.809Z",
+  "baseUrl": "http://127.0.0.1:4312",
+  "requestedBranches": [
+    "GO",
+    "DETOUR",
+    "STOP"
   ],
-  "screenshots": 3,
-  "videos": 1
+  "branchThreatMatrix": {
+    "GO": "T006",
+    "DETOUR": "T004",
+    "STOP": "T005"
+  },
+  "threatInteractionSelector": "[data-testid=\"threat-interaction\"][data-threat-id] [data-action=\"threat-interact\"][data-value]",
+  "allowLegacyThreatUi": false,
+  "compactFinale": {
+    "viewport": {
+      "width": 360,
+      "height": 640
+    },
+    "textScale": 140
+  },
+  "branches": [
+    {
+      "status": "passed",
+      "branch": "GO",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "day": 7,
+      "day4Route": "GO",
+      "completedContactWaves": 3,
+      "finalDecision": "open",
+      "endingId": "arrival-unverified",
+      "expectedDay7WaveThree": "T006",
+      "day7Waves": [
+        {
+          "day": 7,
+          "wave": 1,
+          "totalWaves": 3,
+          "threatId": "T003"
+        },
+        {
+          "day": 7,
+          "wave": 2,
+          "totalWaves": 3,
+          "threatId": "T002"
+        },
+        {
+          "day": 7,
+          "wave": 3,
+          "totalWaves": 3,
+          "threatId": "T006"
+        }
+      ],
+      "interactionAudit": {
+        "threatId": "T006",
+        "ui": "dedicated",
+        "action": "trace:meter",
+        "target": "meter",
+        "attempts": 1
+      },
+      "compactFinale": {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "textScale": 140,
+        "events": {
+          "EV051": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "EV052": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "result": {
+            "horizontalOverflow": 0
+          }
+        },
+        "clickableHotspots": [
+          "EV051:open",
+          "EV052:truth",
+          "result:primary"
+        ]
+      },
+      "encounteredThreats": [
+        "T003",
+        "T002",
+        "T006"
+      ],
+      "screenshots": 4,
+      "videos": 1
+    },
+    {
+      "status": "passed",
+      "branch": "DETOUR",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "day": 7,
+      "day4Route": "DETOUR",
+      "completedContactWaves": 3,
+      "finalDecision": "open",
+      "endingId": "arrival-unverified",
+      "expectedDay7WaveThree": "T004",
+      "day7Waves": [
+        {
+          "day": 7,
+          "wave": 1,
+          "totalWaves": 3,
+          "threatId": "T003"
+        },
+        {
+          "day": 7,
+          "wave": 2,
+          "totalWaves": 3,
+          "threatId": "T002"
+        },
+        {
+          "day": 7,
+          "wave": 3,
+          "totalWaves": 3,
+          "threatId": "T004"
+        }
+      ],
+      "interactionAudit": {
+        "threatId": "T004",
+        "ui": "dedicated",
+        "action": "cutter:plot-b",
+        "target": "plot-b",
+        "attempts": 1
+      },
+      "compactFinale": {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "textScale": 140,
+        "events": {
+          "EV051": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "EV052": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "result": {
+            "horizontalOverflow": 0
+          }
+        },
+        "clickableHotspots": [
+          "EV051:open",
+          "EV052:truth",
+          "result:primary"
+        ]
+      },
+      "encounteredThreats": [
+        "T003",
+        "T002",
+        "T004"
+      ],
+      "screenshots": 4,
+      "videos": 1
+    },
+    {
+      "status": "passed",
+      "branch": "STOP",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "day": 7,
+      "day4Route": "STOP",
+      "completedContactWaves": 3,
+      "finalDecision": "open",
+      "endingId": "arrival-unverified",
+      "expectedDay7WaveThree": "T005",
+      "day7Waves": [
+        {
+          "day": 7,
+          "wave": 1,
+          "totalWaves": 3,
+          "threatId": "T003"
+        },
+        {
+          "day": 7,
+          "wave": 2,
+          "totalWaves": 3,
+          "threatId": "T002"
+        },
+        {
+          "day": 7,
+          "wave": 3,
+          "totalWaves": 3,
+          "threatId": "T005"
+        }
+      ],
+      "interactionAudit": {
+        "threatId": "T005",
+        "ui": "dedicated",
+        "action": "signal:sig-b",
+        "target": "sig-b",
+        "attempts": 1
+      },
+      "compactFinale": {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "textScale": 140,
+        "events": {
+          "EV051": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "EV052": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "screenWidth": 360,
+            "outOfBoundsPanels": [],
+            "outOfBoundsButtons": []
+          },
+          "result": {
+            "horizontalOverflow": 0
+          }
+        },
+        "clickableHotspots": [
+          "EV051:open",
+          "EV052:truth",
+          "result:primary"
+        ]
+      },
+      "encounteredThreats": [
+        "T003",
+        "T002",
+        "T005"
+      ],
+      "screenshots": 4,
+      "videos": 1
+    }
+  ]
 }
