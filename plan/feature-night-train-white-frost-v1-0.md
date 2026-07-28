@@ -100,13 +100,13 @@ tags: [feature, game, story, mobile, white-frost, open-source]
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
 | TASK-027 | 已更新 v1.0 版本、開源執行／驗收說明、R02 runtime 畫面／影片／QA 連結及 stacked dependency 說明。依賴 TASK-026。 | ✅ | 2026-07-28 |
-| TASK-028 | Codex 完成最終 local diff、授權、無密鑰、runtime 資產、測試與媒體審查後，建立乾淨 commit 並推送 `codex/story-expansion-v100`；目前最終證據／文件尚未 commit，分支亦無 upstream/push 證據，因此保持未完成。依賴 TASK-027。 |  |  |
-| TASK-029 | 建立 Draft PR，base=`codex/story-expansion-v090`，標示 Depends on #5 / do not merge first；等待 CI。依賴 TASK-028。 |  |  |
+| TASK-028 | Codex 已完成最終 local diff、授權、無密鑰、runtime 資產、測試與媒體審查；實作、修正與公開證據均已建立乾淨 commit 並推送至 `origin/codex/story-expansion-v100`。依賴 TASK-027。 | ✅ | 2026-07-28 |
+| TASK-029 | 已建立 [Draft PR #6](https://github.com/mars-tw/night-train-watch-protocol/pull/6)，base=`codex/story-expansion-v090`、head=`codex/story-expansion-v100`，並標示 Depends on #5 / do not merge first；GitHub Actions `verify` 已通過。依賴 TASK-028。 | ✅ | 2026-07-28 |
 | TASK-030 | iOS Safari／Android Chrome 人工完成 R02 關鍵流程後才能轉 Ready；#5 合併後 rebase/retarget main 並重跑全部證據。依賴 TASK-029。 |  |  |
 
 ## 2.1 Evidence gates
 
-總狀態維持 **In progress**：自動化與本機 Chromium 證據已通過，但 final commit/push、乾淨工作樹及 iOS Safari／Android Chrome 實機人工驗收尚未完成。
+總狀態維持 **In progress**：自動化、本機 Chromium、final commit/push、公開 Draft PR 與 GitHub Actions 證據已通過；iOS Safari／Android Chrome 實機人工驗收仍未完成，因此 PR 保持 Draft。
 
 | Gate | Evidence | Status |
 |---|---|---|
@@ -115,7 +115,8 @@ tags: [feature, game, story, mobile, white-frost, open-source]
 | R01 三分支 | [`story-flow-report.json`](../public/assets/qa/story-flow-report.json)：GO／DETOUR／STOP 全 PASS；Day 7 第三波為 T006／T004／T005。 | ✅ PASS |
 | R02 三分支 | [`frost-story-flow-report.json`](../public/assets/qa/frost-story-flow-report.json)：CARE／CLEAR／SUSTAIN 七夜全 PASS，三個主結局與 `frost-emergency-shelter` 替代結局均由 runtime 操作驗證。 | ✅ PASS |
 | 公開 runtime 媒體 | `public/assets/screenshots/frost-*-v100.png` 共 22 張；`public/assets/video/night-train-frost-v100-*.webm` 共 3 支且 metadata 為 390×844、duration>0；均為 runtime capture，非 concept。 | ✅ PASS |
-| Final commit／clean／push | HEAD 報告來源為 `4d3757d`，但最終證據與文件仍未 commit，工作樹不乾淨，且分支尚無 upstream/push 證據。 | ⏳ Pending |
+| Final commit／clean／push | R02 runtime audit 來源為乾淨 commit `4d3757d`；實作、修正、公開證據與狀態文件均已 commit，分支已推送並追蹤 `origin/codex/story-expansion-v100`。 | ✅ PASS |
+| Draft PR／CI | [Draft PR #6](https://github.com/mars-tw/night-train-watch-protocol/pull/6) 疊加於 `codex/story-expansion-v090`，明列依賴 #5 且不得先合併；GitHub Actions `verify` PASS。 | ✅ PASS |
 | 實機發布門檻 | iOS Safari／Android Chrome 人工關鍵流程與 Draft→Ready 核准。 | ⏳ Pending |
 
 ## 3. Alternatives
