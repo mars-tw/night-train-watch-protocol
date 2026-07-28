@@ -1,6 +1,7 @@
 import { CARRIAGES, CROPS, DECORATIONS, DECORATION_SLOTS, MODULES, ROUTE_NODES, TECH_NODES, THREATS } from "../game/content";
 import { counterReadiness, getNightPowerDemand } from "../game/services";
-import type { AppState, CarriageId, GameEvent, RunState, ThreatContact, ThreatSignal, ThreatSignalRhythm } from "../game/types";
+import { frostClearRequirement, frostWarmRequirement, getThermalAllocation } from "../game/story";
+import type { AppState, CarriageId, FrostBranch, FrostSwitchMethod, FrostZone, GameEvent, HeatTokenId, RunState, ThreatContact, ThreatSignal, ThreatSignalRhythm, WhiteFrostState } from "../game/types";
 import { escapeText, formatSigned } from "./dom";
 import { icons } from "./icons";
 
@@ -19,6 +20,11 @@ type StoryChoicePresentation = {
     allFlags?: string[];
     minimum?: Record<string, number>;
     a07ConsentOrTech?: string;
+    frostBranch?: FrostBranch;
+    frostSwitchMethod?: FrostSwitchMethod;
+    frostConsent?: string;
+    frostCoauthorEvidence?: boolean;
+    frostThermal?: "day7-committed" | "warm-ready" | "clear-ready";
   };
   consequence?: {
     resourceDelta?: Record<string, number>;
@@ -38,6 +44,7 @@ type StoryResultSnapshot = {
   finalDecision: "open" | "seal" | "reroute" | "terminate" | null;
   endingId: "arrival" | "quarantine" | "reroute" | "protocol-terminated" | "arrival-unverified" | null;
   endingReasons: string[];
+  whiteFrost?: WhiteFrostState | null;
 };
 
 const LEDGER_LABELS: Record<string, string> = {
@@ -74,10 +81,22 @@ const DAY4_CHOICE_SUMMARIES: Record<string, { carriage: string; data: string; wa
   STOP: { carriage: "採樣室", data: "名冊交叉比對 2 次", wave: "W3・回聲乘客 T005" },
 };
 
+const FROST_CHOICE_SUMMARIES: Record<string, { carriage: string; data: string; wave: string }> = {
+  CARE: { carriage: "臥鋪保暖區", data: "BERTH 有效熱能 +1", wave: "Day 5・照護艙保溫" },
+  CLEAR: { carriage: "牽引除冰台", data: "DEICER 有效熱能 +1", wave: "Day 5・轉轍清障" },
+  SUSTAIN: { carriage: "循環維生環", data: "LOOP 有效熱能 +1", wave: "Day 5・水培防凍" },
+};
+
 const DAY4_RESULT_LABELS: Record<string, string> = {
   GO: "沿線前進・隔離間",
   DETOUR: "改道搜索・電池陣",
   STOP: "停車查證・採樣室",
+};
+
+const FROST_BRANCH_LABELS: Record<FrostBranch, string> = {
+  CARE: "照護優先・臥鋪保暖",
+  CLEAR: "清障優先・牽引除冰",
+  SUSTAIN: "維生優先・循環防凍",
 };
 
 const FINAL_DECISION_LABELS: Record<string, string> = {
@@ -85,6 +104,10 @@ const FINAL_DECISION_LABELS: Record<string, string> = {
   seal: "啟動封鎖",
   reroute: "改寫目的地",
   terminate: "終止守夜協定",
+  joint: "共同確認熱路",
+  shield: "守護 A-07 的選擇",
+  "a07-plan": "採用 A-07 改道方案",
+  "emergency-stop": "緊急停車避難",
 };
 
 const STORY_ENDING_TITLES: Record<string, string> = {
@@ -93,9 +116,19 @@ const STORY_ENDING_TITLES: Record<string, string> = {
   reroute: "改寫終點",
   "protocol-terminated": "協定終止",
   "arrival-unverified": "未確認抵達",
+  "frost-shared-arrival": "共享熱源抵達",
+  "frost-guarded-arrival": "守護式抵達",
+  "frost-chosen-detour": "共同選擇改道",
+  "frost-emergency-shelter": "雪崩避難",
 };
 
-function storyChoiceReason(run: RunState, choice: GameEvent["choices"][number]): string | undefined {
+const FROST_ZONE_PRESENTATION: Record<FrostZone, { label: string; short: string; icon: string; effect: string }> = {
+  BERTH: { label: "臥鋪保暖", short: "臥鋪", icon: "眠", effect: "守住溫度與睡眠" },
+  DEICER: { label: "牽引除冰", short: "除冰", icon: "軌", effect: "清除凍結轉轍" },
+  LOOP: { label: "循環維生", short: "循環", icon: "芽", effect: "保住水與作物" },
+};
+
+function storyChoiceReason(run: RunState, eventId: string, choice: GameEvent["choices"][number]): string | undefined {
   const presentation = choice as GameEvent["choices"][number] & StoryChoicePresentation;
   if (presentation.disabledReason) return presentation.disabledReason;
   if (presentation.unavailableReason) return presentation.unavailableReason;
@@ -117,7 +150,39 @@ function storyChoiceReason(run: RunState, choice: GameEvent["choices"][number]):
       return `A-07 尚未同意；需要 ${requirements.a07ConsentOrTech} 覆寫`;
     }
   }
-  const minimum = requirements?.minimum ?? presentation.requirement?.minimum;
+  const whiteFrost = run.story.whiteFrost;
+  if (requirements?.frostBranch && whiteFrost?.branch !== requirements.frostBranch) {
+    return `僅限 ${requirements.frostBranch} 分支`;
+  }
+  if (requirements?.frostSwitchMethod && whiteFrost?.switchMethod !== requirements.frostSwitchMethod) {
+    return `需要 Day 2 採用 ${requirements.frostSwitchMethod} 清障`;
+  }
+  if (requirements?.frostConsent && whiteFrost?.consent !== requirements.frostConsent) {
+    return `需要 A-07 同意狀態：${requirements.frostConsent}`;
+  }
+  if (requirements?.frostCoauthorEvidence && !whiteFrost?.coauthorEvidence) {
+    return "尚未取得 A-07 共同署名證據";
+  }
+  if (eventId === "EV065" && choice.id === "joint" && whiteFrost && run.survivor.trust < whiteFrost.jointTrustRequirement) {
+    return `共同控制需要信任 ${whiteFrost.jointTrustRequirement}`;
+  }
+  if (requirements?.frostThermal) {
+    if (!whiteFrost) return "白霜熱力資料尚未建立";
+    const allocation = getThermalAllocation(whiteFrost.thermal.tokens);
+    if (requirements.frostThermal === "day7-committed" && whiteFrost.thermal.committedDay !== 7) {
+      return "尚未提交 Day 7 熱力配置";
+    }
+    if (requirements.frostThermal === "warm-ready" && allocation.BERTH < frostWarmRequirement(whiteFrost)) {
+      return `臥鋪需要 ${frostWarmRequirement(whiteFrost)} 枚熱能`;
+    }
+    if (requirements.frostThermal === "clear-ready" && allocation.DEICER < frostClearRequirement(whiteFrost)) {
+      return `除冰區需要 ${frostClearRequirement(whiteFrost)} 枚熱能`;
+    }
+  }
+  const minimum = { ...(requirements?.minimum ?? presentation.requirement?.minimum ?? {}) };
+  if (eventId === "EV064" && choice.id === "deice" && whiteFrost?.switchMethod === "deicer") {
+    minimum.energy = 2;
+  }
   if (minimum) {
     const current: Record<string, number> = { ...run.resources, ...run.survivor };
     const missing = Object.entries(minimum)
@@ -125,7 +190,16 @@ function storyChoiceReason(run: RunState, choice: GameEvent["choices"][number]):
       .map(([key, value]) => `${LEDGER_LABELS[key] ?? key} ${value}`);
     if (missing.length > 0) return `條件不足：${missing.join("、")}`;
   }
-  const resourceDelta = presentation.consequence?.resourceDelta ?? choice.deltas;
+  let resourceDelta = presentation.consequence?.resourceDelta ?? choice.deltas;
+  if (eventId === "EV064" && choice.id === "deice" && whiteFrost?.switchMethod === "deicer") {
+    resourceDelta = { ...resourceDelta, energy: -2 };
+  }
+  if (eventId === "EV056" && choice.id === "override" && whiteFrost?.recordCalibrated) {
+    resourceDelta = { ...resourceDelta, energy: -2 };
+  }
+  if (eventId === "EV065" && choice.id === "shield") {
+    resourceDelta = { ...resourceDelta, fuel: -Math.min(2, run.resources.fuel) };
+  }
   const unaffordable = Object.entries(resourceDelta ?? {}).find(([key, delta]) => typeof delta === "number" && delta < 0 && run.resources[key as keyof typeof run.resources] + delta < 0);
   if (unaffordable) return `${LEDGER_LABELS[unaffordable[0]] ?? unaffordable[0]}不足`;
   if (presentation.available === false) return "條件尚未完成";
@@ -133,8 +207,8 @@ function storyChoiceReason(run: RunState, choice: GameEvent["choices"][number]):
 }
 
 function day4ChoiceSummary(eventId: string, choice: GameEvent["choices"][number]): string {
-  if (eventId !== "EV044") return "";
-  const summary = DAY4_CHOICE_SUMMARIES[choice.id];
+  if (eventId !== "EV044" && eventId !== "EV057") return "";
+  const summary = eventId === "EV057" ? FROST_CHOICE_SUMMARIES[choice.id] : DAY4_CHOICE_SUMMARIES[choice.id];
   if (!summary) return "";
   return `<span class="choice-permanent">
     <b>永久車廂・${escapeText(summary.carriage)}</b>
@@ -145,11 +219,21 @@ function day4ChoiceSummary(eventId: string, choice: GameEvent["choices"][number]
 
 function storyChoiceCard(run: RunState, event: GameEvent, choice: GameEvent["choices"][number], preview: boolean): string {
   const presentation = choice as GameEvent["choices"][number] & StoryChoicePresentation;
-  const reason = storyChoiceReason(run, choice);
+  const reason = storyChoiceReason(run, event.id, choice);
   const disabled = preview || Boolean(reason);
   const risk = presentation.risk;
   const tags = presentation.tags ?? [];
-  const visibleCost = presentation.visibleCost ?? choice.cost ?? "無直接成本";
+  const visibleCost = event.id === "EV064"
+    && choice.id === "deice"
+    && run.story.whiteFrost?.switchMethod === "deicer"
+    ? "電量 −2（Day 2 融冰折扣 −1）；DEICER 達分支門檻"
+    : event.id === "EV056"
+      && choice.id === "override"
+      && run.story.whiteFrost?.recordCalibrated
+      ? "電量 −2（校對回收 1）；信任 −4；溫度 +2"
+    : event.id === "EV065" && choice.id === "shield"
+      ? `燃料 −${Math.min(2, run.resources.fuel)}（最多 2）；壓力 +4`
+    : presentation.visibleCost ?? choice.cost ?? "無直接成本";
   const known = choice.known ?? presentation.permanentConsequence ?? "選擇後立即結算";
   const classes = [
     "choice-card",
@@ -205,8 +289,11 @@ function menuScreen(state: AppState, hasSave: boolean): string {
     </div>
     ${statusPill({ ...state, saveStatus: hasSave ? state.saveStatus === "recovered" ? "recovered" : "saved" : "none" })}
     <nav class="menu-actions" aria-label="主選單">
-      ${button(hasSave ? "continue" : "new-game", hasSave ? "繼續守夜" : "開始新局", { primary: true, icon: icons.play, detail: hasSave ? "灰霧線・標準難度" : "七夜完整旅程" })}
-      ${button("new-game", hasSave ? "開始新局" : "繼續遊戲", { icon: icons.plus, disabled: !hasSave })}
+      ${hasSave ? button("continue", "繼續守夜", { primary: true, icon: icons.play, detail: "載入本機保存的路線與操作進度" }) : ""}
+      <div class="route-launch-grid" aria-label="選擇七夜故事路線">
+        ${button("new-game", "R02・白霜線", { value: "R02", primary: !hasSave, icon: "霜", detail: "熱力分流・暴風雪・照護抉擇", className: "route-launch-card route-launch-card--frost" })}
+        ${button("new-game", "R01・灰霧線", { value: "R01", icon: "霧", detail: "訊號辨識・感染與封鎖", className: "route-launch-card" })}
+      </div>
       ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}
       ${button("settings", "設定與無障礙", { icon: icons.settings })}
     </nav>
@@ -228,7 +315,7 @@ function hubScreen(state: AppState): string {
     </article>
     <div class="hub-grid">
       ${button("tech", "科技樹", { icon: icons.tech, detail: "新規則與藍圖", className: "hub-card is-selected" })}
-      ${button("route", "路線選擇", { icon: icons.route, detail: "灰霧線", className: "hub-card" })}
+      ${button("route", "路線選擇", { icon: icons.route, detail: run.routeId === "R02" ? "白霜線・熱力分流" : "灰霧線", className: "hub-card" })}
       ${button("event-preview", "事件圖鑑", { icon: "記", detail: "已發現 3/8", className: "hub-card" })}
       ${button("modules-preview", "起始藍圖", { icon: icons.build, detail: "查看模組，不消耗資源", className: "hub-card" })}
     </div>
@@ -344,6 +431,68 @@ function carriageHotspots(state: AppState, run: RunState): string {
 function actionFeedback(state: AppState): string {
   if (state.actionFeedback.length === 0) return "";
   return `<span class="feedback-chips" aria-label="本次數值變化">${state.actionFeedback.map((entry) => `<b class="feedback-chip is-${entry.tone}">${escapeText(entry.label)} ${formatSigned(entry.delta)}</b>`).join("")}</span>`;
+}
+
+function thermalCost(whiteFrost: WhiteFrostState): { energy: number; fuel: number; water: number } {
+  const loopTokens = whiteFrost.thermal.tokens.filter((token) => token.zone === "LOOP").length;
+  const effectiveLoop = loopTokens + (whiteFrost.branch === "SUSTAIN" ? 1 : 0);
+  return {
+    energy: 2 + (whiteFrost.branch === "SUSTAIN" ? 2 : 0) + (effectiveLoop >= 3 ? 1 : 0),
+    fuel: 1 + (whiteFrost.branch === "CARE" ? 1 : 0),
+    water: effectiveLoop === 0 ? 2 : effectiveLoop === 1 ? 1 : 0,
+  };
+}
+
+function thermalTokenButton(tokenId: HeatTokenId, selected: boolean): string {
+  return `<button class="heat-token ${selected ? "is-selected" : ""}" type="button" data-action="thermal-select" data-value="${tokenId}" data-heat-token="${tokenId}" aria-pressed="${selected}" aria-label="熱能單元 ${tokenId}；${selected ? "已選取，可拖曳或點區域移動" : "點選後再點目標區，或直接拖曳"}">
+    <span aria-hidden="true">◈</span><strong>${tokenId}</strong>
+  </button>`;
+}
+
+function thermalZones(
+  whiteFrost: WhiteFrostState,
+  options: { inspectedZones?: FrostZone[]; revealedZones?: FrostZone[]; inspectable?: boolean } = {},
+): string {
+  const selectedTokenId = whiteFrost.thermal.selectedTokenId;
+  const inspected = new Set(options.inspectedZones ?? []);
+  const revealed = new Set(options.revealedZones ?? []);
+  return (Object.keys(FROST_ZONE_PRESENTATION) as FrostZone[]).map((zone) => {
+    const presentation = FROST_ZONE_PRESENTATION[zone];
+    const tokens = whiteFrost.thermal.tokens.filter((token) => token.zone === zone);
+    const isInspected = inspected.has(zone);
+    const isRevealed = revealed.has(zone);
+    return `<section class="thermal-zone ${isInspected ? "is-inspected" : ""} ${isRevealed ? "is-required" : ""}" data-thermal-zone="${zone}" data-zone="${zone}" aria-label="${presentation.label}，目前 ${tokens.length} 枚熱能">
+      <header><span aria-hidden="true">${presentation.icon}</span><div><strong>${presentation.short}</strong><small>${presentation.effect}</small></div><b>${tokens.length}</b></header>
+      <div class="heat-token-rack" aria-label="${presentation.label}熱能單元">${tokens.map((token) => thermalTokenButton(token.id, selectedTokenId === token.id)).join("") || `<span class="thermal-empty">0</span>`}</div>
+      <div class="thermal-zone-actions">
+        ${options.inspectable ? `<button class="thermal-zone-action frost-inspect-action ${isInspected ? "is-inspected" : ""}" type="button" data-action="threat-interact" data-value="frost:inspect:${zone}"><span>${isInspected ? "✓" : "⌕"}</span><strong>${isInspected ? "已檢查" : "檢查霜區"}</strong>${isRevealed ? "<small>必要區・嚴重 2</small>" : "<small>讀取結霜紋路</small>"}</button>` : ""}
+        <button class="thermal-zone-action" type="button" data-action="thermal-target" data-value="${zone}"><span>→</span><strong>${selectedTokenId ? `移入 ${selectedTokenId}` : "移至此區"}</strong><small>${selectedTokenId ? "點一下完成配置" : "先選熱能單元"}</small></button>
+      </div>
+    </section>`;
+  }).join("");
+}
+
+function thermalBoard(run: RunState, mode: "drawer" | "threat" = "drawer"): string {
+  const whiteFrost = run.story.whiteFrost;
+  if (!whiteFrost) return "";
+  const cost = thermalCost(whiteFrost);
+  const settledToday = whiteFrost.thermal.committedDay === run.day;
+  const insufficient = run.resources.energy < cost.energy || run.resources.fuel < cost.fuel || run.resources.water < cost.water;
+  const branchLabel = whiteFrost.branch ? FROST_BRANCH_LABELS[whiteFrost.branch] : "尚未鎖定 Day 4 分支";
+  return `<section class="thermal-board ${mode === "threat" ? "thermal-board--threat" : "prep-control-panel panel"}" data-testid="thermal-board" data-thermal-revision="${whiteFrost.thermal.revision}" aria-labelledby="thermal-board-title">
+    <header class="thermal-board__header">
+      <span><small>R02・熱力分流</small><strong id="thermal-board-title">六枚熱能單元</strong></span>
+      <b>電 ${run.resources.energy}・燃 ${run.resources.fuel}・水 ${run.resources.water}</b>
+      ${mode === "drawer" ? `<button type="button" data-action="power" aria-label="收起熱力分流板">×</button>` : ""}
+    </header>
+    <p class="thermal-board__instruction">拖動 H1–H6 到區域；或先點單元，再點「移至此區」。</p>
+    <div class="thermal-zone-grid">${thermalZones(whiteFrost)}</div>
+    <p class="thermal-branch-cue"><b>${escapeText(branchLabel)}</b><span>成本：電 ${cost.energy}・燃 ${cost.fuel}${cost.water ? `・水 ${cost.water}` : ""}</span></p>
+    <div class="thermal-board__actions">
+      <button type="button" data-action="thermal-reset"><span>↶</span><strong>還原配置</strong><small>回到上次提交</small></button>
+      <button class="is-primary" type="button" data-action="thermal-commit" ${settledToday || insufficient ? "disabled" : ""}><span>✓</span><strong>${settledToday ? "今日已提交" : insufficient ? "資源不足" : "提交熱力"}</strong><small>${settledToday ? `Day ${run.day} 已結算` : `電 ${cost.energy}・燃 ${cost.fuel}${cost.water ? `・水 ${cost.water}` : ""}`}</small></button>
+    </div>
+  </section>`;
 }
 
 const SIGNAL_COLOR_LABELS = {
@@ -479,11 +628,67 @@ function t006InteractionPanel(contact: ThreatContact): string {
   </section>`;
 }
 
-function threatInteractionPanel(contact: ThreatContact): string {
+function t009InteractionPanel(run: RunState, contact: ThreatContact): string {
+  const interaction = contact.interaction?.kind === "T009" ? contact.interaction : undefined;
+  const whiteFrost = run.story.whiteFrost;
+  if (!interaction || !whiteFrost) return "";
+  const revealedZones = interaction.firstMissRevealed ? interaction.requiredZones : [];
+  const inspectedLabels = interaction.inspectedZones.map((zone) => FROST_ZONE_PRESENTATION[zone].short);
+  const result = interaction.firstMissRevealed
+    ? `必要霜區：${interaction.requiredZones.map((zone) => `${FROST_ZONE_PRESENTATION[zone].short} 2+`).join("・")}。先重配熱能，再確認。`
+    : interaction.inspectedZones.length > 0
+      ? `已檢查：${inspectedLabels.join("、")}。可繼續檢查或直接確認。`
+      : "先檢查至少一個霜區；第一次錯配只揭露線索，不扣資源。";
+  return `<section class="threat-interaction-panel threat-interaction--frost panel" data-testid="threat-interaction" data-threat-id="T009" data-threat-interaction="T009" data-contact-id="${escapeText(contact.id)}" aria-labelledby="threat-operation-title">
+    <header class="threat-operation-header">
+      <span><small>暴風雪・熱路檢修</small><strong id="threat-operation-title">找出兩個活動霜區</strong></span>
+      <b class="threat-attempts">確認 ${interaction.attempts}</b>
+    </header>
+    <p class="threat-operation-instruction">檢查霜紋，再把六枚熱能重配到必要區；支援拖曳與點選。</p>
+    <div class="thermal-zone-grid thermal-zone-grid--threat">${thermalZones(whiteFrost, {
+      inspectedZones: interaction.inspectedZones,
+      revealedZones,
+      inspectable: true,
+    })}</div>
+    <p class="frost-static-cue ${interaction.firstMissRevealed ? "has-reveal" : ""}" role="status"><span aria-hidden="true">❄</span>${escapeText(result)}</p>
+    <div class="frost-confirm-actions">
+      <button class="is-primary" type="button" data-action="threat-interact" data-value="frost:confirm"><span>✓</span><strong>確認熱路</strong><small>必要區各至少 2 枚</small></button>
+      <button class="is-danger" type="button" data-action="threat-interact" data-value="frost:manual-scrape" ${interaction.manualFallbackAvailable ? "" : "disabled"}><span>刮</span><strong>人工刮冰</strong><small>${interaction.manualFallbackAvailable ? `車體 −${whiteFrost.manualScrapeHullCost}・壓力 +6` : "首次錯配後開放"}</small></button>
+    </div>
+  </section>`;
+}
+
+function threatInteractionPanel(run: RunState, contact: ThreatContact): string {
   if (contact.definitionId === "T004") return t004InteractionPanel(contact);
   if (contact.definitionId === "T005") return t005InteractionPanel(contact);
   if (contact.definitionId === "T006") return t006InteractionPanel(contact);
+  if (contact.definitionId === "T009") return t009InteractionPanel(run, contact);
   return "";
+}
+
+function frostBranchOverlay(run: RunState, activeCarriageId: CarriageId): string {
+  const whiteFrost = run.story.whiteFrost;
+  if (!whiteFrost) return "";
+  const branchCarriage: Partial<Record<FrostBranch, CarriageId>> = {
+    CARE: "sleep",
+    CLEAR: "defense",
+    SUSTAIN: "greenhouse",
+  };
+  const activeBranch = whiteFrost.branch && branchCarriage[whiteFrost.branch] === activeCarriageId
+    ? whiteFrost.branch
+    : undefined;
+  const label = activeBranch ? FROST_BRANCH_LABELS[activeBranch] : "白霜線・熱路監測";
+  const detail = activeBranch === "CARE"
+    ? "床側暖帶已接入 BERTH"
+    : activeBranch === "CLEAR"
+      ? "轉轍除冰台已接入 DEICER"
+      : activeBranch === "SUSTAIN"
+        ? "水培保溫環已接入 LOOP"
+        : "點「熱力」調整 H1–H6";
+  return `<div class="frost-route-overlay ${activeBranch ? `is-${activeBranch.toLowerCase()}` : ""}" data-frost-branch="${activeBranch ?? "UNSET"}" aria-label="${escapeText(label)}">
+    <span class="frost-route-overlay__equipment" aria-hidden="true">${activeBranch === "CARE" ? "暖" : activeBranch === "CLEAR" ? "軌" : activeBranch === "SUSTAIN" ? "環" : "霜"}</span>
+    <p><strong>${escapeText(label)}</strong><small>${escapeText(detail)}</small></p>
+  </div>`;
 }
 
 function carriageScreen(state: AppState): string {
@@ -492,8 +697,9 @@ function carriageScreen(state: AppState): string {
   const night = run.phase === "night";
   const threat = THREATS.find((candidate) => candidate.id === run.activeContact?.definitionId);
   const contact = run.activeContact;
+  const frostRoute = run.routeId === "R02" && Boolean(run.story.whiteFrost);
   const prepPanel = state.carriagePanel === "power"
-    ? powerPrepPanel(run)
+    ? frostRoute ? thermalBoard(run) : powerPrepPanel(run)
     : state.carriagePanel === "meal"
       ? mealPrepPanel(run)
       : state.activeCarriageId === "greenhouse" ? cropQuickPicker(state, run) : "";
@@ -502,7 +708,7 @@ function carriageScreen(state: AppState): string {
     T003: [
       { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
       { id: "decoy", icon: "◎", label: "誘餌廣播", cost: "E 6" },
-      { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+      { id: "brace-impact", icon: "▰", label: "承受撞擊", cost: "車體受損・強制推進" },
     ],
     T004: [
       { id: "drag-cutter", icon: "剪", label: "拖動割具斷藤", cost: "點按割除根節" },
@@ -522,23 +728,24 @@ function carriageScreen(state: AppState): string {
   }[threat?.id ?? ""] ?? [
     { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
     { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
-    { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+    { id: "brace-impact", icon: "▰", label: "承受撞擊", cost: "車體受損・強制推進" },
   ];
-  const visibleThreatInteraction = night && contact ? threatInteractionPanel(contact) : "";
+  const visibleThreatInteraction = night && contact ? threatInteractionPanel(run, contact) : "";
   const drawerOpen = !night && (state.decorating || state.carriagePanel !== "scene");
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}" data-threat-id="${threat?.id ?? ""}">
-    ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
+    ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `${frostRoute ? "白霜線" : "灰霧線"}・22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${frostRoute ? "白霜線" : activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
     ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "Ⅱ"}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
     ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
     ${!night && !run.flags.includes("carriage-nav-seen") ? `<p class="carriage-swipe-hint" aria-hidden="true"><b>←</b> 滑動車廂 <b>→</b></p>` : ""}
     ${decorationLayer(state, run, night)}
+    ${frostRoute ? frostBranchOverlay(run, state.activeCarriageId) : ""}
     ${!night ? cropSceneLayer(state, run) : ""}
     ${night && threat && contact ? `<div class="threat-alert" role="alert"><strong>接觸 ${contact.wave ?? 1}/${contact.totalWaves ?? 1}・${threat.anchor === "right-window" ? "右側窗戶" : "車頂"}・${threat.name}</strong><span>${contact.stage === "resolve" ? "已解除" : state.nightPaused || state.settings.noCountdown ? `倒數暫停・${String(contact.secondsLeft).padStart(2, "0")}` : `接觸倒數 ${String(contact.secondsLeft).padStart(2, "0")} 秒`}</span></div>` : ""}
     ${!night ? carriageHotspots(state, run) : ""}
     ${night ? `<div class="emergency-power panel"><h3>緊急配電</h3>${[["防護板", "M001"], ["暖氣", "M002"], ["溫室", "M003"], ["感測器", "M004"]].map(([label, moduleId]) => { const module = run.modules.find((instance) => instance.definitionId === moduleId); const on = Boolean(module?.active && module.powered); return `<div><span>${label}</span><b class="${on ? "is-on" : ""}">${module ? on ? "ON" : "OFF" : "—"}</b></div>`; }).join("")}</div>` : ""}
     ${night ? visibleThreatInteraction || `<div class="emergency-actions panel"><h3>可用緊急操作</h3><div>${counterActions.map((action) => { const readiness = counterReadiness(run, action.id); return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? action.cost : readiness.reason}</small></button>`; }).join("")}</div></div>` : `${state.decorating ? decorationTray(state, run) : prepPanel}
     <nav class="carriage-dock panel">
-      <button data-action="modules"><span>${icons.build}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${icons.power}</span><b>配電</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${icons.meal}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>◇</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${icons.route}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
+      <button data-action="modules"><span>${icons.build}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${frostRoute ? "◈" : icons.power}</span><b>${frostRoute ? "熱力" : "配電"}</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${icons.meal}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>◇</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${icons.route}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
     </nav>`}
     <div class="toast-message" role="status"><span class="toast-copy">${escapeText(run.lastMessage)}</span>${actionFeedback(state)}</div>
   </section>`;
@@ -548,14 +755,19 @@ function routeScreen(state: AppState): string {
   const run = state.run;
   if (!run) return "";
   const selected = ROUTE_NODES.find((node) => node.id === state.selectedRouteId) ?? ROUTE_NODES[0];
-  return `<section class="screen screen--route" data-screen="SCR-RM-${run.techOwned.includes("I1") ? "B" : "A"}">
-    ${compactHeader(run, state.routePreview ? "路線圖鑑" : "路線規劃", state.routePreview ? "局外預覽・不會消耗燃料" : "灰霧線・第 1 區段", state.routePreview ? "hub" : "carriage")}
+  const frostPenalty = run.routeId === "R02" ? run.story.whiteFrost?.pendingRouteFuelPenalty ?? 0 : 0;
+  const selectedFuelCost = (selected?.fuelCost ?? 0) + frostPenalty;
+  const cheapestFuelCost = Math.min(...ROUTE_NODES.map((node) => node.fuelCost + frostPenalty));
+  const emergencyAvailable = !state.routePreview && run.resources.fuel < cheapestFuelCost;
+  return `<section class="screen screen--route ${emergencyAvailable ? "has-emergency-route" : ""}" data-screen="SCR-RM-${run.techOwned.includes("I1") ? "B" : "A"}">
+    ${compactHeader(run, state.routePreview ? "路線圖鑑" : "路線規劃", state.routePreview ? `局外預覽・${run.routeId === "R02" ? "白霜線" : "灰霧線"}` : `${run.routeId === "R02" ? "白霜線・凍結區段" : "灰霧線・第 1 區段"}`, state.routePreview ? "hub" : "carriage")}
     <div class="route-map panel">
       <svg viewBox="0 0 336 400" role="img" aria-label="路線節點圖"><path d="M42 320 C90 270 98 220 156 198 S252 156 292 70"/><path d="M42 320 C130 340 228 326 292 270"/><path d="M156 198 C200 206 232 240 292 270"/></svg>
       ${ROUTE_NODES.map((node, index) => `<button class="route-node route-node--${node.kind} ${state.selectedRouteId === node.id ? "is-selected" : ""}" style="--x:${[12, 46, 83][index]}%;--y:${[78, 47, 18][index]}%" data-action="select-route" data-value="${node.id}"><span>${node.kind === "danger" ? "!" : node.kind === "supply" ? "+" : "◇"}</span><small>${node.name}</small></button>`).join("")}
       <div class="route-legend"><span>◆ 補給</span><span>◇ 故事</span><span>! 危險</span></div>
     </div>
-    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}・${selected.threatLevel} 波</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selected.fuelCost}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", state.routePreview ? "局外預覽" : run.resources.fuel < selected.fuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && run.resources.fuel >= selected.fuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || run.resources.fuel < selected.fuelCost })}</article>` : ""}
+    ${selected ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>威脅 ${"◆".repeat(selected.threatLevel)}${"◇".repeat(3 - selected.threatLevel)}・${selected.threatLevel} 波</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selectedFuelCost}${frostPenalty > 0 ? `（積冰 +${frostPenalty}）` : ""}</p><p>可能取得：${selected.reward}</p>${button("confirm-route", state.routePreview ? "局外預覽" : run.resources.fuel < selectedFuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && run.resources.fuel >= selectedFuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || run.resources.fuel < selectedFuelCost })}</article>` : ""}
+    ${emergencyAvailable ? `<article class="route-emergency panel" role="alert"><div><strong>所有常規路線都缺燃料</strong><p>可用車體與保暖代價滑向最近月台，避免卡死在路線圖。</p></div>${button("emergency-route", "啟動慣性滑行", { primary: true, icon: "↘", detail: "車體 −6・溫度 −3・睡眠 −8・壓力 +8" })}</article>` : ""}
   </section>`;
 }
 
@@ -564,8 +776,8 @@ function eventScreen(state: AppState, event: GameEvent | undefined): string {
   if (!run || !event) return "";
   const presentation = event as GameEvent & StoryEventPresentation;
   const forced = Boolean(presentation.forced ?? presentation.forceResolution);
-  const finalChoice = event.id === "EV051";
-  const day4Branch = event.id === "EV044";
+  const finalChoice = event.id === "EV051" || event.id === "EV065";
+  const day4Branch = event.id === "EV044" || event.id === "EV057";
   const backAction = state.eventPreview ? "hub" : forced ? undefined : "route";
   const screenClasses = ["screen", "screen--event", event.urgent ? "is-urgent" : "", forced ? "is-forced-story" : "", finalChoice ? "is-final-choice" : "", day4Branch ? "is-day4-branch" : ""].filter(Boolean).join(" ");
   return `<section class="${screenClasses}" data-screen="SCR-EV-${event.urgent ? "B" : "A"}" data-event-id="${escapeText(event.id)}" data-forced="${forced}">
@@ -576,9 +788,9 @@ function eventScreen(state: AppState, event: GameEvent | undefined): string {
       ${forced && !state.eventPreview ? `<div class="forced-story-notice" role="status"><b>路線鎖定</b><span>完成這項決定後才能繼續行車</span></div>` : ""}
       <p class="event-id">${event.id}・${event.phase === "night" ? "夜間" : "行車"}</p>
       <h2>${escapeText(event.title)}</h2><p>${escapeText(event.body)}</p>
-      ${finalChoice ? `<p class="final-choice-guide"><b>終局操作</b>四個決定只會確認一次；未達條件的選項仍列出原因。</p>` : ""}
+      ${finalChoice ? `<p class="final-choice-guide"><b>${event.id === "EV065" ? "白霜終局" : "終局操作"}</b>四個決定只會確認一次；未達條件的選項仍列出原因。</p>` : ""}
       ${finalChoice || day4Branch ? `<p class="choice-scroll-cue" role="note">↓ 向下滑動查看全部 ${event.choices.length} 個選項</p>` : ""}
-      <div class="event-choices" aria-label="${finalChoice ? "四項終局決定" : day4Branch ? "三項永久路線分支" : "事件選項"}">${event.choices.map((choice) => storyChoiceCard(run, event, choice, state.eventPreview)).join("")}</div>
+      <div class="event-choices" aria-label="${finalChoice ? "四項終局決定" : day4Branch ? event.id === "EV057" ? "三項白霜熱路分支" : "三項永久路線分支" : "事件選項"}">${event.choices.map((choice) => storyChoiceCard(run, event, choice, state.eventPreview)).join("")}</div>
       <small class="hold-hint">${state.eventPreview ? "圖鑑模式不會推進時間或消耗資源" : forced ? "這是必要故事節點；確認前請核對直接成本與永久後果" : "長按可查看科技修正；選擇後立即結算"}</small>
     </article>
   </section>`;
@@ -625,20 +837,29 @@ function resultScreen(state: AppState): string {
   const finalNight = !ending && run.day >= run.maxDays;
   const recent = run.ledger.slice(-4);
   const story = (run as RunState & { story?: StoryResultSnapshot }).story;
+  const frost = story?.whiteFrost;
   const storyResult = ending && Boolean(story);
   const mechanicalFailure = run.outcome === "hull-lost" || run.outcome === "survivor-lost";
-  const storyTitle = story?.endingId ? STORY_ENDING_TITLES[story.endingId] ?? "灰霧線結局" : mechanicalFailure ? "守護終止" : "灰霧線結局";
-  const storyBranch = story?.flags.day4Route ? DAY4_RESULT_LABELS[story.flags.day4Route] ?? story.flags.day4Route : "尚未選擇永久分支";
-  const storyReasons = story?.endingReasons.length
-    ? story.endingReasons
+  const routeName = run.routeId === "R02" ? "白霜線" : "灰霧線";
+  const resolvedEndingId = frost?.endingId ?? story?.endingId;
+  const storyTitle = resolvedEndingId ? STORY_ENDING_TITLES[resolvedEndingId] ?? `${routeName}結局` : mechanicalFailure ? "守護終止" : `${routeName}結局`;
+  const storyBranch = frost?.branch
+    ? FROST_BRANCH_LABELS[frost.branch]
+    : story?.flags.day4Route
+      ? DAY4_RESULT_LABELS[story.flags.day4Route] ?? story.flags.day4Route
+      : "尚未選擇永久分支";
+  const storyReasons = frost?.endingReasons.length
+    ? frost.endingReasons
+    : story?.endingReasons.length
+      ? story.endingReasons
     : [run.outcome === "hull-lost" ? "車體完整度歸零" : run.outcome === "survivor-lost" ? "A-07 生命訊號歸零" : "終局條件已鎖定"];
   const returnToHub = storyResult ? !mechanicalFailure : victory;
   return `<section class="screen screen--result ${ending ? "is-ending" : ""}" data-screen="SCR-RS-${ending ? "B" : "A"}">
-    ${compactHeader(run, storyResult ? storyTitle : ending ? victory ? "路線完成" : "守護終止" : `第 ${run.day} 夜結算`, storyResult ? `灰霧線・${storyBranch}` : ending ? victory ? "灰霧線" : "存檔已保留" : "自動存檔成功")}
+    ${compactHeader(run, storyResult ? storyTitle : ending ? victory ? "路線完成" : "守護終止" : `第 ${run.day} 夜結算`, storyResult ? `${routeName}・${storyBranch}` : ending ? victory ? routeName : "存檔已保留" : "自動存檔成功")}
     <article class="result-card panel">
-      ${storyResult ? `<div class="story-ending-mark"><span>${escapeText(story?.endingId ?? "mechanical-stop")}</span><b>第 ${run.day} 日・灰霧線</b></div><h1>${escapeText(storyTitle)}</h1><p class="ending-copy">${escapeText(run.lastMessage ?? "列車已完成本局最後一次守護判定。")}</p>` : ending ? victory ? `<h1>改道</h1><p class="ending-copy">列車穿過封鎖線後沒有停下。A-07 將新的終點寫入守護協定，而你第一次選擇不服從舊座標。</p>` : `<h1>終止</h1><p class="ending-copy">${run.outcome === "hull-lost" ? "最後一道車體隔離門失去密封，夜風灌進溫室車廂。" : "A-07 的生命訊號歸零，列車仍沿著沒有終點的軌道前進。"}</p>` : `<div class="ring-row"><div class="ring-meter" style="--value:${run.survivor.sleep}"><span><strong>${run.survivor.sleep}</strong><small>睡眠</small></span></div><div class="ring-meter" style="--value:${run.environment.hull}"><span><strong>${run.environment.hull}%</strong><small>車體完整</small></span></div></div>`}
+      ${storyResult ? `<div class="story-ending-mark"><span>${escapeText(resolvedEndingId ?? "mechanical-stop")}</span><b>第 ${run.day} 日・${routeName}</b></div><h1>${escapeText(storyTitle)}</h1><p class="ending-copy">${escapeText(run.lastMessage ?? "列車已完成本局最後一次守護判定。")}</p>` : ending ? victory ? `<h1>改道</h1><p class="ending-copy">列車穿過封鎖線後沒有停下。A-07 將新的終點寫入守護協定，而你第一次選擇不服從舊座標。</p>` : `<h1>終止</h1><p class="ending-copy">${run.outcome === "hull-lost" ? "最後一道車體隔離門失去密封，夜風灌進溫室車廂。" : "A-07 的生命訊號歸零，列車仍沿著沒有終點的軌道前進。"}</p>` : `<div class="ring-row"><div class="ring-meter" style="--value:${run.survivor.sleep}"><span><strong>${run.survivor.sleep}</strong><small>睡眠</small></span></div><div class="ring-meter" style="--value:${run.environment.hull}"><span><strong>${run.environment.hull}%</strong><small>車體完整</small></span></div></div>`}
       <h2>${storyResult ? "結局成立原因" : ending ? victory ? "達成條件" : "失敗原因" : "資源變化"}</h2>
-      ${storyResult ? `<ol class="ending-reasons">${storyReasons.map((reason) => `<li>${escapeText(reason)}</li>`).join("")}</ol><div class="story-result-facts"><div><span>Day 4 永久分支</span><strong>${escapeText(storyBranch)}</strong></div><div><span>終局操作</span><strong>${escapeText(story?.finalDecision ? FINAL_DECISION_LABELS[story.finalDecision] ?? story.finalDecision : "未完成")}</strong></div><div><span>信任／感染</span><strong>${run.survivor.trust}／${run.survivor.infection}</strong></div></div>` : `<div class="result-list">${ending ? victory ? `<div><span>信任</span><strong>${run.survivor.trust}/100</strong></div><div><span>感染</span><strong>${run.survivor.infection}/100</strong></div><div><span>終局選擇</span><strong>拒絕舊協定</strong></div>` : `<div><span>健康</span><strong>${run.survivor.health}/100</strong></div><div><span>車體</span><strong>${run.environment.hull}/100</strong></div><div><span>終止階段</span><strong>第 ${run.day} 夜</strong></div>` : recent.map((entry) => `<div><span>${escapeText(LEDGER_LABELS[entry.key] ?? entry.key)}</span><strong class="${entry.delta < 0 ? "is-negative" : "is-positive"}">${formatSigned(entry.delta)}</strong><small>${escapeText(entry.source)}</small></div>`).join("")}</div>`}
+      ${storyResult ? `<ol class="ending-reasons">${storyReasons.map((reason) => `<li>${escapeText(reason)}</li>`).join("")}</ol><div class="story-result-facts"><div><span>Day 4 永久分支</span><strong>${escapeText(storyBranch)}</strong></div><div><span>終局操作</span><strong>${escapeText((frost?.finalDecision ?? story?.finalDecision) ? FINAL_DECISION_LABELS[frost?.finalDecision ?? story?.finalDecision ?? ""] ?? frost?.finalDecision ?? story?.finalDecision ?? "" : "未完成")}</strong></div><div><span>${run.routeId === "R02" ? "信任／溫度" : "信任／感染"}</span><strong>${run.survivor.trust}／${run.routeId === "R02" ? `${run.environment.temperature}°C` : run.survivor.infection}</strong></div></div>` : `<div class="result-list">${ending ? victory ? `<div><span>信任</span><strong>${run.survivor.trust}/100</strong></div><div><span>感染</span><strong>${run.survivor.infection}/100</strong></div><div><span>終局選擇</span><strong>拒絕舊協定</strong></div>` : `<div><span>健康</span><strong>${run.survivor.health}/100</strong></div><div><span>車體</span><strong>${run.environment.hull}/100</strong></div><div><span>終止階段</span><strong>第 ${run.day} 夜</strong></div>` : recent.map((entry) => `<div><span>${escapeText(LEDGER_LABELS[entry.key] ?? entry.key)}</span><strong class="${entry.delta < 0 ? "is-negative" : "is-positive"}">${formatSigned(entry.delta)}</strong><small>${escapeText(entry.source)}</small></div>`).join("")}</div>`}
       <p class="aftermath-note">${escapeText(run.lastMessage ?? "")}</p>
       ${button(ending ? returnToHub ? "hub" : "new-game" : "next-day", ending ? returnToHub ? "返回局外中心" : "重新啟動守護協定" : finalNight ? "查看路線結局" : `進入第 ${run.day + 1} 日整備`, { primary: true, icon: ending && returnToHub ? icons.hub : icons.play, detail: ending && !returnToHub ? "從第 1 日重新規劃" : finalNight ? `完成 ${run.maxDays} 夜守望` : `協定資料 +${ending ? 4 : 1}` })}
     </article>
@@ -664,8 +885,10 @@ export class GameView {
   private carriageSwipe: { target: HTMLElement; pointerId: number; startX: number; startY: number; x: number; y: number } | null = null;
   private decorDrag: { target: HTMLElement; id: string; bounds: DOMRect; startX: number; startY: number; x: number; y: number; moved: boolean; nearestSlotId?: string } | null = null;
   private threatToolDrag: { target: HTMLElement; pointerId: number; startX: number; startY: number; moved: boolean; dropTarget?: HTMLElement } | null = null;
+  private thermalDrag: { target: HTMLElement; pointerId: number; tokenId: string; startX: number; startY: number; moved: boolean; dropTarget?: HTMLElement } | null = null;
   private suppressDecorClick = false;
   private suppressThreatToolClick = false;
+  private suppressThermalClick = false;
   private threatToolArmed = false;
   private threatContactId = "";
 
@@ -687,6 +910,10 @@ export class GameView {
       }
       const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action]");
       if (!target || target.matches(":disabled")) return;
+      if (this.suppressThermalClick && target.matches("[data-heat-token]")) {
+        this.suppressThermalClick = false;
+        return;
+      }
       if (this.suppressDecorClick && target.matches(".decor-item")) {
         this.suppressDecorClick = false;
         return;
@@ -706,23 +933,27 @@ export class GameView {
       this.onAction(target.dataset.action ?? "", target.dataset.value);
     });
     this.uiRoot.addEventListener("pointerdown", (event) => {
-      this.startThreatToolDrag(event);
-      if (!this.threatToolDrag) this.startDecorDrag(event);
-      if (!this.threatToolDrag && !this.decorDrag) this.startCarriageSwipe(event);
+      this.startThermalDrag(event);
+      if (!this.thermalDrag) this.startThreatToolDrag(event);
+      if (!this.thermalDrag && !this.threatToolDrag) this.startDecorDrag(event);
+      if (!this.thermalDrag && !this.threatToolDrag && !this.decorDrag) this.startCarriageSwipe(event);
     });
     this.uiRoot.addEventListener("pointermove", (event) => {
-      if (this.threatToolDrag) this.moveThreatToolDrag(event);
+      if (this.thermalDrag) this.moveThermalDrag(event);
+      else if (this.threatToolDrag) this.moveThreatToolDrag(event);
       else {
         this.moveDecorDrag(event);
         this.moveCarriageSwipe(event);
       }
     });
     this.uiRoot.addEventListener("pointerup", (event) => {
-      if (this.threatToolDrag) this.finishThreatToolDrag(event);
+      if (this.thermalDrag) this.finishThermalDrag(event);
+      else if (this.threatToolDrag) this.finishThreatToolDrag(event);
       else if (this.decorDrag) this.finishDecorDrag(event);
       else this.finishCarriageSwipe(event);
     });
     this.uiRoot.addEventListener("pointercancel", () => {
+      this.cancelThermalDrag();
       this.cancelThreatToolDrag();
       this.cancelDecorDrag();
       this.cancelCarriageSwipe();
@@ -731,6 +962,70 @@ export class GameView {
 
   public getCanvas(): HTMLCanvasElement {
     return this.canvas;
+  }
+
+  private startThermalDrag(event: PointerEvent): void {
+    const target = (event.target as HTMLElement).closest<HTMLElement>("[data-heat-token]");
+    if (!target || !target.closest(".thermal-board, .threat-interaction--frost")) return;
+    target.setPointerCapture(event.pointerId);
+    this.thermalDrag = {
+      target,
+      pointerId: event.pointerId,
+      tokenId: target.dataset.heatToken ?? "",
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    target.classList.add("is-grabbed");
+  }
+
+  private moveThermalDrag(event: PointerEvent): void {
+    const drag = this.thermalDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (Math.hypot(dx, dy) > 6) drag.moved = true;
+    if (!drag.moved) return;
+    drag.target.style.setProperty("--thermal-drag-x", `${dx}px`);
+    drag.target.style.setProperty("--thermal-drag-y", `${dy}px`);
+    let dropTarget: HTMLElement | undefined;
+    for (const zone of this.uiRoot.querySelectorAll<HTMLElement>("[data-thermal-zone]")) {
+      const rect = zone.getBoundingClientRect();
+      const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+      zone.classList.toggle("is-drop-target", inside);
+      if (inside) dropTarget = zone;
+    }
+    drag.dropTarget = dropTarget;
+    event.preventDefault();
+  }
+
+  private finishThermalDrag(event: PointerEvent): void {
+    const drag = this.thermalDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const zone = drag.dropTarget?.dataset.zone;
+    this.resetThermalDrag();
+    this.thermalDrag = null;
+    if (!drag.moved) return;
+    this.suppressThermalClick = true;
+    window.setTimeout(() => { this.suppressThermalClick = false; }, 0);
+    if (zone) {
+      if ("vibrate" in navigator) navigator.vibrate(16);
+      this.onAction("thermal-move", `${drag.tokenId}:${zone}`);
+    }
+    event.preventDefault();
+  }
+
+  private cancelThermalDrag(): void {
+    this.resetThermalDrag();
+    this.thermalDrag = null;
+  }
+
+  private resetThermalDrag(): void {
+    const target = this.thermalDrag?.target;
+    target?.classList.remove("is-grabbed");
+    target?.style.removeProperty("--thermal-drag-x");
+    target?.style.removeProperty("--thermal-drag-y");
+    this.uiRoot.querySelectorAll(".thermal-zone.is-drop-target").forEach((zone) => zone.classList.remove("is-drop-target"));
   }
 
   private startThreatToolDrag(event: PointerEvent): void {
@@ -909,6 +1204,7 @@ export class GameView {
   }
 
   public render(state: AppState, hasSave: boolean, activeEvent?: GameEvent): void {
+    this.cancelThermalDrag();
     this.cancelThreatToolDrag();
     const activeThreatContactId = state.run?.activeContact?.id ?? "";
     if (activeThreatContactId !== this.threatContactId) this.threatToolArmed = false;

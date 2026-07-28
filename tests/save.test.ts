@@ -10,14 +10,16 @@ describe("story save migration", () => {
     const migrated = parseRun(JSON.stringify(legacy));
 
     expect(migrated).not.toBeNull();
-    expect(migrated?.schemaVersion).toBe(3);
+    expect(migrated?.schemaVersion).toBe(4);
+    expect(migrated?.routeId).toBe("R01");
     expect(migrated?.seed).toBe("legacy-v2");
     expect(migrated?.resources).toEqual(legacy.resources);
     expect(migrated?.story).toMatchObject({
-      version: 1,
+      version: 2,
       cargoConversion: "none",
       finaleStage: "inactive",
       endingId: null,
+      whiteFrost: null,
     });
   });
 
@@ -46,7 +48,8 @@ describe("story save migration", () => {
     const restored = parseRun(JSON.stringify(run));
 
     expect(restored).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
+      routeId: "R01",
       day: 7,
       phase: "travel",
       activeEventId: "EV051",
@@ -56,6 +59,51 @@ describe("story save migration", () => {
       completedContactWaves: 3,
       finalDecision: null,
       endingId: null,
+    });
+  });
+
+  it("deep-repairs invalid R02 white-frost enum values to safe defaults", () => {
+    const raw = JSON.parse(JSON.stringify(createRun("invalid-r02-frost", "R02"))) as Record<string, any>;
+    Object.assign(raw.story.whiteFrost, {
+      branch: "BROKEN-BRANCH",
+      finaleStage: "teleport",
+      consent: "forced",
+      heatMapQuality: "omniscient",
+      finalDecision: "erase-passenger",
+      endingId: "frost-impossible-ending",
+      switchMethod: "teleport",
+      manualScrapeHullCost: 99,
+    });
+    raw.story.whiteFrost.thermal.tokens[0].zone = "VOID";
+
+    const restored = parseRun(JSON.stringify(raw));
+    expect(restored?.routeId).toBe("R02");
+    expect(restored?.story.whiteFrost).toMatchObject({
+      version: 1,
+      branch: null,
+      finaleStage: "inactive",
+      consent: "unknown",
+      heatMapQuality: "partial",
+      finalDecision: null,
+      endingId: null,
+      switchMethod: null,
+      manualScrapeHullCost: 6,
+    });
+    expect(restored?.story.whiteFrost?.thermal.tokens[0]).toEqual({ id: "H1", zone: "BERTH" });
+  });
+
+  it("normalizes R01 whiteFrost to null even when a stale save contains R02 state", () => {
+    const r01 = createRun("r01-with-stale-frost", "R01");
+    r01.story.whiteFrost = createRun("stale-r02-state", "R02").story.whiteFrost;
+
+    const restored = parseRun(JSON.stringify(r01));
+    expect(restored).toMatchObject({
+      schemaVersion: 4,
+      routeId: "R01",
+      story: {
+        version: 2,
+        whiteFrost: null,
+      },
     });
   });
 

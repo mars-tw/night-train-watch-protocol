@@ -1,7 +1,21 @@
-import type { RunState, SettingsState } from "./types";
+import type {
+  FrostZone,
+  HeatTokenId,
+  RunState,
+  SettingsState,
+  StoryRouteId,
+  T009InteractionState,
+  ThermalRoutingState,
+  ThreatContact,
+  WhiteFrostState,
+} from "./types";
 import { DECORATION_SLOTS } from "./content";
 import { createCropPlots, createDecorationPlacements } from "./model";
-import { createDefaultStoryState } from "./story";
+import {
+  createDefaultStoryState,
+  createDefaultWhiteFrostState,
+  getThermalAllocation,
+} from "./story";
 
 const DB_NAME = "night-train-save";
 const STORE_NAME = "snapshots";
@@ -9,10 +23,137 @@ const CURRENT_KEY = "run.current";
 const BACKUP_KEY = "run.backup";
 const SETTINGS_KEY = "settings";
 
+const HEAT_TOKEN_IDS: readonly HeatTokenId[] = ["H1", "H2", "H3", "H4", "H5", "H6"];
+const FROST_ZONES: readonly FrostZone[] = ["BERTH", "DEICER", "LOOP"];
+const FROST_BRANCHES = ["CARE", "CLEAR", "SUSTAIN"] as const;
+const FROST_FINALE_STAGES = ["inactive", "warm", "blizzard", "clear", "accelerate", "resolved"] as const;
+const FROST_CONSENTS = ["unknown", "shared", "protected", "a07-plan"] as const;
+const FROST_SWITCH_METHODS = ["deicer", "repair", "ram", "bypass"] as const;
+const FROST_FINAL_DECISIONS = ["joint", "shield", "a07-plan", "emergency-stop"] as const;
+const FROST_ENDING_IDS = [
+  "frost-shared-arrival",
+  "frost-guarded-arrival",
+  "frost-chosen-detour",
+  "frost-emergency-shelter",
+] as const;
+
+function finiteInteger(value: unknown, fallback: number, minimum = 0, maximum = 999): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(maximum, Math.max(minimum, Math.floor(value)))
+    : fallback;
+}
+
+function repairThermalRouting(saved: Partial<ThermalRoutingState> | null | undefined): ThermalRoutingState {
+  const defaults = createDefaultWhiteFrostState().thermal;
+  const savedTokens = Array.isArray(saved?.tokens) ? saved.tokens : [];
+  const tokens = defaults.tokens.map((fallback) => {
+    const candidate = savedTokens.find((token) => token?.id === fallback.id);
+    return candidate && FROST_ZONES.includes(candidate.zone)
+      ? { id: fallback.id, zone: candidate.zone }
+      : { ...fallback };
+  });
+  const savedAllocation = saved?.committedAllocation;
+  const committedAllocation = savedAllocation
+    && FROST_ZONES.every((zone) => Number.isInteger(savedAllocation[zone]) && savedAllocation[zone] >= 0)
+    && FROST_ZONES.reduce((total, zone) => total + savedAllocation[zone], 0) === 6
+    ? { ...savedAllocation }
+    : getThermalAllocation(tokens);
+  const selectedTokenId = saved?.selectedTokenId && HEAT_TOKEN_IDS.includes(saved.selectedTokenId)
+    ? saved.selectedTokenId
+    : null;
+  return {
+    tokens,
+    selectedTokenId,
+    committedAllocation,
+    committedDay: typeof saved?.committedDay === "number" ? saved.committedDay : null,
+    settlementIds: Array.isArray(saved?.settlementIds)
+      ? [...new Set(saved.settlementIds.filter((id): id is string => typeof id === "string"))]
+      : [],
+    revision: typeof saved?.revision === "number" && Number.isFinite(saved.revision)
+      ? Math.max(0, Math.floor(saved.revision))
+      : 0,
+  };
+}
+
+function repairWhiteFrost(saved: Partial<WhiteFrostState> | null | undefined): WhiteFrostState {
+  const defaults = createDefaultWhiteFrostState();
+  return {
+    ...defaults,
+    version: 1,
+    branch: FROST_BRANCHES.includes(saved?.branch as typeof FROST_BRANCHES[number])
+      ? saved?.branch ?? null
+      : null,
+    finaleStage: FROST_FINALE_STAGES.includes(saved?.finaleStage as typeof FROST_FINALE_STAGES[number])
+      ? saved?.finaleStage ?? defaults.finaleStage
+      : defaults.finaleStage,
+    consent: FROST_CONSENTS.includes(saved?.consent as typeof FROST_CONSENTS[number])
+      ? saved?.consent ?? defaults.consent
+      : defaults.consent,
+    heatMapQuality: saved?.heatMapQuality === "full" ? "full" : "partial",
+    switchCleared: saved?.switchCleared === true,
+    switchMethod: FROST_SWITCH_METHODS.includes(saved?.switchMethod as typeof FROST_SWITCH_METHODS[number])
+      ? saved?.switchMethod ?? null
+      : null,
+    heaterPatched: saved?.heaterPatched === true,
+    coauthorEvidence: saved?.coauthorEvidence === true,
+    branchOperationComplete: saved?.branchOperationComplete === true,
+    delayedConsequenceSettled: saved?.delayedConsequenceSettled === true,
+    finalDecision: FROST_FINAL_DECISIONS.includes(saved?.finalDecision as typeof FROST_FINAL_DECISIONS[number])
+      ? saved?.finalDecision ?? null
+      : null,
+    endingId: FROST_ENDING_IDS.includes(saved?.endingId as typeof FROST_ENDING_IDS[number])
+      ? saved?.endingId ?? null
+      : null,
+    endingReasons: Array.isArray(saved?.endingReasons) ? saved.endingReasons.filter((reason): reason is string => typeof reason === "string") : [],
+    rewardSettled: saved?.rewardSettled === true,
+    thermal: repairThermalRouting(saved?.thermal),
+    coldDebt: finiteInteger(saved?.coldDebt, 0, 0, 99),
+    pendingRouteFuelPenalty: finiteInteger(saved?.pendingRouteFuelPenalty, 0, 0, 99),
+    frostRisk: finiteInteger(saved?.frostRisk, 0, 0, 99),
+    manualScrapeHullCost: saved?.manualScrapeHullCost === 4 ? 4 : 6,
+    jointTrustRequirement: finiteInteger(saved?.jointTrustRequirement, defaults.jointTrustRequirement, 0, 100),
+    warmRequirementDiscount: finiteInteger(saved?.warmRequirementDiscount, 0, 0, 3),
+    recordCalibrated: saved?.recordCalibrated === true,
+  };
+}
+
+function repairActiveContact(saved: ThreatContact | undefined): ThreatContact | undefined {
+  if (!saved?.interaction || saved.interaction.kind !== "T009") return saved;
+  const interaction = saved.interaction as T009InteractionState & { freeMissUsed?: boolean };
+  const requiredZones = Array.isArray(interaction.requiredZones)
+    && interaction.requiredZones.length === 2
+    && interaction.requiredZones.every((zone) => FROST_ZONES.includes(zone))
+    && interaction.requiredZones[0] !== interaction.requiredZones[1]
+    ? [...interaction.requiredZones] as [FrostZone, FrostZone]
+    : ["BERTH", "DEICER"] as [FrostZone, FrostZone];
+  const attempts = finiteInteger(interaction.attempts, 0, 0, 999);
+  const firstMissRevealed = interaction.firstMissRevealed === true;
+  return {
+    ...saved,
+    interaction: {
+      kind: "T009",
+      requiredZones,
+      inspectedZones: Array.isArray(interaction.inspectedZones)
+        ? [...new Set(interaction.inspectedZones.filter((zone) => FROST_ZONES.includes(zone)))]
+        : [],
+      attempts,
+      firstMissRevealed,
+      freeMissUsed: typeof interaction.freeMissUsed === "boolean"
+        ? interaction.freeMissUsed
+        : firstMissRevealed && attempts > 0,
+      manualFallbackAvailable: interaction.manualFallbackAvailable === true,
+      ...(interaction.resolvedBy === "thermal" || interaction.resolvedBy === "manual-scrape"
+        ? { resolvedBy: interaction.resolvedBy }
+        : {}),
+    },
+  };
+}
+
 export function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
   const value = JSON.parse(raw) as RunState & { schemaVersion: number };
-  if (![1, 2, 3].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  if (![1, 2, 3, 4].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  const routeId: StoryRouteId = value.routeId === "R02" ? "R02" : "R01";
   const defaults = createDecorationPlacements();
   const decorations = defaults.map((fallback) => {
     const saved = Array.isArray(value.decorations) ? value.decorations.find((item) => item.id === fallback.id) : undefined;
@@ -22,20 +163,23 @@ export function parseRun(raw: string | null): RunState | null {
     const closest = compatible.sort((a, b) => Math.hypot(a.x - saved.x, a.y - saved.y) - Math.hypot(b.x - saved.x, b.y - saved.y))[0];
     return closest ? { id: fallback.id, carriageId: closest.carriageId, slotId: closest.id, x: closest.x, y: closest.y } : fallback;
   });
-  const storyDefaults = createDefaultStoryState();
+  const storyDefaults = createDefaultStoryState(routeId);
   const savedStory = value.story;
   return {
     ...value,
-    schemaVersion: 3,
+    schemaVersion: 4,
+    routeId,
     actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
     rationMode: value.rationMode ?? "standard",
     nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
     outcome: value.outcome ?? (value.ended ? "victory" : "active"),
     decorations,
     crops: Array.isArray(value.crops) && value.crops.length === 2 ? value.crops : createCropPlots(),
+    activeContact: repairActiveContact(value.activeContact),
     story: {
       ...storyDefaults,
       ...(savedStory ?? {}),
+      version: 2,
       flags: {
         ...storyDefaults.flags,
         ...(savedStory?.flags ?? {}),
@@ -44,6 +188,9 @@ export function parseRun(raw: string | null): RunState | null {
       seenEventIds: Array.isArray(savedStory?.seenEventIds) ? savedStory.seenEventIds : [],
       endingReasons: Array.isArray(savedStory?.endingReasons) ? savedStory.endingReasons : [],
       dawnLogIds: Array.isArray(savedStory?.dawnLogIds) ? savedStory.dawnLogIds : [],
+      whiteFrost: routeId === "R02"
+        ? repairWhiteFrost(savedStory?.whiteFrost)
+        : null,
     },
   };
 }
@@ -106,20 +253,34 @@ export class SaveService {
   }
 
   public async load(): Promise<{ run: RunState | null; recovered: boolean }> {
-    let current: string | null = null;
-    let backup: string | null = null;
+    const localCurrent = localStorage.getItem(CURRENT_KEY);
+    const localBackup = localStorage.getItem(BACKUP_KEY);
+    let idbCurrent: string | null = null;
+    let idbBackup: string | null = null;
     try {
-      current = (await idbRead(CURRENT_KEY)) ?? localStorage.getItem(CURRENT_KEY);
-      backup = (await idbRead(BACKUP_KEY)) ?? localStorage.getItem(BACKUP_KEY);
+      idbCurrent = await idbRead(CURRENT_KEY);
+      idbBackup = await idbRead(BACKUP_KEY);
     } catch {
-      current = localStorage.getItem(CURRENT_KEY);
-      backup = localStorage.getItem(BACKUP_KEY);
+      // The synchronous local snapshot remains usable when IndexedDB is unavailable.
     }
-    try {
-      return { run: parseRun(current), recovered: false };
-    } catch {
-      return { run: parseRun(backup), recovered: true };
+
+    // save() writes localStorage before awaiting IndexedDB. Prefer that synchronous
+    // snapshot so an immediate reload cannot resurrect an older IDB record.
+    const candidates = [
+      { raw: localCurrent, recovered: false },
+      { raw: idbCurrent, recovered: false },
+      { raw: localBackup, recovered: true },
+      { raw: idbBackup, recovered: true },
+    ];
+    for (const candidate of candidates) {
+      if (!candidate.raw) continue;
+      try {
+        return { run: parseRun(candidate.raw), recovered: candidate.recovered };
+      } catch {
+        // Try the next current/backup copy before declaring the save unavailable.
+      }
     }
+    return { run: null, recovered: false };
   }
 
   public saveSettings(settings: SettingsState): void {

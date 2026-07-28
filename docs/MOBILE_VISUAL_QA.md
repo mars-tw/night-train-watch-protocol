@@ -46,6 +46,7 @@ $env:GAME_URL='http://127.0.0.1:4312'
 npm run audit:buttons
 npm run capture:playability
 npm run capture:video
+npm run audit:frost
 ```
 
 ## 2026-07-26 灰霧線三分支專項
@@ -58,3 +59,38 @@ npm run capture:video
 - 三條分支都在 360×640、140% 文字下檢查 EV051、EV052、結局主要按鈕的尺寸、中心命中、面板寬度與水平溢位，結果皆為 0px 溢位。
 
 公開證據為 `public/assets/screenshots/28-story-t004-fog-vine.png` 至 `30-story-t006-silent-crowd.png`、三支 `public/assets/video/night-train-story-v090*.webm`，以及 `public/assets/qa/story-flow-report.json`。
+
+## 2026-07-28 白霜線驗收
+
+白霜線 R02 已在真實 Chromium 手機視窗完成 CARE、CLEAR、SUSTAIN 三條分支，各自走完 Day 1 至 Day 7。完整稽核報告為 `status: passed`，來源 commit 為 `4d3757dce3d99d8f3512250b476f630b4dd9c07e`，且啟動稽核時 `workingTreeDirty: false`。同版全按鈕稽核覆蓋 56 個 controller actions、591 項斷言；瀏覽器 page error 與 console error 合計為 0。
+
+### 肉眼與操作驗收
+
+- R02 route card 在 390×844 視窗中完整可見，主要按鈕中心命中測試通過。
+- thermal drawer 在 390×844 與 360×640、140% 文字模式下不遮住主要場景或警報；水平溢位為 0，主要控制項中心皆可命中。
+- 六枚熱能 token 維持唯一身分與唯一配置；配置同時通過可見按鈕 tap 與真實 pointer drag，拖曳結果會寫回權威存檔。
+- EV057 由可見選項進入 CARE、CLEAR、SUSTAIN 三條分支，並在 route node 選擇前保存、重載後維持同一分支。
+- T009 覆蓋錯誤檢查、弱點 reveal、立即 reload 與 retry；CARE、SUSTAIN 以 reveal 後重試完成，CLEAR 另以 manual scrape 完成。Day 7 再次以熱能配置解決 T009。
+- 三條分支都驗證 EV057、T009 first miss 與 ending 三個 reload checkpoint；結局重載前後完成獎勵都只有一筆。
+- 無燃料時的 emergency route 由畫面上可見按鈕中心點擊完成，並在 360×640、140% 與 390×844 兩種視窗確認不重疊、可命中。
+- 四個結局均由可見選項完成：CARE `frost-shared-arrival`、CLEAR `frost-guarded-arrival`、SUSTAIN `frost-chosen-detour`，以及 CARE 的替代抉擇 `frost-emergency-shelter`。第 4 結局使用 Day 7 EV065 選擇前的自然存檔 checkpoint，在 fresh 390×844 context 從主選單繼續；選擇前不改寫權威數值，結局與獎勵唯一性在 reload 後仍成立。
+
+### 公開確證
+
+- `public/assets/qa/frost-story-flow-report.json`：三分支完整報告、reload checkpoint、緊急路線、第 4 結局、畫面量測與 browser errors。
+- `public/assets/video/night-train-frost-v100-care.webm`：390×844，184.24 秒。
+- `public/assets/video/night-train-frost-v100-clear.webm`：390×844，148.04 秒。
+- `public/assets/video/night-train-frost-v100-sustain.webm`：390×844，124.36 秒。
+- 全部 22 張公開 PNG 均存在且通過 PNG 格式檢查；主要畫面包括：
+  - `public/assets/screenshots/frost-route-selection-v100.png`
+  - `public/assets/screenshots/frost-thermal-drawer-360x640-text140-v100.png`
+  - `public/assets/screenshots/frost-thermal-pointer-drag-v100.png`
+  - `public/assets/screenshots/frost-ev057-three-branches-v100.png`
+  - `public/assets/screenshots/frost-t009-first-miss-360x640-text140-v100.png`
+  - `public/assets/screenshots/frost-emergency-route-360x640-v100.png`
+  - `public/assets/screenshots/frost-care-ending-v100.png`
+  - `public/assets/screenshots/frost-clear-ending-v100.png`
+  - `public/assets/screenshots/frost-sustain-ending-v100.png`
+  - `public/assets/screenshots/frost-emergency-shelter-ending-v100.png`
+
+以上為桌面 Chromium 的手機 viewport 自動驗收；iOS Safari 與 Android Chrome 實機人工 QA 尚未完成，因此相關 PR 必須保持 Draft，不得以本報告宣稱已通過實機發布門檻。

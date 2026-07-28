@@ -12,12 +12,35 @@ export type CropId = "lettuce" | "tomato" | "herb";
 export type CropPlotId = "plot-a" | "plot-b";
 export type FeedbackTone = "gain" | "cost" | "relief" | "neutral";
 export type Day4Route = "GO" | "DETOUR" | "STOP";
+export type StoryRouteId = "R01" | "R02";
 export type FinaleStage = "inactive" | "arrival" | "contact" | "decision" | "resolved";
 export type EndingId = "arrival" | "quarantine" | "reroute" | "protocol-terminated" | "arrival-unverified";
 export type CargoConversion = "none" | "isolation-bay" | "battery-array" | "sample-lab";
 export type StoryDuePhase = "dawn" | "prep" | "route" | "travel" | "aftermath";
 export type SignalSampleQuality = "none" | "partial" | "full";
 export type FinalDecision = "open" | "seal" | "reroute" | "terminate";
+export type FrostBranch = "CARE" | "CLEAR" | "SUSTAIN";
+export type FrostZone = "BERTH" | "DEICER" | "LOOP";
+export type FrostSwitchMethod = "deicer" | "repair" | "ram" | "bypass";
+export type FrostFinaleStage = "inactive" | "warm" | "blizzard" | "clear" | "accelerate" | "resolved";
+export type FrostConsent = "unknown" | "shared" | "protected" | "a07-plan";
+export type FrostFinalDecision = "joint" | "shield" | "a07-plan" | "emergency-stop";
+export type FrostEndingId =
+  | "frost-shared-arrival"
+  | "frost-guarded-arrival"
+  | "frost-chosen-detour"
+  | "frost-emergency-shelter";
+export type HeatTokenId = "H1" | "H2" | "H3" | "H4" | "H5" | "H6";
+export type ThermalCommand =
+  | `thermal:select:${HeatTokenId}`
+  | `thermal:move:${HeatTokenId}:${FrostZone}`
+  | `thermal:target:${FrostZone}`
+  | "thermal:commit"
+  | "thermal:reset";
+export type T009Command =
+  | `frost:inspect:${FrostZone}`
+  | "frost:confirm"
+  | "frost:manual-scrape";
 export type ThreatSignalId = "sig-a" | "sig-b";
 export type ThreatSignalColor = "amber" | "cyan" | "red";
 export type ThreatSignalShape = "diamond" | "circle" | "triangle";
@@ -29,8 +52,10 @@ export type ThreatInteractionCommand =
   | `cutter:${CropPlotId}`
   | `signal:${ThreatSignalId}`
   | "trace:leaves"
-  | "trace:meter";
-export type ThreatInteractionStatus = "resolved" | "incorrect" | "invalid" | "unsupported";
+  | "trace:meter"
+  | T009Command;
+export type ThreatInteractionStatus = "accepted" | "resolved" | "incorrect" | "invalid" | "unsupported";
+export type ThermalCommandStatus = "accepted" | "invalid" | "insufficient" | "duplicate";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -180,10 +205,22 @@ export interface T006InteractionState {
   lastAttempt?: "leaves" | "meter";
 }
 
+export interface T009InteractionState {
+  kind: "T009";
+  requiredZones: [FrostZone, FrostZone];
+  inspectedZones: FrostZone[];
+  attempts: number;
+  firstMissRevealed: boolean;
+  freeMissUsed: boolean;
+  manualFallbackAvailable: boolean;
+  resolvedBy?: "thermal" | "manual-scrape";
+}
+
 export type ThreatInteractionState =
   | T004InteractionState
   | T005InteractionState
-  | T006InteractionState;
+  | T006InteractionState
+  | T009InteractionState;
 
 export interface ThreatInteractionResult {
   status: ThreatInteractionStatus;
@@ -191,6 +228,14 @@ export interface ThreatInteractionResult {
   resolved: boolean;
   healthDelta: number;
   message: string;
+}
+
+export interface ThermalCommandResult {
+  status: ThermalCommandStatus;
+  accepted: boolean;
+  settled: boolean;
+  message: string;
+  settlementId?: string;
 }
 
 export interface ThreatContact {
@@ -211,6 +256,46 @@ export interface ScheduledStoryEvent {
   duePhase: StoryDuePhase;
   sourceEventId: string;
   sourceChoiceId: string;
+}
+
+export interface HeatTokenState {
+  id: HeatTokenId;
+  zone: FrostZone;
+}
+
+export interface ThermalRoutingState {
+  tokens: HeatTokenState[];
+  selectedTokenId: HeatTokenId | null;
+  committedAllocation: Record<FrostZone, number>;
+  committedDay: number | null;
+  settlementIds: string[];
+  revision: number;
+}
+
+export interface WhiteFrostState {
+  version: 1;
+  branch: FrostBranch | null;
+  finaleStage: FrostFinaleStage;
+  consent: FrostConsent;
+  heatMapQuality: "partial" | "full";
+  switchCleared: boolean;
+  switchMethod: FrostSwitchMethod | null;
+  heaterPatched: boolean;
+  coauthorEvidence: boolean;
+  branchOperationComplete: boolean;
+  delayedConsequenceSettled: boolean;
+  finalDecision: FrostFinalDecision | null;
+  endingId: FrostEndingId | null;
+  endingReasons: string[];
+  rewardSettled: boolean;
+  thermal: ThermalRoutingState;
+  coldDebt: number;
+  pendingRouteFuelPenalty: number;
+  frostRisk: number;
+  manualScrapeHullCost: 4 | 6;
+  jointTrustRequirement: number;
+  warmRequirementDiscount: number;
+  recordCalibrated: boolean;
 }
 
 export interface StoryFlags {
@@ -241,7 +326,7 @@ export interface StoryFlags {
 }
 
 export interface StoryState {
-  version: 1;
+  version: 2;
   flags: StoryFlags;
   cargoConversion: CargoConversion;
   finaleStage: FinaleStage;
@@ -253,6 +338,7 @@ export interface StoryState {
   endingId: EndingId | null;
   endingReasons: string[];
   dawnLogIds: string[];
+  whiteFrost: WhiteFrostState | null;
 }
 
 export type A07ConsentStatus = "granted" | "granted-with-evidence" | "refused";
@@ -267,6 +353,11 @@ export interface A07ConsentEvaluation {
 
 export interface EndingEvaluation {
   endingId: EndingId;
+  reasons: string[];
+}
+
+export interface FrostEndingEvaluation {
+  endingId: FrostEndingId;
   reasons: string[];
 }
 
@@ -289,7 +380,7 @@ export interface SettingsState {
 }
 
 export interface RunState {
-  schemaVersion: 3;
+  schemaVersion: 4;
   seed: string;
   day: number;
   maxDays: number;
@@ -298,7 +389,7 @@ export interface RunState {
   rationMode: RationMode;
   nightPowerDemand: number;
   outcome: RunOutcome;
-  routeId: string;
+  routeId: StoryRouteId;
   selectedRouteNodeId?: string;
   activeEventId?: string;
   activeContact?: ThreatContact;

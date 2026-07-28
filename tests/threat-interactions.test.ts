@@ -228,6 +228,7 @@ describe("standard threat regression", () => {
     const state = run.activeContact!.interaction as T004InteractionState;
 
     expect(service.counterThreat(run, "drag-cutter")).toBe(false);
+    expect(service.counterThreat(run, "brace-impact")).toBe(false);
     expect(run.activeContact?.definitionId).toBe("T004");
     expect(state.attempts).toBe(0);
   });

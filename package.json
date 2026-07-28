@@ -1,6 +1,6 @@
 {
   "name": "night-train-watch-protocol",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": false,
   "type": "module",
   "description": "夜行列車：守夜協定－依 GDD v1.1 製作的離線優先手機瀏覽器生存管理遊戲",
@@ -16,7 +16,8 @@
     "capture:motion": "node tools/capture-motion-qa.mjs",
     "capture:playability": "node tools/capture-playability-qa.mjs",
     "audit:buttons": "node tools/audit-buttons.mjs",
-    "audit:story": "node tools/audit-story-flow.mjs"
+    "audit:story": "node tools/audit-story-flow.mjs",
+    "audit:frost": "node tools/audit-frost-story.mjs"
   },
   "keywords": [
     "game",

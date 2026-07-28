@@ -5,11 +5,19 @@ import type {
   EndingEvaluation,
   EndingId,
   FinalDecision,
+  FrostBranch,
+  FrostEndingEvaluation,
+  FrostFinalDecision,
+  FrostZone,
+  HeatTokenState,
   RunState,
   ScheduledStoryEvent,
+  StoryRouteId,
   StoryDuePhase,
   StoryFlags,
   StoryState,
+  ThermalRoutingState,
+  WhiteFrostState,
 } from "./types";
 
 const STORY_PHASE_ORDER: Record<StoryDuePhase, number> = {
@@ -20,9 +28,57 @@ const STORY_PHASE_ORDER: Record<StoryDuePhase, number> = {
   aftermath: 4,
 };
 
-export function createDefaultStoryState(): StoryState {
+const FROST_ZONES: readonly FrostZone[] = ["BERTH", "DEICER", "LOOP"];
+
+export function createDefaultThermalRoutingState(): ThermalRoutingState {
+  return {
+    tokens: [
+      { id: "H1", zone: "BERTH" },
+      { id: "H2", zone: "BERTH" },
+      { id: "H3", zone: "DEICER" },
+      { id: "H4", zone: "DEICER" },
+      { id: "H5", zone: "LOOP" },
+      { id: "H6", zone: "LOOP" },
+    ],
+    selectedTokenId: null,
+    committedAllocation: { BERTH: 2, DEICER: 2, LOOP: 2 },
+    committedDay: null,
+    settlementIds: [],
+    revision: 0,
+  };
+}
+
+export function createDefaultWhiteFrostState(): WhiteFrostState {
   return {
     version: 1,
+    branch: null,
+    finaleStage: "inactive",
+    consent: "unknown",
+    heatMapQuality: "partial",
+    switchCleared: false,
+    switchMethod: null,
+    heaterPatched: false,
+    coauthorEvidence: false,
+    branchOperationComplete: false,
+    delayedConsequenceSettled: false,
+    finalDecision: null,
+    endingId: null,
+    endingReasons: [],
+    rewardSettled: false,
+    thermal: createDefaultThermalRoutingState(),
+    coldDebt: 0,
+    pendingRouteFuelPenalty: 0,
+    frostRisk: 0,
+    manualScrapeHullCost: 6,
+    jointTrustRequirement: 55,
+    warmRequirementDiscount: 0,
+    recordCalibrated: false,
+  };
+}
+
+export function createDefaultStoryState(routeId: StoryRouteId = "R01"): StoryState {
+  return {
+    version: 2,
     flags: {
       signalSampleQuality: "none",
       extraBunk: false,
@@ -59,7 +115,102 @@ export function createDefaultStoryState(): StoryState {
     endingId: null,
     endingReasons: [],
     dawnLogIds: [],
+    whiteFrost: routeId === "R02" ? createDefaultWhiteFrostState() : null,
   };
+}
+
+export function getThermalAllocation(tokens: readonly HeatTokenState[]): Record<FrostZone, number> {
+  const allocation: Record<FrostZone, number> = { BERTH: 0, DEICER: 0, LOOP: 0 };
+  for (const token of tokens) {
+    if (FROST_ZONES.includes(token.zone)) allocation[token.zone] += 1;
+  }
+  return allocation;
+}
+
+export function thermalRoutingIsValid(thermal: ThermalRoutingState): boolean {
+  const expectedIds = new Set(["H1", "H2", "H3", "H4", "H5", "H6"]);
+  const actualIds = thermal.tokens.map((token) => token.id);
+  return (
+    thermal.tokens.length === 6
+    && new Set(actualIds).size === 6
+    && actualIds.every((id) => expectedIds.has(id))
+    && thermal.tokens.every((token) => FROST_ZONES.includes(token.zone))
+    && Object.values(getThermalAllocation(thermal.tokens)).reduce((total, count) => total + count, 0) === 6
+  );
+}
+
+export function effectiveFrostAllocation(whiteFrost: WhiteFrostState): Record<FrostZone, number> {
+  const allocation = getThermalAllocation(whiteFrost.thermal.tokens);
+  if (whiteFrost.branch === "CARE") allocation.BERTH += 1;
+  if (whiteFrost.branch === "CLEAR") allocation.DEICER += 1;
+  if (whiteFrost.branch === "SUSTAIN") allocation.LOOP += 1;
+  return allocation;
+}
+
+export function frostWarmRequirement(whiteFrost: WhiteFrostState): number {
+  const base = whiteFrost.branch === "CLEAR" ? 3 : whiteFrost.branch === "CARE" ? 1 : 2;
+  return Math.max(1, base - whiteFrost.warmRequirementDiscount);
+}
+
+export function frostClearRequirement(whiteFrost: WhiteFrostState): number {
+  if (whiteFrost.branch === "CARE") return 3;
+  if (whiteFrost.branch === "CLEAR") return 1;
+  return 2;
+}
+
+export function applyFrostBranch(whiteFrost: WhiteFrostState, branch: FrostBranch): WhiteFrostState {
+  return {
+    ...whiteFrost,
+    branch,
+    branchOperationComplete: false,
+  };
+}
+
+export function tokensForCommittedAllocation(
+  allocation: Record<FrostZone, number>,
+): HeatTokenState[] {
+  const tokenIds: HeatTokenState["id"][] = ["H1", "H2", "H3", "H4", "H5", "H6"];
+  const zones = FROST_ZONES.flatMap((zone) =>
+    Array.from({ length: Math.max(0, Math.floor(allocation[zone] ?? 0)) }, () => zone),
+  ).slice(0, 6);
+  while (zones.length < 6) zones.push("LOOP");
+  return tokenIds.map((id, index) => ({ id, zone: zones[index] ?? "LOOP" }));
+}
+
+const FROST_ENDING_REASONS: Record<FrostFinalDecision, FrostEndingEvaluation> = {
+  joint: {
+    endingId: "frost-shared-arrival",
+    reasons: ["A-07 與守護 AI 共同配置熱流並署名通過雪崩隧道。"],
+  },
+  shield: {
+    endingId: "frost-guarded-arrival",
+    reasons: ["列車封艙保護 A-07，帶著仍待協商的控制權抵達。"],
+  },
+  "a07-plan": {
+    endingId: "frost-chosen-detour",
+    reasons: ["列車依 A-07 參與設計的撤回方案轉入避難岔線。"],
+  },
+  "emergency-stop": {
+    endingId: "frost-emergency-shelter",
+    reasons: ["列車停入維修洞保住乘客，白霜線在未完成中暫時安定。"],
+  },
+};
+
+export function evaluateFrostEnding(
+  state: Pick<RunState, "story">,
+  finalDecision: FrostFinalDecision,
+): FrostEndingEvaluation {
+  const whiteFrost = state.story.whiteFrost;
+  if (whiteFrost?.endingId) {
+    return {
+      endingId: whiteFrost.endingId,
+      reasons: whiteFrost.endingReasons.length > 0
+        ? [...whiteFrost.endingReasons]
+        : [...FROST_ENDING_REASONS[finalDecision].reasons],
+    };
+  }
+  const result = FROST_ENDING_REASONS[finalDecision];
+  return { endingId: result.endingId, reasons: [...result.reasons] };
 }
 
 function compareScheduledStoryEvents(left: ScheduledStoryEvent, right: ScheduledStoryEvent): number {

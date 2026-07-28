@@ -1,15 +1,16 @@
 import {
+  ALL_STORY_EVENTS,
   BALANCE,
   CROPS,
   DAY4_BRANCH_DEFINITIONS,
   DECORATIONS,
   DECORATION_SLOTS,
   EVENTS,
+  FROST_STORY_DAY_SCHEDULE,
   MODULES,
   ROUTE_EVENT_POOLS,
   ROUTE_NODES,
   STORY_DAY_SCHEDULE,
-  STORY_EVENTS,
   TECH_NODES,
   THREATS,
 } from "./content";
@@ -18,12 +19,20 @@ import { createDecorationPlacements } from "./model";
 import { createRng } from "./rng";
 import {
   applyDay4Route,
+  applyFrostBranch,
   consumeStoryEvent,
+  effectiveFrostAllocation,
   evaluateA07Consent,
   evaluateEnding,
+  evaluateFrostEnding,
+  frostClearRequirement,
+  frostWarmRequirement,
   getDueStoryEvents,
+  getThermalAllocation,
   queueStoryEvent,
   refreshTrueRouteData,
+  thermalRoutingIsValid,
+  tokensForCommittedAllocation,
 } from "./story";
 import type {
   CropId,
@@ -31,10 +40,16 @@ import type {
   DecorationId,
   EnvironmentKey,
   EventChoice,
+  FrostZone,
+  HeatTokenId,
   RationMode,
   ResourceKey,
+  RouteNode,
   RunState,
+  StoryDuePhase,
   SurvivorKey,
+  ThermalCommand,
+  ThermalCommandResult,
   ThreatContact,
   ThreatInteractionCommand,
   ThreatInteractionResult,
@@ -60,7 +75,15 @@ const THREAT_INTERACTION_COMMANDS = new Set<ThreatInteractionCommand>([
   "signal:sig-b",
   "trace:leaves",
   "trace:meter",
+  "frost:inspect:BERTH",
+  "frost:inspect:DEICER",
+  "frost:inspect:LOOP",
+  "frost:confirm",
+  "frost:manual-scrape",
 ]);
+
+const FROST_ZONES: readonly FrostZone[] = ["BERTH", "DEICER", "LOOP"];
+const HEAT_TOKEN_IDS: readonly HeatTokenId[] = ["H1", "H2", "H3", "H4", "H5", "H6"];
 
 const T005_SIGNAL_CLUES: readonly ThreatSignal[] = [
   { id: "sig-a", color: "amber", shape: "diamond", rhythm: "short-short-long" },
@@ -72,6 +95,10 @@ function isStoryChoice(choice: EventChoice): choice is StoryContentChoice {
 }
 
 function storyFlagValue(run: RunState, key: string): unknown {
+  if (key.startsWith("whiteFrost.")) {
+    const frostKey = key.slice("whiteFrost.".length);
+    return (run.story.whiteFrost as unknown as Record<string, unknown> | null)?.[frostKey];
+  }
   return (run.story.flags as unknown as Record<string, unknown>)[key];
 }
 
@@ -91,6 +118,19 @@ function storyConditionMatches(run: RunState, condition: Record<string, boolean 
 
 function isStoryEvent(event: { id: string }): event is StoryContentEvent {
   return "forced" in event;
+}
+
+type WhiteFrostConsequence = NonNullable<StoryContentChoice["consequence"]["whiteFrost"]>;
+
+function scheduledStoryEventForRun(run: RunState, duePhase?: StoryDuePhase) {
+  const day = run.day as keyof typeof STORY_DAY_SCHEDULE;
+  if (run.routeId === "R01") return STORY_DAY_SCHEDULE[day]?.[0];
+  const branch = run.story.whiteFrost?.branch;
+  return FROST_STORY_DAY_SCHEDULE[day]?.find((entry) =>
+    (!duePhase || entry.duePhase === duePhase)
+    && (!entry.frostBranch || entry.frostBranch === branch)
+    && !run.story.seenEventIds.includes(entry.eventId),
+  );
 }
 
 export function getNightPowerDemand(run: RunState): number {
@@ -117,6 +157,18 @@ export function counterReadiness(run: RunState, counterId: string): { available:
 }
 
 export class RunService {
+  public enterStoryPhase(run: RunState, duePhase: "prep" | "route"): boolean {
+    if (run.routeId !== "R02" || run.ended || run.activeEventId) return false;
+    const scheduled = scheduledStoryEventForRun(run, duePhase);
+    if (!scheduled) return false;
+    run.phase = duePhase;
+    run.activeEventId = scheduled.eventId;
+    run.lastMessage = duePhase === "prep"
+      ? `第 ${run.day} 日整備故事已就緒。`
+      : `第 ${run.day} 日永久路線決策必須先完成。`;
+    return true;
+  }
+
   public moveDecoration(run: RunState, id: DecorationId, slotId: string): boolean {
     const placement = run.decorations.find((item) => item.id === id);
     const definition = DECORATIONS.find((item) => item.id === id);
@@ -176,34 +228,91 @@ export class RunService {
     run.ledger.push({ id: crypto.randomUUID(), at: Date.now(), source, key, before, delta: after - before, after });
   }
 
+  private endRunIfTerminal(run: RunState): boolean {
+    if (run.environment.hull > 0 && run.survivor.health > 0) return false;
+    run.activeContact = undefined;
+    run.activeEventId = undefined;
+    run.phase = "ending";
+    run.ended = true;
+    run.outcome = run.environment.hull <= 0 ? "hull-lost" : "survivor-lost";
+    run.lastMessage = run.environment.hull <= 0
+      ? "車體失去密封，守護協定被迫終止。"
+      : "A-07 生命徵象消失，守護協定被迫終止。";
+    return true;
+  }
+
   public chooseRoute(run: RunState, nodeId: string): void {
     if ((run.phase !== "prep" && run.phase !== "route") || run.activeEventId || run.ended) {
       run.lastMessage = "目前階段不能重複確認路線。";
       return;
     }
+    if (this.enterStoryPhase(run, "route")) return;
     const node = ROUTE_NODES.find((candidate) => candidate.id === nodeId);
     if (!node) throw new Error(`Unknown route node: ${nodeId}`);
-    if (!this.applyResource(run, "fuel", -node.fuelCost, `route.${node.id}`)) {
+    const frostFuelPenalty = run.routeId === "R02" ? run.story.whiteFrost?.pendingRouteFuelPenalty ?? 0 : 0;
+    if (run.resources.fuel < node.fuelCost + frostFuelPenalty) {
       run.lastMessage = "燃料不足，請選擇較近的節點。";
       return;
     }
+    this.applyResource(run, "fuel", -node.fuelCost, `route.${node.id}`);
+    if (frostFuelPenalty > 0) {
+      this.applyResource(run, "fuel", -frostFuelPenalty, `route.${node.id}.frost-penalty`);
+      if (run.story.whiteFrost) run.story.whiteFrost.pendingRouteFuelPenalty = 0;
+    }
     run.selectedRouteNodeId = node.id;
-    const scheduledStoryEvent = STORY_DAY_SCHEDULE[run.day as keyof typeof STORY_DAY_SCHEDULE]?.[0];
+    this.activateTravelAfterRoute(run, node);
+    run.lastMessage = `已鎖定 ${node.name}，預計消耗燃料 ${node.fuelCost}。`;
+  }
+
+  public emergencyRoute(run: RunState): boolean {
+    if ((run.phase !== "prep" && run.phase !== "route") || run.activeEventId || run.ended) {
+      run.lastMessage = "目前不能啟動慣性滑行。";
+      return false;
+    }
+    if (this.enterStoryPhase(run, "route")) return false;
+    const frostFuelPenalty = run.routeId === "R02" ? run.story.whiteFrost?.pendingRouteFuelPenalty ?? 0 : 0;
+    const cheapestCost = Math.min(...ROUTE_NODES.map((node) => node.fuelCost + frostFuelPenalty));
+    if (run.resources.fuel >= cheapestCost) {
+      run.lastMessage = "仍有可正常抵達的路線，不需要承擔慣性滑行風險。";
+      return false;
+    }
+    const fallback = ROUTE_NODES.find((node) => node.id === "RN01") ?? ROUTE_NODES[0];
+    if (!fallback) return false;
+    this.applyEnvironment(run, "hull", -6, "route.emergency-drift");
+    this.applyEnvironment(run, "temperature", -3, "route.emergency-drift");
+    this.applySurvivor(run, "sleep", -8, "route.emergency-drift");
+    this.applySurvivor(run, "stress", 8, "route.emergency-drift");
+    if (run.story.whiteFrost) run.story.whiteFrost.pendingRouteFuelPenalty = 0;
+    if (this.endRunIfTerminal(run)) return true;
+    run.selectedRouteNodeId = fallback.id;
+    this.activateTravelAfterRoute(run, fallback);
+    run.lastMessage = `燃料不足，列車以慣性滑向${fallback.name}；車體 −6、溫度 −3、睡眠 −8、壓力 +8。`;
+    return true;
+  }
+
+  private activateTravelAfterRoute(run: RunState, node: RouteNode): void {
+    const scheduledStoryEvent = run.routeId === "R02"
+      ? scheduledStoryEventForRun(run, "travel")
+      : scheduledStoryEventForRun(run);
     if (scheduledStoryEvent && !run.story.seenEventIds.includes(scheduledStoryEvent.eventId)) {
       run.activeEventId = scheduledStoryEvent.eventId;
-      if (scheduledStoryEvent.finaleStage) run.story.finaleStage = scheduledStoryEvent.finaleStage;
+      if (scheduledStoryEvent.finaleStage) {
+        if (run.routeId === "R01") run.story.finaleStage = scheduledStoryEvent.finaleStage;
+        else if (run.story.whiteFrost && scheduledStoryEvent.eventId === "EV063") run.story.whiteFrost.finaleStage = "warm";
+      }
     } else {
       const eventPool = ROUTE_EVENT_POOLS[node.id] ?? [node.eventId];
       run.activeEventId = eventPool[(run.day - 1) % eventPool.length] ?? node.eventId;
     }
     run.phase = "travel";
-    run.lastMessage = `已鎖定 ${node.name}，預計消耗燃料 ${node.fuelCost}。`;
   }
 
   public resolveEvent(run: RunState, choice: EventChoice): boolean {
     const event = this.getEvent(run);
     const eventId = run.activeEventId;
     if (!event || !eventId || !event.choices.some((candidate) => candidate.id === choice.id)) return false;
+    if (run.routeId === "R01" && eventId >= "EV053" && eventId <= "EV065") return false;
+    if (run.routeId === "R02" && eventId >= "EV041" && eventId <= "EV052") return false;
     const storyEvent = isStoryEvent(event) ? event : undefined;
     const eventRequirements = storyEvent?.requirements;
     if (eventRequirements?.allFlags?.some((requirement) => !storyFlagSatisfied(run, requirement))) {
@@ -225,11 +334,20 @@ export class RunService {
 
     const storyChoice = isStoryChoice(choice) ? choice : undefined;
     const requirements = storyChoice?.requirements;
+    const whiteFrost = run.story.whiteFrost;
+    if (eventId === "EV065" && whiteFrost?.rewardSettled) {
+      run.lastMessage = "白霜線結局與路線獎勵已結算，不能重複套用。";
+      return false;
+    }
     if (requirements?.allFlags?.some((requirement) => !storyFlagSatisfied(run, requirement))) {
       run.lastMessage = "尚未完成這項操作所需的故事條件。";
       return false;
     }
-    for (const [key, minimum] of Object.entries(requirements?.minimum ?? {})) {
+    const effectiveMinimum = { ...(requirements?.minimum ?? {}) };
+    if (eventId === "EV064" && choice.id === "deice" && whiteFrost?.switchMethod === "deicer") {
+      effectiveMinimum.energy = 2;
+    }
+    for (const [key, minimum] of Object.entries(effectiveMinimum)) {
       const current = key in run.resources
         ? run.resources[key as ResourceKey]
         : run.survivor[key as SurvivorKey];
@@ -243,9 +361,58 @@ export class RunService {
       run.lastMessage = `A-07 不同意；需要 ${requirements.a07ConsentOrTech} 才能覆寫。`;
       return false;
     }
+    if (requirements?.frostBranch && whiteFrost?.branch !== requirements.frostBranch) {
+      run.lastMessage = `這項操作只屬於 ${requirements.frostBranch} 分支。`;
+      return false;
+    }
+    if (requirements?.frostSwitchMethod && whiteFrost?.switchMethod !== requirements.frostSwitchMethod) {
+      run.lastMessage = `需要先以 ${requirements.frostSwitchMethod} 方式處理凍結轉轍。`;
+      return false;
+    }
+    if (requirements?.frostConsent && whiteFrost?.consent !== requirements.frostConsent) {
+      run.lastMessage = `需要 A-07 的 ${requirements.frostConsent} 同意狀態。`;
+      return false;
+    }
+    if (requirements?.frostCoauthorEvidence && !whiteFrost?.coauthorEvidence) {
+      run.lastMessage = "尚未取得 A-07 的共同署名證據。";
+      return false;
+    }
+    if (requirements?.frostThermal) {
+      if (!whiteFrost) return false;
+      const actual = getThermalAllocation(whiteFrost.thermal.tokens);
+      if (requirements.frostThermal === "day7-committed" && whiteFrost.thermal.committedDay !== 7) {
+        run.lastMessage = "尚未提交 Day 7 熱力配置。";
+        return false;
+      }
+      if (
+        requirements.frostThermal === "warm-ready"
+        && (whiteFrost.thermal.committedDay !== 7 || actual.BERTH < frostWarmRequirement(whiteFrost))
+      ) {
+        run.lastMessage = `WARM 尚未成立：Day 7 BERTH 實際需要 ${frostWarmRequirement(whiteFrost)} 枚。`;
+        return false;
+      }
+      if (requirements.frostThermal === "clear-ready" && actual.DEICER < frostClearRequirement(whiteFrost)) {
+        run.lastMessage = `CLEAR 尚未成立：DEICER 實際需要 ${frostClearRequirement(whiteFrost)} 枚。`;
+        return false;
+      }
+    }
+    if (eventId === "EV055" && choice.id === "deicer" && (whiteFrost ? getThermalAllocation(whiteFrost.thermal.tokens).DEICER : 0) < 2) {
+      run.lastMessage = "DEICER 至少需要兩枚熱能單元才能融冰。";
+      return false;
+    }
+    if (eventId === "EV065" && choice.id === "joint" && whiteFrost && run.survivor.trust < whiteFrost.jointTrustRequirement) {
+      run.lastMessage = `共同加速需要信任 ${whiteFrost.jointTrustRequirement}。`;
+      return false;
+    }
 
     const consequence = storyChoice?.consequence;
-    const resourceDelta = consequence?.resourceDelta ?? choice.deltas;
+    let resourceDelta = consequence?.resourceDelta ?? choice.deltas;
+    if (eventId === "EV064" && choice.id === "deice" && whiteFrost?.switchMethod === "deicer") {
+      resourceDelta = { ...resourceDelta, energy: -2 };
+    }
+    if (eventId === "EV065" && choice.id === "shield") {
+      resourceDelta = { ...resourceDelta, fuel: -Math.min(2, run.resources.fuel) };
+    }
     const survivorDelta = consequence?.survivorDelta ?? choice.survivor;
     const conditionalResource = (consequence?.conditionalResourceDelta ?? [])
       .filter((entry) => storyConditionMatches(run, entry.when))
@@ -278,10 +445,13 @@ export class RunService {
     for (const [key, delta] of Object.entries(choice.environment ?? {})) {
       if (typeof delta === "number") this.applyEnvironment(run, key as EnvironmentKey, delta, `event.${eventId}.${choice.id}`);
     }
+    if (this.endRunIfTerminal(run)) return true;
 
     if (consequence?.setFlags) {
       Object.assign(run.story.flags as unknown as Record<string, unknown>, consequence.setFlags);
     }
+    if (consequence?.whiteFrost) this.applyWhiteFrostConsequence(run, consequence.whiteFrost);
+    if (this.endRunIfTerminal(run)) return true;
     if (consequence?.day4Route) run.story = applyDay4Route(run.story, consequence.day4Route);
     if (consequence?.unlockDawnLogId && !run.story.dawnLogIds.includes(consequence.unlockDawnLogId)) {
       run.story.dawnLogIds.push(consequence.unlockDawnLogId);
@@ -305,12 +475,21 @@ export class RunService {
       run.techOwned.push("I2");
     }
     if (requirements?.a07ConsentOrTech && consent && !consent.consents) run.story.flags.overrideUsed = true;
+    if (consequence?.frostFinalDecision && consequence.frostEndingId && run.story.whiteFrost) {
+      const evaluated = evaluateFrostEnding(run, consequence.frostFinalDecision);
+      run.story.whiteFrost.finalDecision = consequence.frostFinalDecision;
+      run.story.whiteFrost.endingId = consequence.frostEndingId;
+      run.story.whiteFrost.endingReasons = [...new Set([
+        ...run.story.whiteFrost.endingReasons,
+        ...evaluated.reasons,
+      ])];
+    }
 
     run.lastMessage = choice.result;
     run.activeEventId = undefined;
     const transition = consequence?.transition;
     if (transition === "queue-next-phase") {
-      const nextEvent = STORY_EVENTS.find((candidate) => candidate.id === consequence?.nextEventId);
+      const nextEvent = ALL_STORY_EVENTS.find((candidate) => candidate.id === consequence?.nextEventId);
       if (nextEvent?.storyPhase === "aftermath") {
         run.story = queueStoryEvent(run.story, {
           id: `${eventId}.${choice.id}.${nextEvent.id}`,
@@ -320,7 +499,13 @@ export class RunService {
           sourceEventId: eventId,
           sourceChoiceId: choice.id,
         });
-        this.beginNight(run);
+        if (run.routeId === "R02" && storyEvent?.storyPhase === "prep") {
+          run.phase = "prep";
+        } else if (run.routeId === "R02" && storyEvent?.storyPhase === "route") {
+          run.phase = "route";
+        } else {
+          this.beginNight(run);
+        }
       } else {
         run.activeEventId = consequence?.nextEventId;
         run.phase = "travel";
@@ -348,6 +533,32 @@ export class RunService {
       run.outcome = "victory";
     } else if (transition === "queue-next-day" && storyEvent?.storyPhase === "aftermath") {
       run.phase = "aftermath";
+    } else if (transition === "queue-next-day" && run.routeId === "R02" && storyEvent?.storyPhase === "prep") {
+      run.phase = "prep";
+    } else if (transition === "queue-next-day" && run.routeId === "R02" && storyEvent?.storyPhase === "route") {
+      run.phase = "route";
+    } else if (transition === "thermal-board") {
+      run.phase = "prep";
+      run.activeEventId = undefined;
+      run.lastMessage = "熱力板已展開；提交 Day 7 配置後會返回雪崩隧道入口。";
+    } else if (transition === "frost-finale-contact") {
+      if (run.story.whiteFrost) run.story.whiteFrost.finaleStage = "blizzard";
+      this.beginNight(run);
+    } else if (transition === "frost-finale-decision") {
+      if (run.story.whiteFrost) run.story.whiteFrost.finaleStage = "accelerate";
+      run.activeEventId = consequence?.nextEventId;
+      run.phase = "travel";
+    } else if (transition === "frost-story-complete") {
+      const frost = run.story.whiteFrost;
+      if (!frost?.finalDecision || !frost.endingId) return false;
+      if (!frost.rewardSettled) {
+        this.applyResource(run, "data", 4, "story.R02.route-complete");
+        frost.rewardSettled = true;
+      }
+      frost.finaleStage = "resolved";
+      run.phase = "ending";
+      run.ended = true;
+      run.outcome = "victory";
     } else {
       this.beginNight(run);
     }
@@ -356,9 +567,10 @@ export class RunService {
 
   public beginNight(run: RunState): void {
     const route = ROUTE_NODES.find((node) => node.id === run.selectedRouteNodeId);
-    const totalWaves = run.day === 7 ? 3 : Math.max(1, route?.threatLevel ?? 1);
+    const frostFinale = run.routeId === "R02" && run.day === 7 && run.story.whiteFrost?.finaleStage === "blizzard";
+    const totalWaves = frostFinale ? 1 : run.day === 7 && run.routeId === "R01" ? 3 : Math.max(1, route?.threatLevel ?? 1);
     const powerReport = this.settleNightPower(run);
-    if (run.day === 7) {
+    if (run.day === 7 && run.routeId === "R01") {
       const matureCrops = run.crops.filter((plot) => plot.cropId && plot.stage >= 3).length;
       run.story.finaleHealthBuffer = matureCrops * 6;
       run.story.completedContactWaves = 0;
@@ -385,13 +597,18 @@ export class RunService {
     const threat = THREATS.find((candidate) => candidate.id === contact.definitionId);
     if (!threat) return;
     contact.stage = "breach";
-    const incomingDamage = threat.damage + (run.day - 1) * 2;
-    const cropBuffer = run.day === 7 ? Math.min(run.story.finaleHealthBuffer, Math.max(0, incomingDamage - 2)) : 0;
-    if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
-    this.applyEnvironment(run, "hull", -(incomingDamage - cropBuffer), `threat.${threat.id}.breach`);
-    this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
-    this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
-    run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
+    if (threat.id === "T009") {
+      const temperatureBefore = run.environment.temperature;
+      this.applyEnvironment(run, "temperature", -6, "threat.T009.timeout");
+      this.applySurvivor(run, "sleep", -10, "threat.T009.timeout");
+      if (temperatureBefore < 5) this.applySurvivor(run, "health", -4, "threat.T009.timeout.cold");
+      run.lastMessage = temperatureBefore < 5
+        ? "暴風雪造成環境失溫：溫度 −6、睡眠 −10、健康 −4。"
+        : "暴風雪造成環境失溫：溫度 −6、睡眠 −10。";
+      this.endRunIfTerminal(run);
+      return;
+    }
+    this.applyStandardBreachDamage(run, threat);
   }
 
   public counterThreat(run: RunState, counterId: string): boolean {
@@ -399,9 +616,25 @@ export class RunService {
     if (!contact) return false;
     const threat = THREATS.find((candidate) => candidate.id === contact.definitionId);
     if (!threat) return false;
+    if (threat.id === "T009") {
+      this.ensureThreatInteraction(run);
+      run.lastMessage = "暴風雪必須使用熱力板或 MANUAL_SCRAPE，舊式一鍵反制無效。";
+      return false;
+    }
     if (contact.interaction) {
       run.lastMessage = "這個接觸需要在可見線索上指定目標，不能用舊式一鍵反制跳過。";
       return false;
+    }
+    if (counterId === "brace-impact") {
+      if (threat.id !== "T002" && threat.id !== "T003") {
+        run.lastMessage = "只有一般窗外接觸能選擇承受撞擊；此威脅必須完成場景互動。";
+        return false;
+      }
+      contact.stage = "breach";
+      contact.resolvedBy = counterId;
+      const ended = this.applyStandardBreachDamage(run, threat);
+      if (ended) return true;
+      return this.advanceNightContactOrFinish(run, `${threat.name}的撞擊已承受，列車帶傷繼續前進。`);
     }
     const readiness = counterReadiness(run, counterId);
     if (!readiness.available) {
@@ -423,6 +656,146 @@ export class RunService {
     return false;
   }
 
+  public applyThermalCommand(run: RunState, command: ThermalCommand): ThermalCommandResult {
+    const frost = run.story.whiteFrost;
+    if (run.routeId !== "R02" || !frost) {
+      return this.thermalResult(run, "invalid", false, false, "熱力板只在白霜線可用。");
+    }
+    const thermal = frost.thermal;
+    if (command.startsWith("thermal:select:")) {
+      const tokenId = command.slice("thermal:select:".length) as HeatTokenId;
+      if (!HEAT_TOKEN_IDS.includes(tokenId) || !thermal.tokens.some((token) => token.id === tokenId)) {
+        return this.thermalResult(run, "invalid", false, false, "選到不存在的熱能單元。");
+      }
+      thermal.selectedTokenId = tokenId;
+      return this.thermalResult(run, "accepted", true, false, `${tokenId} 已選取；請點選 BERTH、DEICER 或 LOOP。`);
+    }
+    if (command.startsWith("thermal:move:")) {
+      const [, , rawTokenId, rawZone] = command.split(":");
+      const tokenId = rawTokenId as HeatTokenId;
+      const zone = rawZone as FrostZone;
+      const token = thermal.tokens.find((candidate) => candidate.id === tokenId);
+      if (!token || !FROST_ZONES.includes(zone)) {
+        return this.thermalResult(run, "invalid", false, false, "拖放目標不是有效的熱能區域。");
+      }
+      if (token.zone === zone) {
+        thermal.selectedTokenId = null;
+        return this.thermalResult(run, "duplicate", false, false, `${tokenId} 已在 ${zone}。`);
+      }
+      token.zone = zone;
+      thermal.selectedTokenId = null;
+      thermal.revision += 1;
+      return this.thermalResult(run, "accepted", true, false, `${tokenId} 已移至 ${zone}；配置修改序號 ${thermal.revision}。`);
+    }
+    if (command.startsWith("thermal:target:")) {
+      const zone = command.slice("thermal:target:".length) as FrostZone;
+      if (!FROST_ZONES.includes(zone)) {
+        return this.thermalResult(run, "invalid", false, false, "熱力目標區域無效。");
+      }
+      if (!thermal.selectedTokenId) {
+        return this.thermalResult(run, "invalid", false, false, "請先選一枚熱能單元，再點目標區域。");
+      }
+      return this.applyThermalCommand(run, `thermal:move:${thermal.selectedTokenId}:${zone}`);
+    }
+    if (command === "thermal:reset") {
+      thermal.tokens = tokensForCommittedAllocation(thermal.committedAllocation);
+      thermal.selectedTokenId = null;
+      thermal.revision += 1;
+      return this.thermalResult(run, "accepted", true, false, "已回到最後一次提交的熱力配置。");
+    }
+    if (command !== "thermal:commit") {
+      return this.thermalResult(run, "invalid", false, false, "無法辨識熱力板指令。");
+    }
+    if (!thermalRoutingIsValid(thermal)) {
+      return this.thermalResult(run, "invalid", false, false, "六枚熱能單元必須唯一，且全部位於三個有效區域。");
+    }
+    const settlementId = `thermal:R02:D${run.day}:${frost.branch ?? "UNSET"}`;
+    if (thermal.committedDay === run.day || thermal.settlementIds.includes(settlementId)) {
+      return this.thermalResult(run, "duplicate", false, false, "本日熱力配置已結算，不會重複扣除資源。", settlementId);
+    }
+
+    const actual = getThermalAllocation(thermal.tokens);
+    const effective = effectiveFrostAllocation(frost);
+    const berthCount = effective.BERTH;
+    const deicerCount = effective.DEICER;
+    const loopCount = effective.LOOP;
+    const energyCost = 2 + (frost.branch === "SUSTAIN" ? 2 : 0) + (loopCount >= 3 ? 1 : 0);
+    const fuelCost = 1 + (frost.branch === "CARE" ? 1 : 0);
+    const waterCost = loopCount === 0 ? 2 : loopCount === 1 ? 1 : 0;
+    const missing: string[] = [];
+    if (run.resources.energy < energyCost) missing.push(`電量 ${energyCost}`);
+    if (run.resources.fuel < fuelCost) missing.push(`燃料 ${fuelCost}`);
+    if (run.resources.water < waterCost) missing.push(`水 ${waterCost}`);
+    if (missing.length > 0) {
+      return this.thermalResult(run, "insufficient", false, false, `資源不足：${missing.join("、")}。仍可繼續重排。`, settlementId);
+    }
+
+    const source = settlementId;
+    this.applyResource(run, "energy", -energyCost, source);
+    this.applyResource(run, "fuel", -fuelCost, source);
+    if (berthCount === 0) {
+      this.applyEnvironment(run, "temperature", -6, source);
+      this.applySurvivor(run, "sleep", -10, source);
+      this.applySurvivor(run, "health", -3, source);
+    } else if (berthCount === 1) {
+      this.applyEnvironment(run, "temperature", -3, source);
+      this.applySurvivor(run, "sleep", -5, source);
+    } else if (berthCount >= 3) {
+      this.applyEnvironment(run, "temperature", 2, source);
+      this.applySurvivor(run, "sleep", 4, source);
+    }
+
+    if (deicerCount === 0) {
+      frost.pendingRouteFuelPenalty += 3;
+      frost.frostRisk += 2;
+    } else if (deicerCount === 1) {
+      frost.pendingRouteFuelPenalty += 1;
+      frost.frostRisk += 1;
+    } else if (deicerCount >= 3) {
+      frost.switchCleared = true;
+      this.applyEnvironment(run, "noise", 4, source);
+    }
+    if (frost.branch === "CLEAR") this.applyEnvironment(run, "noise", 6, source);
+
+    if (waterCost > 0) this.applyResource(run, "water", -waterCost, source);
+    if (loopCount === 0 && frost.branch !== "SUSTAIN") {
+      for (const plot of run.crops) plot.dryDays += 1;
+    } else if (loopCount === 1 && frost.branch !== "SUSTAIN") {
+      const plot = run.crops.find((candidate) => Boolean(candidate.cropId)) ?? run.crops[0];
+      if (plot) plot.dryDays += 1;
+    } else if (loopCount >= 3) {
+      this.applyResource(run, "water", 1, source);
+    }
+
+    thermal.committedAllocation = { ...actual };
+    thermal.committedDay = run.day;
+    thermal.selectedTokenId = null;
+    thermal.settlementIds.push(settlementId);
+    if (this.endRunIfTerminal(run)) {
+      return this.thermalResult(
+        run,
+        "accepted",
+        true,
+        true,
+        "熱力配置已結算，但臥鋪失溫使守護協定終止。",
+        settlementId,
+      );
+    }
+    if (run.day === 7 && frost.finaleStage !== "resolved") {
+      frost.finaleStage = "warm";
+      run.phase = "travel";
+      run.activeEventId = "EV063";
+    }
+    return this.thermalResult(
+      run,
+      "accepted",
+      true,
+      true,
+      `熱力配置已結算：BERTH ${actual.BERTH}、DEICER ${actual.DEICER}、LOOP ${actual.LOOP}。`,
+      settlementId,
+    );
+  }
+
   public interactThreat(run: RunState, command: ThreatInteractionCommand): ThreatInteractionResult;
   public interactThreat(
     run: RunState,
@@ -442,7 +815,7 @@ export class RunService {
     const command = rawCommand as ThreatInteractionCommand;
     const contact = run.activeContact;
     const interaction = contact?.interaction ?? this.ensureThreatInteraction(run);
-    if (run.phase !== "night" || !contact || contact.stage === "resolve") {
+    if (run.phase !== "night" || !contact || contact.stage === "resolve" || contact.stage === "breach") {
       return this.rejectThreatInteraction(run, "invalid", "目前沒有可互動的夜間接觸。");
     }
     if (!interaction) {
@@ -456,6 +829,8 @@ export class RunService {
         return this.interactT005(run, contact, interaction, command);
       case "T006":
         return this.interactT006(run, contact, interaction, command);
+      case "T009":
+        return this.interactT009(run, contact, interaction, command);
     }
   }
 
@@ -484,7 +859,16 @@ export class RunService {
       run.ended = true;
       run.outcome = run.environment.hull <= 0 ? "hull-lost" : "survivor-lost";
       run.lastMessage = run.environment.hull <= 0 ? "車體失去密封，守護協定被迫終止。" : "A-07 生命徵象消失，守護協定被迫終止。";
-    } else if (run.day === 7 && run.story.finaleStage === "contact") {
+    } else if (
+      run.routeId === "R02"
+      && run.day === 7
+      && run.story.whiteFrost?.finaleStage === "blizzard"
+    ) {
+      run.story.whiteFrost.finaleStage = "clear";
+      run.phase = "travel";
+      run.activeEventId = "EV064";
+      run.lastMessage = `${encounterMessage} ${rationMessage} 暴風雪已穿越；凍結轉轍等待 CLEAR。`;
+    } else if (run.routeId === "R01" && run.day === 7 && run.story.finaleStage === "contact") {
       run.phase = "travel";
       run.activeEventId = "EV050";
       run.story.finaleStage = "contact";
@@ -509,15 +893,25 @@ export class RunService {
       return;
     }
     if (run.day >= run.maxDays) {
-      if (run.story.endingId) {
+      if (run.routeId === "R02" && run.story.whiteFrost?.endingId) {
+        run.phase = "ending";
+        run.ended = true;
+        run.outcome = "victory";
+      } else if (run.routeId === "R01" && run.story.endingId) {
         run.phase = "ending";
         run.ended = true;
         run.outcome = "victory";
       } else {
         run.phase = "travel";
-        run.activeEventId = "EV050";
-        run.story.finaleStage = "contact";
-        run.lastMessage = "終點名冊尚未完成查驗，必須先做出終局決定。";
+        if (run.routeId === "R02") {
+          run.activeEventId = "EV063";
+          if (run.story.whiteFrost) run.story.whiteFrost.finaleStage = "warm";
+          run.lastMessage = "雪崩隧道終局尚未完成，必須先提交熱力配置。";
+        } else {
+          run.activeEventId = "EV050";
+          run.story.finaleStage = "contact";
+          run.lastMessage = "終點名冊尚未完成查驗，必須先做出終局決定。";
+        }
       }
       return;
     }
@@ -530,6 +924,7 @@ export class RunService {
     run.survivor.wakeups = 0;
     run.activeEventId = undefined;
     run.lastMessage = `${cropReport} 第 ${run.day} 日整備開始。昨夜睡眠將影響今日行動。`;
+    this.enterStoryPhase(run, "prep");
   }
 
   public buildModule(run: RunState, definitionId: string): boolean {
@@ -749,7 +1144,7 @@ export class RunService {
   }
 
   public getEvent(run: RunState) {
-    return [...EVENTS, ...STORY_EVENTS].find((event) => event.id === run.activeEventId);
+    return [...EVENTS, ...ALL_STORY_EVENTS].find((event) => event.id === run.activeEventId);
   }
 
   public getThreat(contact?: ThreatContact) {
@@ -757,7 +1152,24 @@ export class RunService {
   }
 
   private createNightContact(run: RunState, wave: number, totalWaves: number): ThreatContact {
-    if (run.day === 7 && wave === 3 && run.story.flags.day4Route) {
+    const frostT009 = run.routeId === "R02"
+      && (
+        (run.day === 7 && run.story.whiteFrost?.finaleStage === "blizzard")
+        || (run.day === 4 && wave === totalWaves)
+      );
+    if (frostT009) {
+      const threat = THREATS.find((candidate) => candidate.id === "T009")!;
+      return {
+        id: `contact-${run.day}-${wave}`,
+        definitionId: threat.id,
+        stage: "approach",
+        secondsLeft: threat.warningSeconds,
+        wave,
+        totalWaves,
+        interaction: this.createThreatInteraction(run, threat.id, wave),
+      };
+    }
+    if (run.routeId === "R01" && run.day === 7 && wave === 3 && run.story.flags.day4Route) {
       const threatId = DAY4_BRANCH_DEFINITIONS[run.story.flags.day4Route].day7WaveThree.threatId;
       const threat = THREATS.find((candidate) => candidate.id === threatId) ?? THREATS[0]!;
       return {
@@ -770,7 +1182,9 @@ export class RunService {
         interaction: this.createThreatInteraction(run, threat.id, wave),
       };
     }
-    const standardThreats = THREATS.filter((threat) => threat.id === "T002" || threat.id === "T003");
+    const standardThreats = THREATS.filter((threat) =>
+      run.routeId === "R02" ? threat.id === "T003" : threat.id === "T002" || threat.id === "T003",
+    );
     const orderRng = createRng(run.seed, "threat-order");
     const offset = Math.floor(orderRng() * standardThreats.length);
     const threat = standardThreats[(offset + run.day + wave - 2) % standardThreats.length] ?? standardThreats[0]!;
@@ -830,6 +1244,26 @@ export class RunService {
         traceTarget: targetPlotId,
         targetPlotId,
         attempts: 0,
+      };
+    }
+    if (threatId === "T009") {
+      const rng = createRng(run.seed, `t009:${run.day}:${wave}`);
+      const firstIndex = Math.floor(rng() * FROST_ZONES.length);
+      let secondIndex = Math.floor(rng() * (FROST_ZONES.length - 1));
+      if (secondIndex >= firstIndex) secondIndex += 1;
+      const requiredZones: [FrostZone, FrostZone] = [
+        FROST_ZONES[firstIndex] ?? "BERTH",
+        FROST_ZONES[secondIndex] ?? "DEICER",
+      ];
+      const frost = run.story.whiteFrost;
+      return {
+        kind: "T009",
+        requiredZones,
+        inspectedZones: frost?.heatMapQuality === "full" ? [...requiredZones] : [],
+        attempts: 0,
+        firstMissRevealed: frost?.heatMapQuality === "full",
+        freeMissUsed: false,
+        manualFallbackAvailable: false,
       };
     }
     return undefined;
@@ -944,6 +1378,84 @@ export class RunService {
     return this.resolveThreatInteraction(run, contact, command, result);
   }
 
+  private interactT009(
+    run: RunState,
+    contact: ThreatContact,
+    interaction: Extract<ThreatInteractionState, { kind: "T009" }>,
+    command: ThreatInteractionCommand,
+  ): ThreatInteractionResult {
+    if (command.startsWith("frost:inspect:")) {
+      const zone = command.slice("frost:inspect:".length) as FrostZone;
+      if (!FROST_ZONES.includes(zone)) {
+        return this.rejectThreatInteraction(run, "invalid", "選到不存在的霜區。");
+      }
+      if (!interaction.inspectedZones.includes(zone)) interaction.inspectedZones.push(zone);
+      const severity = interaction.requiredZones.includes(zone) ? 2 : 0;
+      const message = `${zone} 檢查完成；霜蝕嚴重度 ${severity}。重新配置後再確認。`;
+      run.lastMessage = message;
+      return { status: "accepted", accepted: true, resolved: false, healthDelta: 0, message };
+    }
+    if (command === "frost:manual-scrape") {
+      if (!interaction.manualFallbackAvailable) {
+        return this.rejectThreatInteraction(run, "invalid", "先檢查並嘗試一次熱力配置，才會啟用 MANUAL_SCRAPE。");
+      }
+      const hullCost = run.story.whiteFrost?.manualScrapeHullCost ?? 6;
+      this.applyEnvironment(run, "hull", -hullCost, "threat.T009.manual-scrape");
+      this.applySurvivor(run, "stress", 6, "threat.T009.manual-scrape");
+      interaction.resolvedBy = "manual-scrape";
+      return this.resolveThreatInteraction(
+        run,
+        contact,
+        command,
+        `手動刮冰解除暴風雪鎖定；車體 −${hullCost}、壓力 +6。`,
+      );
+    }
+    if (command !== "frost:confirm") {
+      return this.rejectThreatInteraction(run, "invalid", "暴風雪只能檢查霜區、確認熱力配置或手動刮冰。");
+    }
+    if (interaction.inspectedZones.length === 0) {
+      return this.rejectThreatInteraction(run, "invalid", "至少先檢查一個霜區，再確認熱力配置。");
+    }
+    const frost = run.story.whiteFrost;
+    if (!frost || !thermalRoutingIsValid(frost.thermal)) {
+      interaction.manualFallbackAvailable = true;
+      return this.rejectThreatInteraction(run, "invalid", "六枚熱能單元資料無效；可使用 MANUAL_SCRAPE。");
+    }
+    interaction.attempts += 1;
+    const allocation = getThermalAllocation(frost.thermal.tokens);
+    const correct = interaction.requiredZones.every(
+      (zone) => interaction.inspectedZones.includes(zone) && allocation[zone] >= 2,
+    );
+    if (correct) {
+      interaction.resolvedBy = "thermal";
+      return this.resolveThreatInteraction(
+        run,
+        contact,
+        command,
+        `熱力配置成立：${interaction.requiredZones.join("＋")} 各至少兩枚，暴風雪已解除。`,
+      );
+    }
+    interaction.manualFallbackAvailable = true;
+    if (!interaction.freeMissUsed) {
+      interaction.freeMissUsed = true;
+      interaction.firstMissRevealed = true;
+      return this.rejectThreatInteraction(
+        run,
+        "incorrect",
+        `第一次錯配不扣資源或健康；必要霜區為 ${interaction.requiredZones[0]}◆2、${interaction.requiredZones[1]}◆2。`,
+        true,
+      );
+    }
+    this.applyEnvironment(run, "temperature", -2, "threat.T009.repeated-miss");
+    this.applySurvivor(run, "stress", 2, "threat.T009.repeated-miss");
+    return this.rejectThreatInteraction(
+      run,
+      "incorrect",
+      `熱力仍未覆蓋必要霜區；溫度 −2、壓力 +2。需要 ${interaction.requiredZones.join("＋")} 各兩枚。`,
+      true,
+    );
+  }
+
   private resolveThreatInteraction(
     run: RunState,
     contact: ThreatContact,
@@ -978,11 +1490,43 @@ export class RunService {
     };
   }
 
+  private applyStandardBreachDamage(
+    run: RunState,
+    threat: { id: string; name: string; damage: number },
+  ): boolean {
+    const incomingDamage = threat.damage + (run.day - 1) * 2;
+    const cropBuffer = run.day === 7
+      ? Math.min(run.story.finaleHealthBuffer, Math.max(0, incomingDamage - 2))
+      : 0;
+    if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
+    this.applyEnvironment(run, "hull", -(incomingDamage - cropBuffer), `threat.${threat.id}.breach`);
+    this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
+    this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
+    run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
+    return this.endRunIfTerminal(run);
+  }
+
   private advanceNightContactOrFinish(run: RunState, result: string): boolean {
     const contact = run.activeContact;
     const wave = contact?.wave ?? 1;
     const totalWaves = contact?.totalWaves ?? 1;
-    if (run.day === 7) run.story.completedContactWaves = Math.max(run.story.completedContactWaves, wave);
+    if (this.endRunIfTerminal(run)) return true;
+    if (
+      run.routeId === "R02"
+      && run.day === 7
+      && contact?.definitionId === "T009"
+      && run.story.whiteFrost?.finaleStage === "blizzard"
+    ) {
+      run.activeContact = undefined;
+      run.phase = "travel";
+      run.activeEventId = "EV064";
+      run.story.whiteFrost.finaleStage = "clear";
+      run.lastMessage = `${result} 暴風雪階段完成，現在必須清出轉轍。`;
+      return true;
+    }
+    if (run.routeId === "R01" && run.day === 7) {
+      run.story.completedContactWaves = Math.max(run.story.completedContactWaves, wave);
+    }
     if (run.environment.hull > 0 && run.survivor.health > 0 && wave < totalWaves) {
       const nextWave = wave + 1;
       run.activeContact = this.createNightContact(run, nextWave, totalWaves);
@@ -992,6 +1536,65 @@ export class RunService {
     run.lastMessage = `${result} 今夜 ${totalWaves} 次接觸已結束。`;
     this.finishNight(run);
     return true;
+  }
+
+  private thermalResult(
+    run: RunState,
+    status: ThermalCommandResult["status"],
+    accepted: boolean,
+    settled: boolean,
+    message: string,
+    settlementId?: string,
+  ): ThermalCommandResult {
+    run.lastMessage = message;
+    return { status, accepted, settled, message, ...(settlementId ? { settlementId } : {}) };
+  }
+
+  private applyWhiteFrostConsequence(run: RunState, consequence: WhiteFrostConsequence): void {
+    let frost = run.story.whiteFrost;
+    if (!frost) return;
+    const set = consequence.set;
+    if (set && Object.prototype.hasOwnProperty.call(set, "branch")) {
+      if (set.branch) {
+        frost = applyFrostBranch(frost, set.branch);
+        run.story.whiteFrost = frost;
+      }
+      else frost.branch = null;
+    }
+    if (set) {
+      const { branch: _branch, ...remaining } = set;
+      Object.assign(frost, remaining);
+    }
+    if (consequence.moveToken) {
+      const token = frost.thermal.tokens.find((candidate) => candidate.id === consequence.moveToken?.tokenId);
+      if (token && token.zone !== consequence.moveToken.zone) {
+        token.zone = consequence.moveToken.zone;
+        frost.thermal.revision += 1;
+        frost.thermal.selectedTokenId = null;
+      }
+    }
+    if (typeof consequence.coldDebtDelta === "number") {
+      frost.coldDebt = Math.max(0, frost.coldDebt + consequence.coldDebtDelta);
+    }
+    if (typeof consequence.jointTrustRequirementDelta === "number") {
+      frost.jointTrustRequirement = Math.max(0, frost.jointTrustRequirement + consequence.jointTrustRequirementDelta);
+    }
+    if (typeof consequence.warmRequirementDiscountDelta === "number") {
+      frost.warmRequirementDiscount = Math.max(0, frost.warmRequirementDiscount + consequence.warmRequirementDiscountDelta);
+    }
+    if (consequence.settleColdDebt && !frost.delayedConsequenceSettled) {
+      const offset = consequence.settleColdDebt === "offset-two" ? 2 : 0;
+      const settledPoints = Math.min(3, Math.max(0, frost.coldDebt - offset));
+      if (frost.switchMethod === "ram") {
+        this.applyEnvironment(run, "hull", -2, "story.R02.ram-crack");
+      }
+      if (settledPoints > 0) {
+        this.applyEnvironment(run, "temperature", -settledPoints, "story.R02.cold-debt");
+        this.applySurvivor(run, "health", -settledPoints, "story.R02.cold-debt");
+      }
+      frost.coldDebt = 0;
+      frost.delayedConsequenceSettled = true;
+    }
   }
 
   private recordBranchEvidence(run: RunState): void {

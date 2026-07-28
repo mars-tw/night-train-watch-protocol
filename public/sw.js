@@ -1,4 +1,4 @@
-const CACHE = "night-train-v0.9.0-threat-interactions-r2";
+const CACHE = "night-train-v1.0.0-white-frost-r1";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

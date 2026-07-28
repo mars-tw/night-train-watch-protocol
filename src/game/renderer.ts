@@ -1,8 +1,8 @@
 import type { AppState, CarriageId, ContactStage, ThreatContact } from "./types";
 
 type CarriageArtKey = `carriage-${CarriageId}`;
-type StoryThreatArtKey = "threat-t004-scene" | "threat-t005-scene" | "threat-t006-scene";
-type ArtKey = CarriageArtKey | StoryThreatArtKey | "night" | "menu" | "threat-knocker" | "threat-clinger";
+type StoryThreatArtKey = "threat-t004-scene" | "threat-t005-scene" | "threat-t006-scene" | "threat-t009-scene";
+type ArtKey = CarriageArtKey | StoryThreatArtKey | "carriage-frostline" | "night" | "menu" | "threat-knocker" | "threat-clinger";
 
 const ART_SOURCES: Record<ArtKey, string> = {
   "carriage-sleep": "./assets/art/carriage-sleep.png",
@@ -17,6 +17,8 @@ const ART_SOURCES: Record<ArtKey, string> = {
   "threat-t004-scene": "./assets/art/story/threat-fog-vine-gpt-v1.png",
   "threat-t005-scene": "./assets/art/story/threat-echo-passenger-gpt-v1.png",
   "threat-t006-scene": "./assets/art/story/threat-silent-crowd-gpt-v1.png",
+  "carriage-frostline": "./assets/art/story/carriage-frostline-gpt-v1.png",
+  "threat-t009-scene": "./assets/art/story/threat-blizzard-gpt-v1.png",
 };
 
 export class SceneRenderer {
@@ -64,6 +66,7 @@ export class SceneRenderer {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     const phase = state?.run?.phase;
     const contact = state?.run?.activeContact;
+    const whiteFrost = state?.run?.routeId === "R02";
     const reducedMotion = this.motionIsReduced();
     const carriageArtKey: CarriageArtKey = `carriage-${state?.activeCarriageId ?? "greenhouse"}`;
     const storyThreatArtKey = this.storyThreatArtKey(contact);
@@ -71,6 +74,8 @@ export class SceneRenderer {
       ? "menu"
       : phase === "night" && storyThreatArtKey
         ? storyThreatArtKey
+        : whiteFrost && state?.activeCarriageId === "defense"
+          ? "carriage-frostline"
         : carriageArtKey;
 
     ctx.save();
@@ -81,6 +86,7 @@ export class SceneRenderer {
     this.drawWindowMotion(time, phase === "night", reducedMotion);
     this.drawCarriageLife(time, phase === "night", reducedMotion);
     this.drawAtmosphere(time, phase === "night", reducedMotion);
+    if (whiteFrost) this.drawWhiteFrostRoute(time, reducedMotion);
     if (phase === "night" && contact) {
       this.drawThreat(contact, time, reducedMotion);
       this.drawThreatImpact(contact, time, reducedMotion);
@@ -94,8 +100,79 @@ export class SceneRenderer {
   }
 
   private storyThreatArtKey(contact: ThreatContact | undefined): StoryThreatArtKey | undefined {
-    if (!contact || !["T004", "T005", "T006"].includes(contact.definitionId)) return undefined;
+    if (!contact || !["T004", "T005", "T006", "T009"].includes(contact.definitionId)) return undefined;
     return `threat-${contact.definitionId.toLowerCase()}-scene` as StoryThreatArtKey;
+  }
+
+  private drawWhiteFrostRoute(time: number, reducedMotion: boolean): void {
+    const run = this.state?.run;
+    if (!run?.story.whiteFrost) return;
+    const ctx = this.context;
+    const drift = reducedMotion ? 0 : time * 0.028;
+
+    ctx.save();
+    const coldVeil = ctx.createLinearGradient(0, 0, 720, 1280);
+    coldVeil.addColorStop(0, "rgba(187, 220, 232, 0.18)");
+    coldVeil.addColorStop(0.48, "rgba(105, 154, 174, 0.035)");
+    coldVeil.addColorStop(1, "rgba(6, 20, 29, 0.22)");
+    ctx.fillStyle = coldVeil;
+    ctx.fillRect(0, 0, 720, 1280);
+
+    ctx.strokeStyle = "rgba(220, 244, 249, 0.42)";
+    ctx.lineCap = "round";
+    for (let index = 0; index < 22; index += 1) {
+      const x = (index * 89 + drift * (0.6 + (index % 4) * 0.18)) % 840 - 60;
+      const y = 62 + ((index * 137 + drift * 1.35) % 1020);
+      const length = 8 + (index % 5) * 4;
+      ctx.lineWidth = index % 4 === 0 ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - length * 0.55, y + length);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "rgba(220, 244, 249, 0.5)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(18, 154);
+    ctx.lineTo(64, 126);
+    ctx.lineTo(92, 166);
+    ctx.moveTo(622, 96);
+    ctx.lineTo(666, 148);
+    ctx.lineTo(706, 112);
+    ctx.stroke();
+
+    const branch = run.story.whiteFrost.branch;
+    const activeCarriage = this.state?.activeCarriageId;
+    const branchCarriage = branch === "CARE" ? "sleep" : branch === "CLEAR" ? "defense" : branch === "SUSTAIN" ? "greenhouse" : undefined;
+    if (branch && activeCarriage === branchCarriage) {
+      const branchColor = branch === "CARE" ? "226,168,93" : branch === "CLEAR" ? "137,183,199" : "126,165,122";
+      const glow = ctx.createRadialGradient(360, 690, 20, 360, 690, 350);
+      glow.addColorStop(0, `rgba(${branchColor}, 0.2)`);
+      glow.addColorStop(1, `rgba(${branchColor}, 0)`);
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 300, 720, 760);
+      ctx.strokeStyle = `rgba(${branchColor}, 0.72)`;
+      ctx.lineWidth = 5;
+      if (branch === "CARE") {
+        ctx.beginPath();
+        ctx.roundRect(330, 532, 292, 278, 38);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(226,168,93,0.18)";
+        ctx.fillRect(352, 742, 238, 18);
+      } else if (branch === "CLEAR") {
+        ctx.strokeRect(505, 426, 118, 174);
+        for (let row = 0; row < 3; row += 1) ctx.strokeRect(524, 448 + row * 47, 80, 28);
+      } else {
+        ctx.beginPath();
+        ctx.arc(151, 658, 88, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(151, 658, 54, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   }
 
   private drawArt(key: ArtKey): boolean {

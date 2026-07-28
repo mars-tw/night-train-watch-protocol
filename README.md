@@ -6,9 +6,13 @@
 
 ## 目前可玩內容
 
-- 完整七夜旅程：整備 → 路線 → 行車事件 → 夜襲 → 黎明結算 → 結局。
+- 主選單可直接選擇 R01「灰霧線」或 R02「白霜線」，兩條路線都有完整七夜旅程：整備 → 路線 → 行車事件 → 夜襲 → 黎明結算 → 結局。
 - v0.9「灰霧線」以 EV041–EV052 串成固定七日主線；Day 4 的 GO／DETOUR／STOP 會永久改變貨運用途、真實路線資料取得方式與 Day 7 第三波威脅。
-- Day 7 不再直接跳結局：玩家必須完成終點呼叫、固定三波接觸、身分查驗、四項終局決定與最後一句，結果畫面會列出成立原因、Day 4 分支及最後操作。
+- v1.0「白霜線」以 EV053–EV065 串成另一條七日主線；Day 4 的 CARE／CLEAR／SUSTAIN 會分別永久改變臥室（sleep）保溫、武器物資（defense）除冰與溫室（greenhouse）循環設備，不是只換結局文字。
+- 白霜線的熱力板有六枚可見單元，可在 BERTH／DEICER／LOOP 三區選取、移動、重設與提交；配置、版本與已提交結算都會存檔，重載後可繼續操作。
+- T009 暴風雪必須先檢查霜區；第一次錯配只揭示兩個必要霜區，不扣資源或健康，玩家可依線索重新分熱確認，或選擇承受代價的手動刮冰。
+- 白霜車廂與 T009 暴風雪分別使用 `carriage-frostline-gpt-v1.png`、`threat-blizzard-gpt-v1.png` 兩張 GPT 原創 9:16 圖；兩張都由 Canvas runtime 真正載入，熱力單元、霜區與互動標記則由遊戲狀態即時繪製。
+- 灰霧線的 Day 7 不再直接跳結局：玩家必須完成終點呼叫、固定三波接觸、身分查驗、四項終局決定與最後一句，結果畫面會列出成立原因、Day 4 分支及最後操作。
 - T004 霧噬藤不再是一鍵按鈕：玩家要把割具拖到受感染的種植槽，手機也可用「先拿割具、再點槽」；T005 以兩張色／形／三拍訊號卡比對，首錯只揭示線索、第二錯才扣健康；T006 完全移除敲窗音訊提示，改讀左右葉片與電表錶針。成熟作物仍會在 Day 7 提供可消耗的車體傷害緩衝。
 - T004–T006 各自使用一張 GPT 製作、由 Canvas 真正載入的 9:16 威脅場景；互動熱區與背景構圖對齊，不是把素材放進資料夾卻不顯示。
 - 整備階段有 3–5 AP：播種、收成、安撫、維修、工坊回收、烹飪與建造會實際消耗對應資源／行動點；睡眠品質決定隔日 AP。
@@ -22,7 +26,7 @@
 - 夜間暫停鍵直接顯示「暫停／繼續」，而不是難辨識的倍速符號；路線威脅等級會真的形成 1／2／3 波連續接觸，每波顯示目前進度，只有最後一波解除後才進入黎明。威脅逐夜加速、破口傷害逐夜提高，健康或車體歸零會進入可重玩的失敗結局。
 - 車廂佈置模式提供 4 件 GPT 製作的透明小物：黃銅燈、短波機、工具箱與蕨盆栽；五節車廂共 15 個具語意的掛鉤、牆面、檯面、窗台、層架與地面槽位，綠色可放、紅色不相容、占用中不可覆蓋，支援點放、滑鼠／手指拖曳吸附、重設、存檔與重載復原。
 - 8 個核心畫面與 A/B 狀態：主選單、局外中心、車廂、路線、事件、模組、科技、結算。
-- 8 個一般事件與 12 個灰霧線故事事件、3 條路線、12 個模組、8 個科技節點、5 種夜間威脅。
+- 8 個一般事件、2 條七夜故事線、EV041–EV065 共 25 個故事事件、每日 3 個行車節點、12 個模組、8 個科技節點、6 種夜間威脅。
 - IndexedDB current／backup 雙存檔，localStorage 降級，PWA 離線快取。
 - 文字 100／120／140%、減少動態、無倒數、0.75× 守夜與音效開關。
 - 原創車廂、A-07 與威脅圖層均由 runtime 實際載入，不使用攤平的 UI 截圖當遊戲畫面。
@@ -30,6 +34,42 @@
 - 畫面進場依 03A／03B／05A／05B／08B 稿的資訊層級編排；只在真正換頁時播放，倒數重繪不會反覆觸發。
 
 ## 遊玩影片與畫面
+
+### v1.0 白霜線
+
+以下 3 支 WebM 分別由 CARE／CLEAR／SUSTAIN 的 390×844 七夜瀏覽器通關流程錄製：
+
+- [CARE 七夜遊玩影片（WebM）](public/assets/video/night-train-frost-v100-care.webm)
+- [CLEAR 七夜遊玩影片（WebM）](public/assets/video/night-train-frost-v100-clear.webm)
+- [SUSTAIN 七夜遊玩影片（WebM）](public/assets/video/night-train-frost-v100-sustain.webm)
+
+| R02 主選單路線卡 | 360×640／140% 熱力板 |
+|---|---|
+| ![R02 白霜線路線卡](public/assets/screenshots/frost-route-selection-v100.png) | ![白霜線熱力板](public/assets/screenshots/frost-thermal-drawer-360x640-text140-v100.png) |
+
+| 六枚單元實際拖放 | EV057 三項永久分支 |
+|---|---|
+| ![熱力單元拖放](public/assets/screenshots/frost-thermal-pointer-drag-v100.png) | ![EV057 CARE CLEAR SUSTAIN](public/assets/screenshots/frost-ev057-three-branches-v100.png) |
+
+| CARE：臥室保溫 | CLEAR：武器物資除冰 | SUSTAIN：溫室循環 |
+|---|---|---|
+| ![CARE 臥室車廂](public/assets/screenshots/frost-care-carriage-v100.png) | ![CLEAR 武器物資車廂](public/assets/screenshots/frost-clear-carriage-v100.png) | ![SUSTAIN 溫室車廂](public/assets/screenshots/frost-sustain-carriage-v100.png) |
+
+| CARE T009 首錯揭示 | CLEAR T009 首錯揭示 | SUSTAIN T009 首錯揭示 |
+|---|---|---|
+| ![CARE T009](public/assets/screenshots/frost-care-t009-first-miss-v100.png) | ![CLEAR T009](public/assets/screenshots/frost-clear-t009-first-miss-v100.png) | ![SUSTAIN T009](public/assets/screenshots/frost-sustain-t009-first-miss-v100.png) |
+
+| CARE：共享熱源抵達 | CLEAR：守護式抵達 |
+|---|---|
+| ![CARE 結局](public/assets/screenshots/frost-care-ending-v100.png) | ![CLEAR 結局](public/assets/screenshots/frost-clear-ending-v100.png) |
+
+| SUSTAIN：共同選擇改道 | 保底：雪崩避難 |
+|---|---|
+| ![SUSTAIN 結局](public/assets/screenshots/frost-sustain-ending-v100.png) | ![雪崩避難結局](public/assets/screenshots/frost-emergency-shelter-ending-v100.png) |
+
+v1.0 公開驗收共保留 22 張 PNG 與上述 3 支 WebM；三分支七夜、T009 首錯揭示／重試／手動刮冰、熱力提交與重載證據見 [白霜線 QA JSON](public/assets/qa/frost-story-flow-report.json)。
+
+### v0.9 灰霧線與共用畫面
 
 - [v0.9 七日故事實機遊玩影片（WebM）](public/assets/video/night-train-story-v090.webm)
 - [v0.9 DETOUR／T004 割具拖放七日影片（WebM）](public/assets/video/night-train-story-v090-detour.webm)
@@ -87,7 +127,7 @@
 |---|---|---|
 | ![T004 霧噬藤割具拖放](public/assets/screenshots/28-story-t004-fog-vine.png) | ![T005 回聲乘客訊號比對](public/assets/screenshots/29-story-t005-echo-passenger.png) | ![T006 靜默群無聲判位](public/assets/screenshots/30-story-t006-silent-crowd.png) |
 
-v0.9.0 的真人視角驗收不是只檢查函式：Playwright 真的在 390×844 與 360×640 瀏覽器中以可見中心座標點擊、滑動與拖放，並檢查中心沒有被透明層或面板攔截。既有全按鈕流程涵蓋 49 種操作與 498 項斷言；新增故事矩陣則讓 GO、DETOUR、STOP 各完成七日與 Day 7 三波，分別實際解除 T006、T004、T005。360×640／140% 的 EV051、EV052 與結局頁面三條分支皆為 0px 水平溢位。詳見 [手機肉眼可玩性驗收](docs/MOBILE_VISUAL_QA.md)、[全按鈕 JSON 報告](public/assets/qa/mobile-playability-report.json) 與 [七日故事 JSON 報告](public/assets/qa/story-flow-report.json)。
+目前的真人視角自動驗收不是只檢查函式：Playwright 真的在 390×844 與 360×640 瀏覽器中以可見中心座標點擊、滑動與拖放，並檢查中心沒有被透明層或面板攔截。全按鈕流程涵蓋 56 種操作與 591 項斷言；R01 的 GO／DETOUR／STOP 完整矩陣各完成七夜與 Day 7 三波，R02 的 CARE／CLEAR／SUSTAIN 也各完成七夜、熱力配置、T009 與不同結局。v1.0 白霜線的公開證據為 22 張 PNG、3 支 WebM 與 QA JSON。這些是桌面 Chromium 自動驗收證據，不代表 iOS Safari／Android Chrome 人工實機已通過。詳見 [手機肉眼可玩性驗收](docs/MOBILE_VISUAL_QA.md)、[全按鈕 JSON 報告](public/assets/qa/mobile-playability-report.json)、[R01 七夜故事 JSON 報告](public/assets/qa/story-flow-report.json) 與 [R02 白霜線 JSON 報告](public/assets/qa/frost-story-flow-report.json)。
 
 ## 本機執行
 
@@ -98,7 +138,7 @@ npm ci
 npm run dev
 ```
 
-開啟 `http://localhost:4177`。完整驗證：
+開啟 `http://localhost:5173`。完整驗證：
 
 ```bash
 npm run check
@@ -116,7 +156,7 @@ npm run capture:video
 npm run capture:playability
 ```
 
-全操作手機瀏覽器稽核（49 種操作、390×844／360×640 肉眼版面、可見中心實際點擊、左右滑動、可收合工具、五車廂、1／2／3 波路線風險、兩夜種植／澆水／收成、相容槽點放與實際拖曳、重載保存、局外預覽與破口維修）：
+全操作手機瀏覽器稽核（56 種操作、591 項斷言、390×844／360×640 肉眼版面、可見中心實際點擊、左右滑動、五車廂、種植／收成、熱力配置、場景威脅、零燃料承受撞擊與緊急路線）：
 
 ```bash
 npm run audit:buttons
@@ -128,6 +168,17 @@ npm run audit:buttons
 npm run audit:story
 ```
 
+R02 白霜線七夜實機通關稽核（預設依序跑 CARE／CLEAR／SUSTAIN；包含六枚熱力單元、EV057 永久車廂差異、T009 首錯揭示／重試／手動刮冰、360×640／140%、存檔重載、22 張 PNG 與 3 支分支錄影）：
+
+```bash
+npm run audit:frost
+```
+
+## 發布狀態
+
+- v1.0 的發布方式固定為 stacked Draft，base 為 `codex/story-expansion-v090`；建立 PR 時描述必須保留 `Depends on #5`，避免在灰霧線 Draft PR #5 尚未合併前錯誤改以 `main` 為基底。
+- 自動化 PASS、截圖與 WebM 都不是人工裝置核可。iOS Safari 與 Android Chrome 都完成手動遊玩並明確批准前，不得把 v1.0 Draft 改為 Ready for review，也不得部署。
+
 ## 技術結構
 
 - TypeScript + Vite。
@@ -136,7 +187,7 @@ npm run audit:story
 - 固定 seed 的獨立 RNG stream 讓事件與威脅可重播。
 - WebAudio 僅在首次互動後啟用；成品不含任何 OpenAI 或 xAI 金鑰。
 
-詳細規格見 [瀏覽器改編規格](spec/spec-design-mobile-browser-adaptation.md) 與 [實作計畫](plan/feature-night-train-vertical-slice-1.md)。資產來源與產圖提示見 [ASSET_MANIFEST](docs/ASSET_MANIFEST.md)。
+詳細規格見 [瀏覽器改編規格](spec/spec-design-mobile-browser-adaptation.md)、[R02 白霜線規格](spec/spec-design-white-frost-story-v1-0.md)、[垂直切片實作計畫](plan/feature-night-train-vertical-slice-1.md) 與 [R02 白霜線施工計畫](plan/feature-night-train-white-frost-v1-0.md)。資產來源與產圖提示見 [ASSET_MANIFEST](docs/ASSET_MANIFEST.md)。
 
 ## 開源授權
 

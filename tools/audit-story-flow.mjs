@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium } from "playwright";
 
@@ -13,6 +13,26 @@ const COMPACT_VIEWPORT = { width: 360, height: 640 };
 const COMPACT_TEXT_SCALE = 140;
 const baseUrl = process.env.GAME_URL ?? "http://127.0.0.1:4312";
 const outputDirectory = resolve("output/playwright/story-flow");
+const publicVideoDirectory = resolve("public/assets/video");
+const PUBLIC_VIDEO_NAMES = {
+  GO: "night-train-story-v090.webm",
+  DETOUR: "night-train-story-v090-detour.webm",
+  STOP: "night-train-story-v090-stop.webm",
+};
+const DAY4_RESOURCE_FIXTURE_POLICY = {
+  kind: "qa-only-branch-resource-fixture",
+  appliesToBranch: "STOP",
+  eventId: "EV044",
+  choiceId: "STOP",
+  choiceMinimum: { food: 3, water: 3 },
+  legalTarget: { food: 8, water: 8 },
+  legalTargetSource: "src/game/content.ts BALANCE.max",
+  mutatedFields: ["resources.food", "resources.water"],
+  preservedState: ["routeId", "day", "phase", "activeEventId", "selectedRouteNodeId", "story"],
+  storage: ["localStorage:run.current", "IndexedDB:night-train-save/snapshots/run.current"],
+  resume: "reload menu, re-sync the same serialized fixture, then use the visible Continue button",
+  interaction: "click the visible STOP button at its rendered center with page.mouse.click",
+};
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -80,8 +100,186 @@ async function clickAction(page, action, value) {
   await page.waitForTimeout(140);
 }
 
+async function clickActionAtVisibleCenter(page, action, value) {
+  const suffix = value === undefined ? "" : `[data-value="${value}"]`;
+  const selector = `[data-action="${action}"]${suffix}:not([disabled])`;
+  let clickEvidence;
+  await retryDomAction(`${action}${value ? `:${value}` : ""} center click`, async () => {
+    const target = page.locator(selector).first();
+    await target.waitFor({ state: "visible", timeout: 5000 }).catch(() => undefined);
+    assert(await target.count() === 1, `Missing enabled action ${action}${value ? `:${value}` : ""}`);
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    assert(box && box.width > 0 && box.height > 0, `${action}:${value} has no visible center hit box`);
+    const center = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+    const hit = await page.evaluate(({ x, y }) => {
+      const element = document.elementFromPoint(
+        Math.max(0, Math.min(window.innerWidth - 1, x)),
+        Math.max(0, Math.min(window.innerHeight - 1, y)),
+      );
+      const actionTarget = element?.closest("[data-action]");
+      return actionTarget
+        ? {
+            action: actionTarget.getAttribute("data-action"),
+            value: actionTarget.getAttribute("data-value"),
+            disabled: actionTarget.hasAttribute("disabled"),
+          }
+        : undefined;
+    }, center);
+    assert(
+      hit?.action === action && hit?.value === (value ?? null) && hit.disabled === false,
+      `${action}:${value} is covered or disabled at its visible center`,
+    );
+    await page.mouse.click(center.x, center.y);
+    clickEvidence = {
+      method: "page.mouse.click",
+      center,
+      hitTarget: hit,
+      hitBox: { width: box.width, height: box.height },
+    };
+  });
+  await page.waitForTimeout(140);
+  return clickEvidence;
+}
+
 async function readSavedRun(page) {
   return JSON.parse((await page.evaluate(() => localStorage.getItem("run.current"))) ?? "{}");
+}
+
+async function syncSerializedRun(page, serialized) {
+  return page.evaluate(async (snapshot) => {
+    const openDatabase = () => new Promise((resolveOpen, rejectOpen) => {
+      const request = indexedDB.open("night-train-save", 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains("snapshots")) {
+          request.result.createObjectStore("snapshots");
+        }
+      };
+      request.onsuccess = () => resolveOpen(request.result);
+      request.onerror = () => rejectOpen(request.error ?? new Error("Cannot open QA save database"));
+    });
+    const database = await openDatabase();
+    localStorage.setItem("run.current", snapshot);
+    await new Promise((resolveWrite, rejectWrite) => {
+      const transaction = database.transaction("snapshots", "readwrite");
+      transaction.objectStore("snapshots").put(snapshot, "run.current");
+      transaction.oncomplete = () => resolveWrite(undefined);
+      transaction.onerror = () => rejectWrite(transaction.error ?? new Error("Cannot write QA snapshot"));
+    });
+    const indexed = await new Promise((resolveRead, rejectRead) => {
+      const request = database.transaction("snapshots", "readonly").objectStore("snapshots").get("run.current");
+      request.onsuccess = () => resolveRead(request.result);
+      request.onerror = () => rejectRead(request.error ?? new Error("Cannot verify QA snapshot"));
+    });
+    database.close();
+    return {
+      localStorageMatches: localStorage.getItem("run.current") === snapshot,
+      indexedDBMatches: indexed === snapshot,
+    };
+  }, serialized);
+}
+
+async function applyStopDay4ResourceFixture(page) {
+  const beforeRun = await readSavedRun(page);
+  assert(beforeRun.routeId === "R01", "STOP resource fixture requires the R01 route");
+  assert(beforeRun.day === 4, `STOP resource fixture requires Day 4, received Day ${beforeRun.day}`);
+  assert(beforeRun.activeEventId === "EV044", `STOP resource fixture requires EV044, received ${beforeRun.activeEventId ?? "none"}`);
+
+  const preserved = {
+    routeId: beforeRun.routeId,
+    day: beforeRun.day,
+    phase: beforeRun.phase,
+    activeEventId: beforeRun.activeEventId,
+    selectedRouteNodeId: beforeRun.selectedRouteNodeId,
+    story: beforeRun.story,
+  };
+  const fixtureRun = structuredClone(beforeRun);
+  const before = {
+    food: beforeRun.resources?.food,
+    water: beforeRun.resources?.water,
+  };
+  fixtureRun.resources.food = DAY4_RESOURCE_FIXTURE_POLICY.legalTarget.food;
+  fixtureRun.resources.water = DAY4_RESOURCE_FIXTURE_POLICY.legalTarget.water;
+  const serialized = JSON.stringify(fixtureRun);
+  const preReloadSync = await syncSerializedRun(page, serialized);
+  assert(preReloadSync.localStorageMatches && preReloadSync.indexedDBMatches, "STOP fixture did not sync before reload");
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".screen--menu", { timeout: 6000 });
+  const postReloadSync = await syncSerializedRun(page, serialized);
+  assert(postReloadSync.localStorageMatches && postReloadSync.indexedDBMatches, "STOP fixture did not sync after reload");
+  await clickAction(page, "continue");
+  await page.waitForSelector('[data-event-id="EV044"]', { timeout: 6000 });
+
+  const resumedRun = await readSavedRun(page);
+  const resumedState = {
+    routeId: resumedRun.routeId,
+    day: resumedRun.day,
+    phase: resumedRun.phase,
+    activeEventId: resumedRun.activeEventId,
+    selectedRouteNodeId: resumedRun.selectedRouteNodeId,
+    story: resumedRun.story,
+  };
+  assert(
+    JSON.stringify(resumedState) === JSON.stringify(preserved),
+    "STOP fixture changed story or Day 4 event state while reloading",
+  );
+  assert(
+    resumedRun.resources.food === DAY4_RESOURCE_FIXTURE_POLICY.legalTarget.food
+      && resumedRun.resources.water === DAY4_RESOURCE_FIXTURE_POLICY.legalTarget.water,
+    "STOP fixture resources were not restored after Continue",
+  );
+  assert(
+    await page.locator('[data-event-id="EV044"] [data-action="event-choice"][data-value="STOP"]:not([disabled])').count() === 1,
+    "STOP remained disabled after the disclosed Day 4 resource fixture",
+  );
+
+  return {
+    policy: DAY4_RESOURCE_FIXTURE_POLICY.kind,
+    branch: "STOP",
+    eventId: "EV044",
+    choiceMinimum: DAY4_RESOURCE_FIXTURE_POLICY.choiceMinimum,
+    before,
+    after: {
+      food: resumedRun.resources.food,
+      water: resumedRun.resources.water,
+    },
+    changedFields: DAY4_RESOURCE_FIXTURE_POLICY.mutatedFields,
+    preReloadSync,
+    postReloadSync,
+    reloaded: true,
+    continuedThroughVisibleUi: true,
+    preservedStateVerified: true,
+  };
+}
+
+function diagnosticRunSummary(run) {
+  if (!run || typeof run !== "object") return undefined;
+  return {
+    routeId: run.routeId,
+    day: run.day,
+    phase: run.phase,
+    activeEventId: run.activeEventId,
+    activeContact: run.activeContact
+      ? {
+          id: run.activeContact.id,
+          definitionId: run.activeContact.definitionId,
+          wave: run.activeContact.wave,
+          totalWaves: run.activeContact.totalWaves,
+          stage: run.activeContact.stage,
+        }
+      : undefined,
+    resources: run.resources,
+    survivor: run.survivor,
+    storyFlags: run.story?.flags,
+    completedContactWaves: run.story?.completedContactWaves,
+    finalDecision: run.story?.finalDecision,
+    endingId: run.story?.endingId,
+    lastMessage: run.lastMessage,
+  };
 }
 
 async function resetBrowserState(page) {
@@ -292,7 +490,8 @@ async function completeDedicatedThreatInteraction(page, threatId, branchDirector
 async function resolveNight(page, day, expectedWaveThree, encounteredThreats, waveEvidence, branchDirectory) {
   const handledContacts = new Set();
 
-  while (await page.locator(".screen--carriage.is-night").count()) {
+  for (let guard = 0; guard < 40; guard += 1) {
+    if (await page.locator(".screen--carriage.is-night").count() === 0) return undefined;
     const contact = (await readSavedRun(page)).activeContact;
     if (!contact) {
       await page.waitForTimeout(120);
@@ -315,35 +514,59 @@ async function resolveNight(page, day, expectedWaveThree, encounteredThreats, wa
     }
 
     if (handledContacts.has(contactKey)) {
-      await page.waitForTimeout(120);
-      continue;
+      const stalled = await readSavedRun(page);
+      throw new Error(
+        `Night ${day} wave ${wave} stalled on handled ${threatId} contact ${contact.id}; `
+        + `fuel=${stalled.resources?.fuel}, energy=${stalled.resources?.energy}, `
+        + `message=${stalled.lastMessage ?? "none"}`,
+      );
     }
     handledContacts.add(contactKey);
 
     if (day === 7 && wave === 3) {
       const interaction = await completeDedicatedThreatInteraction(page, threatId, branchDirectory);
-      await waitForContactAdvance(page, contact.id).catch(() => undefined);
+      await waitForContactAdvance(page, contact.id);
       await page.waitForTimeout(120);
       return interaction;
     }
 
+    const preferredCounterIds = threatId === "T003"
+      ? ["emergency-boost", "decoy"]
+      : ["close-shutter", "shock-window"];
     let counter = page.locator(
-      '.emergency-actions [data-action="counter"]:not([disabled])',
+      '.emergency-actions [data-action="counter"][data-value="brace-impact"]:not([disabled])',
     ).first();
-    if (await counter.count() === 0) {
-      await page.waitForTimeout(650);
-      if (await page.locator(".screen--carriage.is-night").count() === 0) break;
-      counter = page.locator(
-        '.emergency-actions [data-action="counter"]:not([disabled])',
+    for (const counterId of preferredCounterIds) {
+      const candidate = page.locator(
+        `.emergency-actions [data-action="counter"][data-value="${counterId}"]:not([disabled])`,
       ).first();
+      if (await candidate.count() === 1) {
+        counter = candidate;
+        break;
+      }
     }
-    assert(await counter.count() === 1, `Night ${day} wave ${wave} must expose a clickable counter`);
+    assert(
+      await counter.count() === 1,
+      `Night ${day} wave ${wave} ${threatId} must expose an effective counter or brace-impact fallback`,
+    );
+    const selectedCounterId = await counter.getAttribute("data-value");
     await counter.click();
-    await waitForContactAdvance(page, contact.id).catch(() => undefined);
+    await waitForContactAdvance(page, contact.id).catch(async () => {
+      const stalled = await readSavedRun(page);
+      throw new Error(
+        `Night ${day} wave ${wave} ${threatId} did not advance after ${selectedCounterId}; `
+        + `fuel=${stalled.resources?.fuel}, energy=${stalled.resources?.energy}, `
+        + `message=${stalled.lastMessage ?? "none"}`,
+      );
+    });
     await page.waitForTimeout(120);
   }
 
-  return undefined;
+  const stalled = await readSavedRun(page);
+  throw new Error(
+    `Night ${day} exceeded the 40-step browser guard; `
+    + `contact=${stalled.activeContact?.definitionId ?? "none"}:${stalled.activeContact?.id ?? "none"}`,
+  );
 }
 
 async function setCompactFinaleMode(page) {
@@ -503,6 +726,7 @@ async function runBranch(browser, branch) {
   const page = await context.newPage();
   const storyVideo = page.video();
   let branchReport;
+  let day4ResourceFixture;
 
   page.on("pageerror", (error) => browserErrors.push(error.message));
   page.on("console", (message) => {
@@ -511,7 +735,7 @@ async function runBranch(browser, branch) {
 
   try {
     await resetBrowserState(page);
-    await clickAction(page, "new-game");
+    await clickAction(page, "new-game", "R01");
     await clickAction(page, "power");
     await clickAction(page, "toggle-power", "M002");
     await clickAction(page, "toggle-power", "M003");
@@ -531,6 +755,9 @@ async function runBranch(browser, branch) {
       const choices = day === 4 ? [branch] : dayChoices[day];
       for (const choiceId of choices) {
         if (day === 4) {
+          if (branch === "STOP") {
+            day4ResourceFixture = await applyStopDay4ResourceFixture(page);
+          }
           assert(
             await page.locator('[data-action="event-choice"]').count() === 3,
             "Day 4 must show three permanent branches",
@@ -540,7 +767,17 @@ async function runBranch(browser, branch) {
             fullPage: true,
           });
         }
-        await clickAction(page, "event-choice", choiceId);
+        if (day === 4 && branch === "STOP") {
+          day4ResourceFixture.centerClick = await clickActionAtVisibleCenter(page, "event-choice", choiceId);
+          await page.waitForFunction(
+            () => JSON.parse(localStorage.getItem("run.current") ?? "{}").story?.flags?.day4Route === "STOP",
+            undefined,
+            { timeout: 5000 },
+          );
+          day4ResourceFixture.choicePersisted = true;
+        } else {
+          await clickAction(page, "event-choice", choiceId);
+        }
       }
 
       await page.waitForSelector(".screen--carriage.is-night");
@@ -629,22 +866,81 @@ async function runBranch(browser, branch) {
       day7Waves,
       interactionAudit,
       compactFinale,
+      day4ResourceFixture,
       encounteredThreats: [...encounteredThreats],
       screenshots: 4,
       videos: 1,
     };
     return branchReport;
+  } catch (error) {
+    const runSnapshot = page.isClosed()
+      ? undefined
+      : await readSavedRun(page).catch(() => undefined);
+    const diagnosticRelativePath = `output/playwright/story-flow/${branch.toLowerCase()}/failure-diagnostic.json`;
+    const screenshotRelativePath = `output/playwright/story-flow/${branch.toLowerCase()}/failure-last-frame.png`;
+    const screenshotSaved = page.isClosed()
+      ? false
+      : await page.screenshot({
+          path: resolve(branchDirectory, "failure-last-frame.png"),
+          fullPage: true,
+        }).then(() => true).catch(() => false);
+    const diagnostic = {
+      generatedAt: new Date().toISOString(),
+      branch,
+      error: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      pageUrl: page.isClosed() ? undefined : page.url(),
+      runSnapshot,
+      runSummary: diagnosticRunSummary(runSnapshot),
+      day4ResourceFixture,
+      browserErrors,
+      waveEvidence,
+      screenshot: screenshotSaved ? screenshotRelativePath : undefined,
+    };
+    const diagnosticSaved = await writeFile(
+      resolve(branchDirectory, "failure-diagnostic.json"),
+      `${JSON.stringify(diagnostic, null, 2)}\n`,
+      "utf8",
+    ).then(() => true).catch(() => false);
+    if (error && typeof error === "object") {
+      error.storyAuditDiagnostic = {
+        path: diagnosticSaved ? diagnosticRelativePath : undefined,
+        screenshot: screenshotSaved ? screenshotRelativePath : undefined,
+        runSummary: diagnostic.runSummary,
+        day4ResourceFixture,
+      };
+    }
+    throw error;
   } finally {
     if (!page.isClosed()) await page.close().catch(() => undefined);
-    await storyVideo?.saveAs(
-      resolve(branchDirectory, `${branch.toLowerCase()}-day1-7-story-playthrough.webm`),
-    ).catch(() => undefined);
+    const outputVideoPath = resolve(
+      branchDirectory,
+      `${branch.toLowerCase()}-day1-7-story-playthrough.webm`,
+    );
+    if (branchReport?.status === "passed") {
+      assert(storyVideo, `${branch} passed without a browser video handle`);
+      await storyVideo.saveAs(outputVideoPath);
+      const publicVideoName = PUBLIC_VIDEO_NAMES[branch];
+      const publicVideoPath = resolve(publicVideoDirectory, publicVideoName);
+      await copyFile(outputVideoPath, publicVideoPath);
+      const videoStats = await stat(publicVideoPath);
+      branchReport.video = {
+        output: `output/playwright/story-flow/${branch.toLowerCase()}/${branch.toLowerCase()}-day1-7-story-playthrough.webm`,
+        public: `public/assets/video/${publicVideoName}`,
+        bytes: videoStats.size,
+      };
+    } else {
+      await storyVideo?.saveAs(outputVideoPath).catch(() => undefined);
+    }
     await context.close().catch(() => undefined);
   }
 }
 
-await mkdir(outputDirectory, { recursive: true });
-await mkdir(resolve("public/assets/qa"), { recursive: true });
+await Promise.all([
+  mkdir(outputDirectory, { recursive: true }),
+  mkdir(resolve("public/assets/qa"), { recursive: true }),
+  mkdir(publicVideoDirectory, { recursive: true }),
+]);
 
 const browser = await chromium.launch({ headless: true });
 const branchReports = [];
@@ -659,6 +955,7 @@ try {
         expectedDay7WaveThree: EXPECTED_DAY7_WAVE_THREE[branch],
         error: error instanceof Error ? error.message : String(error),
         errorStack: error instanceof Error ? error.stack : undefined,
+        diagnostic: error && typeof error === "object" ? error.storyAuditDiagnostic : undefined,
       });
     }
   }
@@ -675,6 +972,7 @@ const report = {
   branchThreatMatrix: EXPECTED_DAY7_WAVE_THREE,
   threatInteractionSelector: '[data-testid="threat-interaction"][data-threat-id] [data-action="threat-interact"][data-value]',
   allowLegacyThreatUi,
+  fixturePolicy: DAY4_RESOURCE_FIXTURE_POLICY,
   compactFinale: runCompactFinale
     ? { viewport: COMPACT_VIEWPORT, textScale: COMPACT_TEXT_SCALE }
     : "skipped",
