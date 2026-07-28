@@ -86,14 +86,16 @@ describe("R02 white-frost story content", () => {
     }
   });
 
-  it("preserves all shipped R01 threats while adding T009", () => {
+  it("preserves all shipped R01/R02 threats while adding R03 T008 and T013", () => {
     expect(THREATS.map((threat) => threat.id)).toEqual([
       "T002",
       "T003",
       "T004",
       "T005",
       "T006",
+      "T008",
       "T009",
+      "T013",
     ]);
   });
 });

@@ -12,7 +12,7 @@ export type CropId = "lettuce" | "tomato" | "herb";
 export type CropPlotId = "plot-a" | "plot-b";
 export type FeedbackTone = "gain" | "cost" | "relief" | "neutral";
 export type Day4Route = "GO" | "DETOUR" | "STOP";
-export type StoryRouteId = "R01" | "R02";
+export type StoryRouteId = "R01" | "R02" | "R03";
 export type FinaleStage = "inactive" | "arrival" | "contact" | "decision" | "resolved";
 export type EndingId = "arrival" | "quarantine" | "reroute" | "protocol-terminated" | "arrival-unverified";
 export type CargoConversion = "none" | "isolation-bay" | "battery-array" | "sample-lab";
@@ -30,6 +30,31 @@ export type FrostEndingId =
   | "frost-guarded-arrival"
   | "frost-chosen-detour"
   | "frost-emergency-shelter";
+export type GreenBranch = "CULTIVATE" | "FILTER" | "PURGE";
+export type GreenCycleZone = "INTAKE" | "FILTER" | "GROW_A" | "GROW_B" | "DRAIN";
+export type GreenSampleId = "S1" | "S2" | "S3" | "S4";
+export type GreenSampleQuality = "unknown" | "clean" | "tainted";
+export type GreenFinaleStage = "inactive" | "gate" | "contact" | "decision" | "resolved";
+export type GreenFinalDecision = "seedbank" | "symbiosis" | "firebreak" | "quarantine";
+export type GreenEndingId =
+  | "green-seedbank"
+  | "green-symbiosis"
+  | "green-firebreak"
+  | "green-quarantine";
+export type LurkerZone = "CANOPY" | "FILTER" | "UNDERBED";
+export type GreenCycleCommand =
+  | `cycle:inspect:${GreenSampleId}`
+  | `cycle:select:${GreenSampleId}`
+  | `cycle:move:${GreenSampleId}:${GreenCycleZone}`
+  | `cycle:target:${GreenCycleZone}`
+  | "cycle:commit"
+  | "cycle:reset"
+  | "cycle:manual-drain";
+export type T008Command =
+  | `lurker:inspect:${LurkerZone}`
+  | `lurker:mark:${LurkerZone}`
+  | "lurker:manual-seal";
+export type T013Command = GreenCycleCommand;
 export type HeatTokenId = "H1" | "H2" | "H3" | "H4" | "H5" | "H6";
 export type ThermalCommand =
   | `thermal:select:${HeatTokenId}`
@@ -46,16 +71,26 @@ export type ThreatSignalColor = "amber" | "cyan" | "red";
 export type ThreatSignalShape = "diamond" | "circle" | "triangle";
 export type ThreatSignalRhythm = "short-short-long" | "long-short-short" | "short-long-short";
 export type ThreatClue = "color" | "shape" | "rhythm";
-export type ThreatInteractionVerb = "cutter" | "signal" | "trace";
-export type ThreatInteractionValue = CropPlotId | ThreatSignalId | "leaves" | "meter";
+export type ThreatInteractionVerb = "cutter" | "signal" | "trace" | "lurker" | "cycle";
+export type ThreatInteractionValue =
+  | CropPlotId
+  | ThreatSignalId
+  | GreenSampleId
+  | GreenCycleZone
+  | LurkerZone
+  | "leaves"
+  | "meter";
 export type ThreatInteractionCommand =
   | `cutter:${CropPlotId}`
   | `signal:${ThreatSignalId}`
   | "trace:leaves"
   | "trace:meter"
-  | T009Command;
+  | T009Command
+  | T008Command
+  | T013Command;
 export type ThreatInteractionStatus = "accepted" | "resolved" | "incorrect" | "invalid" | "unsupported";
 export type ThermalCommandStatus = "accepted" | "invalid" | "insufficient" | "duplicate";
+export type GreenCycleCommandStatus = "accepted" | "revealed" | "resolved" | "invalid" | "insufficient" | "duplicate";
 export type ResourceKey = "energy" | "fuel" | "food" | "water" | "parts" | "medicine" | "data";
 export type SurvivorKey = "health" | "stress" | "infection" | "trust" | "sleep" | "wakeups";
 export type EnvironmentKey = "temperature" | "noise" | "visibility" | "hull" | "weight";
@@ -205,6 +240,16 @@ export interface T006InteractionState {
   lastAttempt?: "leaves" | "meter";
 }
 
+export interface T008InteractionState {
+  kind: "T008";
+  targetZone: LurkerZone;
+  inspectedZones: LurkerZone[];
+  attempts: number;
+  firstMissRevealed: boolean;
+  manualFallbackAvailable: boolean;
+  resolvedBy?: "marked" | "manual-seal";
+}
+
 export interface T009InteractionState {
   kind: "T009";
   requiredZones: [FrostZone, FrostZone];
@@ -216,11 +261,23 @@ export interface T009InteractionState {
   resolvedBy?: "thermal" | "manual-scrape";
 }
 
+export interface T013InteractionState {
+  kind: "T013";
+  contaminatedSampleIds: [GreenSampleId, GreenSampleId];
+  inspectedSampleIds: GreenSampleId[];
+  attempts: number;
+  firstMissRevealed: boolean;
+  manualFallbackAvailable: boolean;
+  resolvedBy?: "cycle" | "manual-drain";
+}
+
 export type ThreatInteractionState =
   | T004InteractionState
   | T005InteractionState
   | T006InteractionState
-  | T009InteractionState;
+  | T008InteractionState
+  | T009InteractionState
+  | T013InteractionState;
 
 export interface ThreatInteractionResult {
   status: ThreatInteractionStatus;
@@ -234,6 +291,15 @@ export interface ThermalCommandResult {
   status: ThermalCommandStatus;
   accepted: boolean;
   settled: boolean;
+  message: string;
+  settlementId?: string;
+}
+
+export interface GreenCycleCommandResult {
+  status: GreenCycleCommandStatus;
+  accepted: boolean;
+  settled: boolean;
+  resolved: boolean;
   message: string;
   settlementId?: string;
 }
@@ -298,6 +364,43 @@ export interface WhiteFrostState {
   recordCalibrated: boolean;
 }
 
+export interface GreenSampleState {
+  id: GreenSampleId;
+  quality: GreenSampleQuality;
+  revealed: boolean;
+  zone: GreenCycleZone;
+}
+
+export interface GreenCycleState {
+  samples: GreenSampleState[];
+  selectedSampleId: GreenSampleId | null;
+  committedDay: number | null;
+  settlementIds: string[];
+  revision: number;
+  attempts: number;
+  firstMissRevealed: boolean;
+  manualDrainAvailable: boolean;
+}
+
+export interface GreenTideState {
+  version: 1;
+  branch: GreenBranch | null;
+  finaleStage: GreenFinaleStage;
+  seedStock: number;
+  reservoirContamination: number;
+  plotContamination: Record<CropPlotId, number>;
+  isolatedPlots: CropPlotId[];
+  branchOperationComplete: boolean;
+  sourceLocated: boolean;
+  filterCalibrated: boolean;
+  truthShared: boolean;
+  finalDecision: GreenFinalDecision | null;
+  endingId: GreenEndingId | null;
+  endingReasons: string[];
+  rewardSettled: boolean;
+  cycle: GreenCycleState;
+}
+
 export interface StoryFlags {
   signalSampleQuality: SignalSampleQuality;
   extraBunk: boolean;
@@ -326,7 +429,7 @@ export interface StoryFlags {
 }
 
 export interface StoryState {
-  version: 2;
+  version: 3;
   flags: StoryFlags;
   cargoConversion: CargoConversion;
   finaleStage: FinaleStage;
@@ -339,6 +442,7 @@ export interface StoryState {
   endingReasons: string[];
   dawnLogIds: string[];
   whiteFrost: WhiteFrostState | null;
+  greenTide: GreenTideState | null;
 }
 
 export type A07ConsentStatus = "granted" | "granted-with-evidence" | "refused";
@@ -361,6 +465,11 @@ export interface FrostEndingEvaluation {
   reasons: string[];
 }
 
+export interface GreenEndingEvaluation {
+  endingId: GreenEndingId;
+  reasons: string[];
+}
+
 export interface LedgerEntry {
   id: string;
   at: number;
@@ -380,7 +489,7 @@ export interface SettingsState {
 }
 
 export interface RunState {
-  schemaVersion: 4;
+  schemaVersion: 5;
   seed: string;
   day: number;
   maxDays: number;

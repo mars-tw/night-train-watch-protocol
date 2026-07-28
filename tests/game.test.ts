@@ -403,7 +403,16 @@ describe("authoritative run service", () => {
   });
 
   it("uses the GDD threat identifiers for the playable contacts", () => {
-    expect(THREATS.map((threat) => threat.id)).toEqual(["T002", "T003", "T004", "T005", "T006", "T009"]);
+    expect(THREATS.map((threat) => threat.id)).toEqual([
+      "T002",
+      "T003",
+      "T004",
+      "T005",
+      "T006",
+      "T008",
+      "T009",
+      "T013",
+    ]);
   });
 
   it("ships the twelve-module GDD catalogue", () => {

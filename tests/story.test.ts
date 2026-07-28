@@ -32,7 +32,7 @@ function scheduledEvent(
 }
 
 describe("story state defaults", () => {
-  it("creates independent, JSON-serializable v2 R01-compatible state", () => {
+  it("creates independent, JSON-serializable v3 R01-compatible state", () => {
     const first = createDefaultStoryState();
     const second = createDefaultStoryState();
 
@@ -43,7 +43,7 @@ describe("story state defaults", () => {
     expect(second.queue).toEqual([]);
     expect(JSON.parse(JSON.stringify(second))).toEqual(second);
     expect(second).toMatchObject({
-      version: 2,
+      version: 3,
       cargoConversion: "none",
       finaleStage: "inactive",
       completedContactWaves: 0,

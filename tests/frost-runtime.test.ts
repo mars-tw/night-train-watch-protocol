@@ -15,24 +15,28 @@ import type {
 const FROST_ZONES: FrostZone[] = ["BERTH", "DEICER", "LOOP"];
 
 function whiteFrost(run: RunState): WhiteFrostState {
-  if (!run.story.whiteFrost) throw new Error("Expected an R02 white-frost state");
+  if (!run.story.whiteFrost)
+    throw new Error("Expected an R02 white-frost state");
   return run.story.whiteFrost;
 }
 
 function frozenState(run: RunState): unknown {
-  return JSON.parse(JSON.stringify({
-    resources: run.resources,
-    survivor: run.survivor,
-    environment: run.environment,
-    crops: run.crops,
-    ledger: run.ledger,
-    whiteFrost: run.story.whiteFrost,
-  }));
+  return JSON.parse(
+    JSON.stringify({
+      resources: run.resources,
+      survivor: run.survivor,
+      environment: run.environment,
+      crops: run.crops,
+      ledger: run.ledger,
+      whiteFrost: run.story.whiteFrost,
+    }),
+  );
 }
 
 function cloneRun(run: RunState): RunState {
   const cloned = parseRun(JSON.stringify(run));
-  if (!cloned) throw new Error("Expected the test run to survive serialization");
+  if (!cloned)
+    throw new Error("Expected the test run to survive serialization");
   return cloned;
 }
 
@@ -43,7 +47,9 @@ function forcedFrostEventAdvanced(eventId: string, run: RunState): boolean {
     case "EV060":
       return run.phase === "prep" && run.activeEventId === undefined;
     case "EV063":
-      return run.phase === "night" && run.activeContact?.definitionId === "T009";
+      return (
+        run.phase === "night" && run.activeContact?.definitionId === "T009"
+      );
     case "EV064":
       return run.activeEventId === "EV065";
     case "EV065":
@@ -53,13 +59,20 @@ function forcedFrostEventAdvanced(eventId: string, run: RunState): boolean {
   }
 }
 
-function continueIllegalFrostFinaleIfPossible(run: RunState, service: RunService): void {
+function continueIllegalFrostFinaleIfPossible(
+  run: RunState,
+  service: RunService,
+): void {
   if (run.activeEventId === "EV064") {
-    const clearChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "manual");
+    const clearChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "manual");
     if (clearChoice) service.resolveEvent(run, clearChoice);
   }
   if (run.activeEventId === "EV065") {
-    const endingChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "emergency-stop");
+    const endingChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "emergency-stop");
     if (endingChoice) service.resolveEvent(run, endingChoice);
   }
 }
@@ -76,7 +89,8 @@ function beginT009(seed: string): {
   service.beginNight(run);
 
   const interaction = service.ensureThreatInteraction(run);
-  if (interaction?.kind !== "T009") throw new Error("Expected a deterministic T009 contact");
+  if (interaction?.kind !== "T009")
+    throw new Error("Expected a deterministic T009 contact");
   expect(run.activeContact?.definitionId).toBe("T009");
   return { run, service, interaction };
 }
@@ -102,7 +116,8 @@ function reachR01T004(seed: string): {
   }
 
   const interaction = service.ensureThreatInteraction(run);
-  if (interaction?.kind !== "T004") throw new Error("Expected the R01 DETOUR T004 contact");
+  if (interaction?.kind !== "T004")
+    throw new Error("Expected the R01 DETOUR T004 contact");
   return { run, service, interaction };
 }
 
@@ -113,18 +128,18 @@ describe("route-aware run creation and migration", () => {
     const secondFrostRun = createRun("frost-route-two", "R02");
 
     expect(defaultRun).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       routeId: "R01",
       resources: { energy: 75, fuel: 40 },
       environment: { temperature: 18 },
-      story: { version: 2, whiteFrost: null },
+      story: { version: 3, whiteFrost: null },
     });
     expect(frostRun).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       routeId: "R02",
       resources: { energy: 78, fuel: 44 },
       environment: { temperature: 12 },
-      story: { version: 2 },
+      story: { version: 3 },
     });
 
     const frost = whiteFrost(frostRun);
@@ -145,13 +160,19 @@ describe("route-aware run creation and migration", () => {
     });
 
     frost.thermal.tokens[0]!.zone = "LOOP";
-    expect(whiteFrost(secondFrostRun).thermal.tokens[0]).toEqual({ id: "H1", zone: "BERTH" });
+    expect(whiteFrost(secondFrostRun).thermal.tokens[0]).toEqual({
+      id: "H1",
+      zone: "BERTH",
+    });
     expect(JSON.parse(JSON.stringify(frostRun))).toEqual(frostRun);
   });
 
   it("migrates a schema-3 R01 contact without losing its state or specialized interaction", () => {
     const fixture = reachR01T004("schema3-r01-t004");
-    const original = JSON.parse(JSON.stringify(fixture.run)) as Record<string, any>;
+    const original = JSON.parse(JSON.stringify(fixture.run)) as Record<
+      string,
+      any
+    >;
     original.schemaVersion = 3;
     delete original.routeId;
     original.story.version = 1;
@@ -160,9 +181,9 @@ describe("route-aware run creation and migration", () => {
     const migrated = parseRun(JSON.stringify(original));
     expect(migrated).not.toBeNull();
     expect(migrated).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       routeId: "R01",
-      story: { version: 2, whiteFrost: null },
+      story: { version: 3, whiteFrost: null },
     });
     expect(migrated?.resources).toEqual(fixture.run.resources);
     expect(migrated?.crops).toEqual(fixture.run.crops);
@@ -175,14 +196,22 @@ describe("route-aware run creation and migration", () => {
       throw new Error("Expected the migrated T004 interaction");
     }
     expect(
-      fixture.service.interactThreat(migrated, `cutter:${restoredInteraction.targetPlotId}`).resolved,
+      fixture.service.interactThreat(
+        migrated,
+        `cutter:${restoredInteraction.targetPlotId}`,
+      ).resolved,
     ).toBe(true);
   });
 });
 
 describe("authoritative R02 branches and thermal routing", () => {
   it.each([
-    ["CARE", { stress: 5 }, { fuel: 0, energy: 0, parts: 0, water: 0 }, "EV058"],
+    [
+      "CARE",
+      { stress: 5 },
+      { fuel: 0, energy: 0, parts: 0, water: 0 },
+      "EV058",
+    ],
     ["CLEAR", {}, { fuel: 0, energy: -3, parts: -3, water: 0 }, "EV059"],
     ["SUSTAIN", {}, { fuel: 0, energy: -2, parts: -2, water: -1 }, "EV060"],
   ] as const)(
@@ -206,16 +235,19 @@ describe("authoritative R02 branches and thermal routing", () => {
         survivor: { ...run.survivor },
       };
       const event = service.getEvent(run);
-      const choice = event?.choices.find((candidate) => candidate.id === branch);
+      const choice = event?.choices.find(
+        (candidate) => candidate.id === branch,
+      );
       expect(choice).toBeDefined();
       expect(service.resolveEvent(run, choice!)).toBe(true);
 
       expect(whiteFrost(run).branch).toBe(branch as FrostBranch);
       expect(run.story.seenEventIds).toContain("EV057");
       expect(
-        FROST_STORY_EVENTS.find((candidate) => candidate.id === "EV057")
-          ?.choices.find((candidate) => candidate.id === branch)
-          ?.consequence.nextEventId,
+        FROST_STORY_EVENTS.find(
+          (candidate) => candidate.id === "EV057",
+        )?.choices.find((candidate) => candidate.id === branch)?.consequence
+          .nextEventId,
       ).toBe(nextEventId);
       for (const [key, delta] of Object.entries(resourceDelta)) {
         expect(run.resources[key as keyof typeof run.resources]).toBe(
@@ -236,25 +268,36 @@ describe("authoritative R02 branches and thermal routing", () => {
     const directService = new RunService();
     const tapService = new RunService();
 
-    expect(directService.applyThermalCommand(direct, "thermal:move:H1:LOOP")).toMatchObject({
+    expect(
+      directService.applyThermalCommand(direct, "thermal:move:H1:LOOP"),
+    ).toMatchObject({
       status: "accepted",
       accepted: true,
     });
-    expect(tapService.applyThermalCommand(tapped, "thermal:select:H1")).toMatchObject({
+    expect(
+      tapService.applyThermalCommand(tapped, "thermal:select:H1"),
+    ).toMatchObject({
       status: "accepted",
       accepted: true,
     });
     expect(whiteFrost(tapped).thermal.selectedTokenId).toBe("H1");
-    expect(tapService.applyThermalCommand(tapped, "thermal:target:LOOP")).toMatchObject({
+    expect(
+      tapService.applyThermalCommand(tapped, "thermal:target:LOOP"),
+    ).toMatchObject({
       status: "accepted",
       accepted: true,
     });
 
-    expect(whiteFrost(direct).thermal.tokens).toEqual(whiteFrost(tapped).thermal.tokens);
+    expect(whiteFrost(direct).thermal.tokens).toEqual(
+      whiteFrost(tapped).thermal.tokens,
+    );
     expect(whiteFrost(direct).thermal.revision).toBe(1);
     expect(whiteFrost(tapped).thermal.revision).toBe(1);
     expect(whiteFrost(tapped).thermal.selectedTokenId).toBeNull();
-    expect(whiteFrost(direct).thermal.tokens.find((token) => token.id === "H1")?.zone).toBe("LOOP");
+    expect(
+      whiteFrost(direct).thermal.tokens.find((token) => token.id === "H1")
+        ?.zone,
+    ).toBe("LOOP");
   });
 
   it("settles a thermal commit once per day and makes a repeated commit state-idempotent", () => {
@@ -357,7 +400,15 @@ describe("authoritative R02 branches and thermal routing", () => {
       base.day = day;
       base.phase = "travel";
       base.activeEventId = eventId;
-      base.resources = { energy: 0, fuel: 0, food: 0, water: 0, parts: 0, medicine: 0, data: 0 };
+      base.resources = {
+        energy: 0,
+        fuel: 0,
+        food: 0,
+        water: 0,
+        parts: 0,
+        medicine: 0,
+        data: 0,
+      };
       const frost = whiteFrost(base);
       frost.branch = branch;
       frost.finaleStage = finaleStage;
@@ -370,11 +421,11 @@ describe("authoritative R02 branches and thermal routing", () => {
         return {
           choiceId: choice.id,
           accepted,
-          advanced: accepted && (
-            candidate.ended
-            || candidate.activeEventId !== eventId
-            || candidate.phase !== "travel"
-          ),
+          advanced:
+            accepted &&
+            (candidate.ended ||
+              candidate.activeEventId !== eventId ||
+              candidate.phase !== "travel"),
         };
       });
 
@@ -393,13 +444,21 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
 
     expect(service.enterStoryPhase(dayOne, "prep")).toBe(true);
     expect(dayOne).toMatchObject({ phase: "prep", activeEventId: "EV053" });
-    const layout = service.getEvent(dayOne)?.choices.find((choice) => choice.id === "a07-layout");
+    const layout = service
+      .getEvent(dayOne)
+      ?.choices.find((choice) => choice.id === "a07-layout");
     expect(layout).toBeDefined();
     expect(service.resolveEvent(dayOne, layout!)).toBe(true);
     expect(dayOne).toMatchObject({ phase: "prep", activeEventId: undefined });
-    expect(dayOne.story.queue).toEqual(expect.arrayContaining([
-      expect.objectContaining({ eventId: "EV054", dueDay: 1, duePhase: "aftermath" }),
-    ]));
+    expect(dayOne.story.queue).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventId: "EV054",
+          dueDay: 1,
+          duePhase: "aftermath",
+        }),
+      ]),
+    );
 
     const dayTwo = createRun("phase-day-two", "R02");
     dayTwo.day = 2;
@@ -414,7 +473,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     expect(service.enterStoryPhase(dayFour, "route")).toBe(true);
     expect(dayFour).toMatchObject({ phase: "route", activeEventId: "EV057" });
     expect(dayFour.resources.fuel).toBe(dayFourFuel);
-    const care = service.getEvent(dayFour)?.choices.find((choice) => choice.id === "CARE");
+    const care = service
+      .getEvent(dayFour)
+      ?.choices.find((choice) => choice.id === "CARE");
     expect(care).toBeDefined();
     expect(service.resolveEvent(dayFour, care!)).toBe(true);
     expect(dayFour).toMatchObject({ phase: "route", activeEventId: undefined });
@@ -431,7 +492,11 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
 
     service.continueAftermath(run);
 
-    expect(run).toMatchObject({ day: 3, phase: "prep", activeEventId: "EV056" });
+    expect(run).toMatchObject({
+      day: 3,
+      phase: "prep",
+      activeEventId: "EV056",
+    });
   });
 
   it("offers a terminal-safe emergency drift when every route is unaffordable", () => {
@@ -473,27 +538,37 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     deicerRun.day = 2;
     deicerRun.phase = "travel";
     deicerRun.activeEventId = "EV055";
-    const deicer = service.getEvent(deicerRun)?.choices.find((choice) => choice.id === "deicer");
+    const deicer = service
+      .getEvent(deicerRun)
+      ?.choices.find((choice) => choice.id === "deicer");
     expect(deicer).toBeDefined();
     expect(service.resolveEvent(deicerRun, deicer!)).toBe(true);
     expect(whiteFrost(deicerRun).switchMethod).toBe("deicer");
 
+    deicerRun.day = 7;
     deicerRun.phase = "travel";
     deicerRun.activeContact = undefined;
     deicerRun.activeEventId = "EV064";
     deicerRun.resources.energy = 2;
     whiteFrost(deicerRun).branch = "CLEAR";
     whiteFrost(deicerRun).finaleStage = "clear";
-    const finalDeice = service.getEvent(deicerRun)?.choices.find((choice) => choice.id === "deice");
+    const finalDeice = service
+      .getEvent(deicerRun)
+      ?.choices.find((choice) => choice.id === "deice");
     expect(finalDeice).toBeDefined();
     expect(service.resolveEvent(deicerRun, finalDeice!)).toBe(true);
-    expect(deicerRun).toMatchObject({ activeEventId: "EV065", resources: { energy: 0 } });
+    expect(deicerRun).toMatchObject({
+      activeEventId: "EV065",
+      resources: { energy: 0 },
+    });
 
     const asked = createRun("heater-asked", "R02");
     asked.day = 3;
     asked.phase = "travel";
     asked.activeEventId = "EV056";
-    const askRepair = service.getEvent(asked)?.choices.find((choice) => choice.id === "ask-repair");
+    const askRepair = service
+      .getEvent(asked)
+      ?.choices.find((choice) => choice.id === "ask-repair");
     expect(service.resolveEvent(asked, askRepair!)).toBe(true);
     expect(whiteFrost(asked).jointTrustRequirement).toBe(50);
 
@@ -501,7 +576,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     overridden.day = 3;
     overridden.phase = "travel";
     overridden.activeEventId = "EV056";
-    const override = service.getEvent(overridden)?.choices.find((choice) => choice.id === "override");
+    const override = service
+      .getEvent(overridden)
+      ?.choices.find((choice) => choice.id === "override");
     expect(service.resolveEvent(overridden, override!)).toBe(true);
     expect(whiteFrost(overridden).jointTrustRequirement).toBe(60);
   });
@@ -512,7 +589,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     repaired.day = 2;
     repaired.phase = "travel";
     repaired.activeEventId = "EV055";
-    const repair = service.getEvent(repaired)?.choices.find((choice) => choice.id === "repair");
+    const repair = service
+      .getEvent(repaired)
+      ?.choices.find((choice) => choice.id === "repair");
     expect(service.resolveEvent(repaired, repair!)).toBe(true);
     expect(whiteFrost(repaired).switchMethod).toBe("repair");
 
@@ -522,7 +601,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     repaired.activeEventId = "EV059";
     repaired.resources.parts = 1;
     whiteFrost(repaired).branch = "CLEAR";
-    const scrape = service.getEvent(repaired)?.choices.find((choice) => choice.id === "scrape");
+    const scrape = service
+      .getEvent(repaired)
+      ?.choices.find((choice) => choice.id === "scrape");
     expect(service.resolveEvent(repaired, scrape!)).toBe(true);
     expect(whiteFrost(repaired).manualScrapeHullCost).toBe(4);
 
@@ -533,7 +614,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     notRepaired.resources.parts = 1;
     whiteFrost(notRepaired).branch = "CLEAR";
     whiteFrost(notRepaired).switchMethod = "deicer";
-    const unavailableScrape = service.getEvent(notRepaired)?.choices.find((choice) => choice.id === "scrape");
+    const unavailableScrape = service
+      .getEvent(notRepaired)
+      ?.choices.find((choice) => choice.id === "scrape");
     expect(service.resolveEvent(notRepaired, unavailableScrape!)).toBe(false);
     expect(notRepaired.activeEventId).toBe("EV059");
   });
@@ -551,7 +634,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     frost.coauthorEvidence = true;
     frost.finaleStage = "accelerate";
     frost.jointTrustRequirement = 50;
-    const joint = service.getEvent(run)?.choices.find((choice) => choice.id === "joint");
+    const joint = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "joint");
 
     run.survivor.trust = 49;
     expect(service.resolveEvent(run, joint!)).toBe(false);
@@ -576,7 +661,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
       run.activeEventId = "EV065";
       run.resources.fuel = fuel;
       whiteFrost(run).finaleStage = "accelerate";
-      const shield = service.getEvent(run)?.choices.find((choice) => choice.id === "shield");
+      const shield = service
+        .getEvent(run)
+        ?.choices.find((choice) => choice.id === "shield");
 
       expect(service.resolveEvent(run, shield!)).toBe(true);
       expect(run).toMatchObject({
@@ -585,8 +672,12 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
         outcome: "victory",
         resources: { fuel: 0 },
       });
-      expect(run.ledger.filter((entry) => entry.source === "event.EV065.shield" && entry.key === "fuel"))
-        .toHaveLength(1);
+      expect(
+        run.ledger.filter(
+          (entry) =>
+            entry.source === "event.EV065.shield" && entry.key === "fuel",
+        ),
+      ).toHaveLength(1);
     },
   );
 
@@ -600,10 +691,14 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     const frost = whiteFrost(rammed);
     frost.switchMethod = "ram";
     frost.coldDebt = 1;
-    const settle = service.getEvent(rammed)?.choices.find((choice) => choice.id === "settle");
+    const settle = service
+      .getEvent(rammed)
+      ?.choices.find((choice) => choice.id === "settle");
     expect(service.resolveEvent(rammed, settle!)).toBe(true);
     expect(rammed.environment.hull).toBe(48);
-    expect(rammed.ledger.filter((entry) => entry.source === "story.R02.ram-crack")).toHaveLength(1);
+    expect(
+      rammed.ledger.filter((entry) => entry.source === "story.R02.ram-crack"),
+    ).toHaveLength(1);
 
     const lethal = createRun("lethal-cold-debt", "R02");
     lethal.day = 6;
@@ -611,7 +706,9 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     lethal.activeEventId = "EV062";
     lethal.survivor.health = 1;
     whiteFrost(lethal).coldDebt = 1;
-    const lethalSettle = service.getEvent(lethal)?.choices.find((choice) => choice.id === "settle");
+    const lethalSettle = service
+      .getEvent(lethal)
+      ?.choices.find((choice) => choice.id === "settle");
     expect(service.resolveEvent(lethal, lethalSettle!)).toBe(true);
     expect(lethal).toMatchObject({
       phase: "ending",
@@ -627,7 +724,8 @@ describe("R02 authored phase scheduling and delayed consequences", () => {
     run.day = 7;
     run.phase = "prep";
     run.survivor.health = 3;
-    for (const token of whiteFrost(run).thermal.tokens) token.zone = token.id <= "H3" ? "DEICER" : "LOOP";
+    for (const token of whiteFrost(run).thermal.tokens)
+      token.zone = token.id <= "H3" ? "DEICER" : "LOOP";
 
     expect(service.applyThermalCommand(run, "thermal:commit")).toMatchObject({
       accepted: true,
@@ -655,8 +753,12 @@ describe("authoritative T009 interaction", () => {
     });
     expect(interaction.attempts).toBe(0);
 
-    const wrongZone = FROST_ZONES.find((zone) => !interaction.requiredZones.includes(zone))!;
-    expect(service.interactThreat(run, `frost:inspect:${wrongZone}`)).toMatchObject({
+    const wrongZone = FROST_ZONES.find(
+      (zone) => !interaction.requiredZones.includes(zone),
+    )!;
+    expect(
+      service.interactThreat(run, `frost:inspect:${wrongZone}`),
+    ).toMatchObject({
       status: "accepted",
       accepted: true,
       resolved: false,
@@ -688,7 +790,9 @@ describe("authoritative T009 interaction", () => {
     expect(run.environment.hull).toBe(beforeMiss.hull);
 
     for (const zone of interaction.requiredZones) {
-      expect(service.interactThreat(run, `frost:inspect:${zone}`).accepted).toBe(true);
+      expect(
+        service.interactThreat(run, `frost:inspect:${zone}`).accepted,
+      ).toBe(true);
     }
     expect(service.interactThreat(run, "frost:confirm")).toMatchObject({
       status: "resolved",
@@ -701,7 +805,9 @@ describe("authoritative T009 interaction", () => {
 
   it("settles manual scrape exactly once after a revealed miss", () => {
     const { run, service, interaction } = beginT009("t009-manual");
-    const wrongZone = FROST_ZONES.find((zone) => !interaction.requiredZones.includes(zone))!;
+    const wrongZone = FROST_ZONES.find(
+      (zone) => !interaction.requiredZones.includes(zone),
+    )!;
     service.interactThreat(run, `frost:inspect:${wrongZone}`);
     service.interactThreat(run, "frost:confirm");
     expect(interaction.manualFallbackAvailable).toBe(true);
@@ -721,7 +827,9 @@ describe("authoritative T009 interaction", () => {
       accepted: false,
       resolved: false,
     });
-    expect({ hull: run.environment.hull, stress: run.survivor.stress }).toEqual(after);
+    expect({ hull: run.environment.hull, stress: run.survivor.stress }).toEqual(
+      after,
+    );
   });
 
   it("denies legacy one-click counters without spending resources or removing T009", () => {
@@ -744,12 +852,20 @@ describe("authoritative T009 interaction", () => {
     service.beginNight(run);
 
     const interaction = service.ensureThreatInteraction(run);
-    if (interaction?.kind !== "T009") throw new Error("Expected a full-map T009 interaction");
+    if (interaction?.kind !== "T009")
+      throw new Error("Expected a full-map T009 interaction");
     const targetZone = interaction.requiredZones[0];
-    const otherZone = FROST_ZONES.find((zone) => !interaction.requiredZones.includes(zone))!;
-    const token = frost.thermal.tokens.find((candidate) => candidate.zone === targetZone);
+    const otherZone = FROST_ZONES.find(
+      (zone) => !interaction.requiredZones.includes(zone),
+    )!;
+    const token = frost.thermal.tokens.find(
+      (candidate) => candidate.zone === targetZone,
+    );
     if (!token) throw new Error(`Expected a token in ${targetZone}`);
-    expect(service.applyThermalCommand(run, `thermal:move:${token.id}:${otherZone}`).accepted).toBe(true);
+    expect(
+      service.applyThermalCommand(run, `thermal:move:${token.id}:${otherZone}`)
+        .accepted,
+    ).toBe(true);
 
     const before = {
       resources: { ...run.resources },
@@ -799,24 +915,39 @@ describe("authoritative T009 interaction", () => {
   it("does not pre-open MANUAL_SCRAPE merely because the contact starts with a wrong allocation", () => {
     const seed = "t009-manual-not-preopened";
     const scout = beginT009(seed);
-    const requiredZones = [...scout.interaction.requiredZones] as [FrostZone, FrostZone];
-    const nonRequiredZone = FROST_ZONES.find((zone) => !requiredZones.includes(zone))!;
+    const requiredZones = [...scout.interaction.requiredZones] as [
+      FrostZone,
+      FrostZone,
+    ];
+    const nonRequiredZone = FROST_ZONES.find(
+      (zone) => !requiredZones.includes(zone),
+    )!;
 
     const run = createRun(seed, "R02");
     const service = new RunService();
     const frost = whiteFrost(run);
     run.day = 7;
     frost.finaleStage = "blizzard";
-    const token = frost.thermal.tokens.find((candidate) => candidate.zone === requiredZones[0]);
+    const token = frost.thermal.tokens.find(
+      (candidate) => candidate.zone === requiredZones[0],
+    );
     if (!token) throw new Error(`Expected a token in ${requiredZones[0]}`);
-    expect(service.applyThermalCommand(run, `thermal:move:${token.id}:${nonRequiredZone}`).accepted).toBe(true);
+    expect(
+      service.applyThermalCommand(
+        run,
+        `thermal:move:${token.id}:${nonRequiredZone}`,
+      ).accepted,
+    ).toBe(true);
     service.beginNight(run);
 
     const interaction = service.ensureThreatInteraction(run);
-    if (interaction?.kind !== "T009") throw new Error("Expected a deterministic T009 interaction");
+    if (interaction?.kind !== "T009")
+      throw new Error("Expected a deterministic T009 interaction");
     expect(interaction.requiredZones).toEqual(requiredZones);
     const availableBeforeInspection = interaction.manualFallbackAvailable;
-    expect(service.interactThreat(run, `frost:inspect:${nonRequiredZone}`).accepted).toBe(true);
+    expect(
+      service.interactThreat(run, `frost:inspect:${nonRequiredZone}`).accepted,
+    ).toBe(true);
     expect(service.interactThreat(run, "frost:confirm")).toMatchObject({
       status: "incorrect",
       accepted: true,
@@ -837,7 +968,9 @@ describe("authoritative T009 interaction", () => {
   it("ends with hull-lost when a lethal Day 7 manual scrape resolves T009", () => {
     const { run, service, interaction } = beginT009("t009-lethal-manual");
     run.environment.hull = 5;
-    const wrongZone = FROST_ZONES.find((zone) => !interaction.requiredZones.includes(zone))!;
+    const wrongZone = FROST_ZONES.find(
+      (zone) => !interaction.requiredZones.includes(zone),
+    )!;
     service.interactThreat(run, `frost:inspect:${wrongZone}`);
     service.interactThreat(run, "frost:confirm");
     expect(interaction.manualFallbackAvailable).toBe(true);
@@ -907,7 +1040,9 @@ describe("R02 avalanche finale progression", () => {
     run.resources.parts = 20;
     frost.branch = "SUSTAIN";
 
-    const thermalChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "thermal-board");
+    const thermalChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "thermal-board");
     expect(thermalChoice).toBeDefined();
     expect(service.resolveEvent(run, thermalChoice!)).toBe(true);
     expect(run).toMatchObject({ phase: "prep", activeEventId: undefined });
@@ -918,7 +1053,9 @@ describe("R02 avalanche finale progression", () => {
     });
     expect(run).toMatchObject({ phase: "travel", activeEventId: "EV063" });
 
-    const warmChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "warm");
+    const warmChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "warm");
     expect(warmChoice).toBeDefined();
     expect(service.resolveEvent(run, warmChoice!)).toBe(true);
     expect(run.phase).toBe("night");
@@ -926,9 +1063,12 @@ describe("R02 avalanche finale progression", () => {
 
     const interaction = service.ensureThreatInteraction(run);
     expect(interaction?.kind).toBe("T009");
-    if (interaction?.kind !== "T009") throw new Error("Expected the finale T009 interaction");
+    if (interaction?.kind !== "T009")
+      throw new Error("Expected the finale T009 interaction");
     for (const zone of interaction.requiredZones) {
-      expect(service.interactThreat(run, `frost:inspect:${zone}`).accepted).toBe(true);
+      expect(
+        service.interactThreat(run, `frost:inspect:${zone}`).accepted,
+      ).toBe(true);
     }
     expect(service.interactThreat(run, "frost:confirm")).toMatchObject({
       status: "resolved",
@@ -937,26 +1077,38 @@ describe("R02 avalanche finale progression", () => {
     expect(run).toMatchObject({ phase: "travel", activeEventId: "EV064" });
     expect(frost.finaleStage).toBe("clear");
 
-    const clearChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "deice");
+    const clearChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "deice");
     expect(clearChoice).toBeDefined();
     expect(service.resolveEvent(run, clearChoice!)).toBe(true);
     expect(run).toMatchObject({ phase: "travel", activeEventId: "EV065" });
     expect(frost.finaleStage).toBe("accelerate");
 
-    const shieldChoice = service.getEvent(run)?.choices.find((choice) => choice.id === "shield");
+    const shieldChoice = service
+      .getEvent(run)
+      ?.choices.find((choice) => choice.id === "shield");
     expect(shieldChoice).toBeDefined();
     expect(service.resolveEvent(run, shieldChoice!)).toBe(true);
-    expect(run).toMatchObject({ phase: "ending", ended: true, outcome: "victory" });
+    expect(run).toMatchObject({
+      phase: "ending",
+      ended: true,
+      outcome: "victory",
+    });
     expect(frost).toMatchObject({
       finaleStage: "resolved",
       finalDecision: "shield",
       endingId: "frost-guarded-arrival",
       rewardSettled: true,
     });
-    const rewardEntries = run.ledger.filter((entry) => entry.source === "story.R02.route-complete");
+    const rewardEntries = run.ledger.filter(
+      (entry) => entry.source === "story.R02.route-complete",
+    );
     expect(rewardEntries).toHaveLength(1);
     expect(service.resolveEvent(run, shieldChoice!)).toBe(false);
-    expect(run.ledger.filter((entry) => entry.source === "story.R02.route-complete")).toHaveLength(1);
+    expect(
+      run.ledger.filter((entry) => entry.source === "story.R02.route-complete"),
+    ).toHaveLength(1);
   });
 });
 
@@ -974,7 +1126,10 @@ describe("R01 public behavior regression", () => {
     });
     service.beginNight(run);
     expect(run.activeContact).toMatchObject({ wave: 1, totalWaves: 1 });
-    const counter = run.activeContact?.definitionId === "T003" ? "emergency-boost" : "close-shutter";
+    const counter =
+      run.activeContact?.definitionId === "T003"
+        ? "emergency-boost"
+        : "close-shutter";
     expect(service.counterThreat(run, counter)).toBe(true);
     expect(run.phase).toBe("aftermath");
     expect(run.activeContact).toBeUndefined();

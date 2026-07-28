@@ -1,10 +1,17 @@
 import type {
   FrostZone,
+  GreenCycleState,
+  GreenCycleZone,
+  GreenSampleId,
+  GreenTideState,
   HeatTokenId,
+  LurkerZone,
   RunState,
   SettingsState,
   StoryRouteId,
+  T008InteractionState,
   T009InteractionState,
+  T013InteractionState,
   ThermalRoutingState,
   ThreatContact,
   WhiteFrostState,
@@ -12,6 +19,7 @@ import type {
 import { DECORATION_SLOTS } from "./content";
 import { createCropPlots, createDecorationPlacements } from "./model";
 import {
+  createDefaultGreenTideState,
   createDefaultStoryState,
   createDefaultWhiteFrostState,
   getThermalAllocation,
@@ -25,6 +33,7 @@ const SETTINGS_KEY = "settings";
 
 const HEAT_TOKEN_IDS: readonly HeatTokenId[] = ["H1", "H2", "H3", "H4", "H5", "H6"];
 const FROST_ZONES: readonly FrostZone[] = ["BERTH", "DEICER", "LOOP"];
+const STORY_ROUTES: readonly StoryRouteId[] = ["R01", "R02", "R03"];
 const FROST_BRANCHES = ["CARE", "CLEAR", "SUSTAIN"] as const;
 const FROST_FINALE_STAGES = ["inactive", "warm", "blizzard", "clear", "accelerate", "resolved"] as const;
 const FROST_CONSENTS = ["unknown", "shared", "protected", "a07-plan"] as const;
@@ -36,6 +45,14 @@ const FROST_ENDING_IDS = [
   "frost-chosen-detour",
   "frost-emergency-shelter",
 ] as const;
+const GREEN_BRANCHES = ["CULTIVATE", "FILTER", "PURGE"] as const;
+const GREEN_CYCLE_ZONES: readonly GreenCycleZone[] = ["INTAKE", "FILTER", "GROW_A", "GROW_B", "DRAIN"];
+const GREEN_SAMPLE_IDS: readonly GreenSampleId[] = ["S1", "S2", "S3", "S4"];
+const GREEN_SAMPLE_QUALITIES = ["unknown", "clean", "tainted"] as const;
+const GREEN_FINALE_STAGES = ["inactive", "gate", "contact", "decision", "resolved"] as const;
+const GREEN_FINAL_DECISIONS = ["seedbank", "symbiosis", "firebreak", "quarantine"] as const;
+const GREEN_ENDING_IDS = ["green-seedbank", "green-symbiosis", "green-firebreak", "green-quarantine"] as const;
+const LURKER_ZONES: readonly LurkerZone[] = ["CANOPY", "FILTER", "UNDERBED"];
 
 function finiteInteger(value: unknown, fallback: number, minimum = 0, maximum = 999): number {
   return typeof value === "number" && Number.isFinite(value)
@@ -117,8 +134,136 @@ function repairWhiteFrost(saved: Partial<WhiteFrostState> | null | undefined): W
   };
 }
 
+function repairGreenCycle(saved: Partial<GreenCycleState> | null | undefined): GreenCycleState {
+  const defaults = createDefaultGreenTideState().cycle;
+  const savedSamples = Array.isArray(saved?.samples) ? saved.samples : [];
+  const samples = defaults.samples.map((fallback) => {
+    const candidate = savedSamples.find((sample) => sample?.id === fallback.id);
+    if (!candidate) return { ...fallback };
+    const quality = GREEN_SAMPLE_QUALITIES.includes(
+      candidate.quality as typeof GREEN_SAMPLE_QUALITIES[number],
+    )
+      ? candidate.quality
+      : fallback.quality;
+    return {
+      id: fallback.id,
+      quality,
+      revealed: quality !== "unknown" && candidate.revealed === true,
+      zone: GREEN_CYCLE_ZONES.includes(candidate.zone) ? candidate.zone : fallback.zone,
+    };
+  });
+  return {
+    samples,
+    selectedSampleId: saved?.selectedSampleId && GREEN_SAMPLE_IDS.includes(saved.selectedSampleId)
+      ? saved.selectedSampleId
+      : null,
+    committedDay: typeof saved?.committedDay === "number"
+      && Number.isInteger(saved.committedDay)
+      && saved.committedDay >= 1
+      && saved.committedDay <= 7
+      ? saved.committedDay
+      : null,
+    settlementIds: Array.isArray(saved?.settlementIds)
+      ? [...new Set(saved.settlementIds.filter((id): id is string => typeof id === "string"))]
+      : [],
+    revision: finiteInteger(saved?.revision, 0, 0, 999_999),
+    attempts: finiteInteger(saved?.attempts, 0, 0, 999),
+    firstMissRevealed: saved?.firstMissRevealed === true,
+    manualDrainAvailable: saved?.manualDrainAvailable === true,
+  };
+}
+
+function repairGreenTide(saved: Partial<GreenTideState> | null | undefined): GreenTideState {
+  const defaults = createDefaultGreenTideState();
+  const savedPlotContamination = saved?.plotContamination;
+  const isolatedPlots = Array.isArray(saved?.isolatedPlots)
+    ? [...new Set(saved.isolatedPlots.filter((plot): plot is "plot-a" | "plot-b" =>
+      plot === "plot-a" || plot === "plot-b",
+    ))]
+    : [];
+  return {
+    ...defaults,
+    version: 1,
+    branch: GREEN_BRANCHES.includes(saved?.branch as typeof GREEN_BRANCHES[number])
+      ? saved?.branch ?? null
+      : null,
+    finaleStage: GREEN_FINALE_STAGES.includes(saved?.finaleStage as typeof GREEN_FINALE_STAGES[number])
+      ? saved?.finaleStage ?? defaults.finaleStage
+      : defaults.finaleStage,
+    seedStock: finiteInteger(saved?.seedStock, defaults.seedStock, 0, 999),
+    reservoirContamination: finiteInteger(saved?.reservoirContamination, 0, 0, 100),
+    plotContamination: {
+      "plot-a": finiteInteger(savedPlotContamination?.["plot-a"], 0, 0, 100),
+      "plot-b": finiteInteger(savedPlotContamination?.["plot-b"], 0, 0, 100),
+    },
+    isolatedPlots,
+    branchOperationComplete: saved?.branchOperationComplete === true,
+    sourceLocated: saved?.sourceLocated === true,
+    filterCalibrated: saved?.filterCalibrated === true,
+    truthShared: saved?.truthShared === true,
+    finalDecision: GREEN_FINAL_DECISIONS.includes(
+      saved?.finalDecision as typeof GREEN_FINAL_DECISIONS[number],
+    )
+      ? saved?.finalDecision ?? null
+      : null,
+    endingId: GREEN_ENDING_IDS.includes(saved?.endingId as typeof GREEN_ENDING_IDS[number])
+      ? saved?.endingId ?? null
+      : null,
+    endingReasons: Array.isArray(saved?.endingReasons)
+      ? saved.endingReasons.filter((reason): reason is string => typeof reason === "string")
+      : [],
+    rewardSettled: saved?.rewardSettled === true,
+    cycle: repairGreenCycle(saved?.cycle),
+  };
+}
+
 function repairActiveContact(saved: ThreatContact | undefined): ThreatContact | undefined {
-  if (!saved?.interaction || saved.interaction.kind !== "T009") return saved;
+  if (!saved?.interaction) return saved;
+  if (saved.interaction.kind === "T008") {
+    const interaction = saved.interaction as T008InteractionState;
+    return {
+      ...saved,
+      interaction: {
+        kind: "T008",
+        targetZone: LURKER_ZONES.includes(interaction.targetZone) ? interaction.targetZone : "CANOPY",
+        inspectedZones: Array.isArray(interaction.inspectedZones)
+          ? [...new Set(interaction.inspectedZones.filter((zone) => LURKER_ZONES.includes(zone)))]
+          : [],
+        attempts: finiteInteger(interaction.attempts, 0, 0, 999),
+        firstMissRevealed: interaction.firstMissRevealed === true,
+        manualFallbackAvailable: interaction.manualFallbackAvailable === true,
+        ...(interaction.resolvedBy === "marked" || interaction.resolvedBy === "manual-seal"
+          ? { resolvedBy: interaction.resolvedBy }
+          : {}),
+      },
+    };
+  }
+  if (saved.interaction.kind === "T013") {
+    const interaction = saved.interaction as T013InteractionState;
+    const savedContaminatedIds = Array.isArray(interaction.contaminatedSampleIds)
+      ? [...new Set(interaction.contaminatedSampleIds.filter((id) => GREEN_SAMPLE_IDS.includes(id)))]
+      : [];
+    const contaminatedSampleIds = savedContaminatedIds.length === 2
+      ? savedContaminatedIds as [GreenSampleId, GreenSampleId]
+      : ["S1", "S2"] as [GreenSampleId, GreenSampleId];
+    return {
+      ...saved,
+      interaction: {
+        kind: "T013",
+        contaminatedSampleIds,
+        inspectedSampleIds: Array.isArray(interaction.inspectedSampleIds)
+          ? [...new Set(interaction.inspectedSampleIds.filter((id) => GREEN_SAMPLE_IDS.includes(id)))]
+          : [],
+        attempts: finiteInteger(interaction.attempts, 0, 0, 999),
+        firstMissRevealed: interaction.firstMissRevealed === true,
+        manualFallbackAvailable: interaction.manualFallbackAvailable === true,
+        ...(interaction.resolvedBy === "cycle" || interaction.resolvedBy === "manual-drain"
+          ? { resolvedBy: interaction.resolvedBy }
+          : {}),
+      },
+    };
+  }
+  if (saved.interaction.kind !== "T009") return saved;
   const interaction = saved.interaction as T009InteractionState & { freeMissUsed?: boolean };
   const requiredZones = Array.isArray(interaction.requiredZones)
     && interaction.requiredZones.length === 2
@@ -149,11 +294,20 @@ function repairActiveContact(saved: ThreatContact | undefined): ThreatContact | 
   };
 }
 
+function parseStoryRouteId(value: unknown, schemaVersion: number): StoryRouteId {
+  if (value === undefined || value === null) {
+    if (schemaVersion <= 4) return "R01";
+    throw new Error("Invalid save route");
+  }
+  if (STORY_ROUTES.includes(value as StoryRouteId)) return value as StoryRouteId;
+  throw new Error("Invalid save route");
+}
+
 export function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
   const value = JSON.parse(raw) as RunState & { schemaVersion: number };
-  if (![1, 2, 3, 4].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
-  const routeId: StoryRouteId = value.routeId === "R02" ? "R02" : "R01";
+  if (![1, 2, 3, 4, 5].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  const routeId = parseStoryRouteId((value as RunState & { routeId?: unknown }).routeId, value.schemaVersion);
   const defaults = createDecorationPlacements();
   const decorations = defaults.map((fallback) => {
     const saved = Array.isArray(value.decorations) ? value.decorations.find((item) => item.id === fallback.id) : undefined;
@@ -167,7 +321,7 @@ export function parseRun(raw: string | null): RunState | null {
   const savedStory = value.story;
   return {
     ...value,
-    schemaVersion: 4,
+    schemaVersion: 5,
     routeId,
     actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
     rationMode: value.rationMode ?? "standard",
@@ -179,7 +333,7 @@ export function parseRun(raw: string | null): RunState | null {
     story: {
       ...storyDefaults,
       ...(savedStory ?? {}),
-      version: 2,
+      version: 3,
       flags: {
         ...storyDefaults.flags,
         ...(savedStory?.flags ?? {}),
@@ -190,6 +344,9 @@ export function parseRun(raw: string | null): RunState | null {
       dawnLogIds: Array.isArray(savedStory?.dawnLogIds) ? savedStory.dawnLogIds : [],
       whiteFrost: routeId === "R02"
         ? repairWhiteFrost(savedStory?.whiteFrost)
+        : null,
+      greenTide: routeId === "R03"
+        ? repairGreenTide(savedStory?.greenTide)
         : null,
     },
   };
