@@ -316,6 +316,58 @@ async function waitForEventResolutionSave(page, eventId, timeoutMs = 8000) {
   throw new Error(`${eventId} resolution did not settle in localStorage and IndexedDB`);
 }
 
+async function captureSavedEventCheckpoint(page, eventId, timeoutMs = 8000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await page.evaluate(async (expectedEventId) => {
+      const localSerialized = localStorage.getItem("run.current");
+      const indexedSerialized = await new Promise((resolveRead) => {
+        const request = indexedDB.open("night-train-save", 1);
+        request.onsuccess = () => {
+          const database = request.result;
+          const transaction = database.transaction("snapshots", "readonly");
+          const read = transaction.objectStore("snapshots").get("run.current");
+          read.onsuccess = () => {
+            database.close();
+            resolveRead(read.result);
+          };
+          read.onerror = () => {
+            database.close();
+            resolveRead(undefined);
+          };
+        };
+        request.onerror = () => resolveRead(undefined);
+      });
+      const local = typeof localSerialized === "string" ? JSON.parse(localSerialized) : undefined;
+      const indexed = typeof indexedSerialized === "string" ? JSON.parse(indexedSerialized) : indexedSerialized;
+      return {
+        expectedEventId,
+        localSerialized,
+        indexedSerialized,
+        local,
+        indexed,
+      };
+    }, eventId);
+    const isCheckpoint = (run) => (
+      run?.routeId === "R02"
+      && run?.day === 7
+      && run?.activeEventId === eventId
+      && run?.ended === false
+      && !run?.story?.whiteFrost?.finalDecision
+      && !run?.story?.whiteFrost?.endingId
+    );
+    if (
+      isCheckpoint(snapshot.local)
+      && isCheckpoint(snapshot.indexed)
+      && snapshot.localSerialized === snapshot.indexedSerialized
+    ) {
+      return snapshot.localSerialized;
+    }
+    await page.waitForTimeout(80);
+  }
+  throw new Error(`${eventId} pre-decision checkpoint did not settle identically in localStorage and IndexedDB`);
+}
+
 async function applyLongRunFixture(page) {
   await page.evaluate(async () => {
     const run = JSON.parse(localStorage.getItem("run.current") ?? "{}");
@@ -380,6 +432,56 @@ async function reloadAndContinueWithInjectedSnapshot(page, actionLog) {
     sessionStorage.removeItem("qa.pending.run.current");
   });
   await reloadAndContinue(page, actionLog);
+}
+
+async function installRunCheckpoint(page, serialized) {
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.evaluate(async (checkpoint) => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem("run.current", checkpoint);
+    await new Promise((resolveWrite) => {
+      const request = indexedDB.open("night-train-save", 1);
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction("snapshots", "readwrite");
+        transaction.objectStore("snapshots").put(checkpoint, "run.current");
+        transaction.oncomplete = () => {
+          database.close();
+          resolveWrite(undefined);
+        };
+        transaction.onerror = () => resolveWrite(undefined);
+      };
+      request.onerror = () => resolveWrite(undefined);
+    });
+  }, serialized);
+  const written = await page.evaluate(async () => {
+    const local = localStorage.getItem("run.current");
+    const indexed = await new Promise((resolveRead) => {
+      const request = indexedDB.open("night-train-save", 1);
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction("snapshots", "readonly");
+        const read = transaction.objectStore("snapshots").get("run.current");
+        read.onsuccess = () => {
+          database.close();
+          resolveRead(read.result);
+        };
+        read.onerror = () => {
+          database.close();
+          resolveRead(undefined);
+        };
+      };
+      request.onerror = () => resolveRead(undefined);
+    });
+    return { local, indexed };
+  });
+  assert(
+    written.local === serialized && written.indexed === serialized,
+    "Alternate ending checkpoint was not written identically to localStorage and IndexedDB",
+  );
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".screen--menu", { timeout: 6000 });
 }
 
 function thermalAllocation(run) {
@@ -1218,6 +1320,123 @@ async function runEmergencyRouteAudit(browser) {
   }
 }
 
+async function auditEmergencyShelterAlternate(
+  browser,
+  serializedCheckpoint,
+  branchDirectory,
+  screenshotRegistry,
+) {
+  const actionLog = [];
+  const browserErrors = [];
+  const context = await browser.newContext({
+    viewport: STANDARD_VIEWPORT,
+    locale: "zh-TW",
+  });
+  const page = await context.newPage();
+  page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`console: ${message.text()}`);
+  });
+
+  try {
+    const checkpoint = JSON.parse(serializedCheckpoint);
+    const checkpointRewardEntries = checkpoint.ledger
+      .filter((entry) => entry.source === "story.R02.route-complete").length;
+    assert(checkpoint.routeId === "R02", "Alternate ending checkpoint must remain on R02");
+    assert(checkpoint.day === 7 && checkpoint.activeEventId === "EV065", "Alternate ending checkpoint must be the natural Day 7 EV065 decision");
+    assert(checkpoint.story.whiteFrost.branch === "CARE", "Alternate ending checkpoint must originate from the CARE branch");
+    assert(!checkpoint.story.whiteFrost.finalDecision, "Alternate ending checkpoint already has a final decision");
+    assert(!checkpoint.story.whiteFrost.endingId && checkpoint.ended === false, "Alternate ending checkpoint is already ended");
+    assert(checkpointRewardEntries === 0, "Alternate ending checkpoint already contains a route completion reward");
+
+    await installRunCheckpoint(page, serializedCheckpoint);
+    await clickAction(page, actionLog, "continue");
+    await page.waitForSelector('[data-event-id="EV065"]', { timeout: 7000 });
+    const restored = await readSavedRun(page);
+    assert(
+      JSON.stringify(restored) === JSON.stringify(checkpoint),
+      "Fresh alternate context changed the authoritative EV065 checkpoint before the visible choice",
+    );
+
+    await chooseEvent(page, actionLog, "EV065", "emergency-stop");
+    await page.waitForSelector(".screen--result.is-ending", { timeout: 7000 });
+    const endingBeforeReload = await readSavedRun(page);
+    const rewardEntriesBeforeReload = endingBeforeReload.ledger
+      .filter((entry) => entry.source === "story.R02.route-complete").length;
+    assert(endingBeforeReload.routeId === "R02" && endingBeforeReload.day === 7, "Emergency shelter ending left R02 Day 7");
+    assert(endingBeforeReload.story.whiteFrost.branch === "CARE", "Emergency shelter ending changed the CARE branch");
+    assert(
+      endingBeforeReload.story.whiteFrost.finalDecision === "emergency-stop",
+      "Emergency shelter alternate choice did not persist finalDecision=emergency-stop",
+    );
+    assert(
+      endingBeforeReload.story.whiteFrost.endingId === "frost-emergency-shelter",
+      "Emergency shelter alternate choice did not persist endingId=frost-emergency-shelter",
+    );
+    assert(endingBeforeReload.ended === true, "Emergency shelter alternate choice did not end the run");
+    assert(rewardEntriesBeforeReload === 1, "Emergency shelter completion reward must settle exactly once");
+
+    await reloadAndContinue(page, actionLog);
+    await page.waitForSelector(".screen--result.is-ending", { timeout: 7000 });
+    const endingAfterReload = await readSavedRun(page);
+    const rewardEntriesAfterReload = endingAfterReload.ledger
+      .filter((entry) => entry.source === "story.R02.route-complete").length;
+    assert(
+      endingAfterReload.story.whiteFrost.finalDecision === "emergency-stop"
+      && endingAfterReload.story.whiteFrost.endingId === "frost-emergency-shelter"
+      && endingAfterReload.ended === true,
+      "Emergency shelter ending changed across reload",
+    );
+    assert(
+      rewardEntriesAfterReload === 1 && rewardEntriesAfterReload === rewardEntriesBeforeReload,
+      "Emergency shelter ending reload duplicated the route reward",
+    );
+    assert(browserErrors.length === 0, `Emergency shelter browser errors: ${browserErrors.join(" | ")}`);
+
+    const publicScreenshot = "public/assets/screenshots/frost-emergency-shelter-ending-v100.png";
+    await saveScreenshot(
+      page,
+      branchDirectory,
+      "day7-care-emergency-shelter-ending.png",
+      "frost-emergency-shelter-ending-v100.png",
+      screenshotRegistry,
+    );
+
+    return {
+      status: "passed",
+      viewport: STANDARD_VIEWPORT,
+      alternateChoiceCheckpoint: {
+        source: "CARE natural Day 7 EV065 pre-decision save",
+        eventId: "EV065",
+        storage: [
+          "localStorage:run.current",
+          "IndexedDB:night-train-save/snapshots/run.current",
+        ],
+        serializedBytes: Buffer.byteLength(serializedCheckpoint, "utf8"),
+        authoritativeValuesChangedBeforeChoice: false,
+        copiedWithoutMutation: true,
+      },
+      finalDecision: endingAfterReload.story.whiteFrost.finalDecision,
+      endingId: endingAfterReload.story.whiteFrost.endingId,
+      ended: endingAfterReload.ended,
+      rewardEntriesBeforeReload,
+      rewardEntriesAfterReload,
+      rewardSettledExactlyOnce: rewardEntriesAfterReload === 1,
+      actionLog,
+      browserErrors,
+      screenshot: publicScreenshot,
+    };
+  } catch (error) {
+    await page.screenshot({
+      path: resolve(branchDirectory, "failure-emergency-shelter-alternate.png"),
+      fullPage: true,
+    }).catch(() => undefined);
+    throw new Error(`CARE emergency-shelter alternate audit failed: ${errorMessage(error)}`);
+  } finally {
+    await context.close().catch(() => undefined);
+  }
+}
+
 async function runBranch(browser, branch) {
   const branchDirectory = resolve(outputDirectory, branch.toLowerCase());
   await mkdir(branchDirectory, { recursive: true });
@@ -1238,6 +1457,8 @@ async function runBranch(browser, branch) {
   const publicVideoName = `night-train-frost-v100-${branch.toLowerCase()}.webm`;
   let branchReport;
   let fixtureSetup;
+  let alternateEndingCheckpoint;
+  let alternateEndingAudit;
 
   page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
   page.on("console", (message) => {
@@ -1470,6 +1691,9 @@ async function runBranch(browser, branch) {
       await page.locator('[data-event-id="EV065"] [data-action="event-choice"]').count() === 4,
       "EV065 must visibly expose four ending decisions",
     );
+    if (branch === "CARE") {
+      alternateEndingCheckpoint = await captureSavedEventCheckpoint(page, "EV065");
+    }
     await saveScreenshot(
       page,
       branchDirectory,
@@ -1510,6 +1734,15 @@ async function runBranch(browser, branch) {
       persisted: true,
     });
     assert(browserErrors.length === 0, `${branch} browser errors: ${browserErrors.join(" | ")}`);
+    if (branch === "CARE") {
+      assert(alternateEndingCheckpoint, "CARE did not capture its natural EV065 pre-decision checkpoint");
+      alternateEndingAudit = await auditEmergencyShelterAlternate(
+        browser,
+        alternateEndingCheckpoint,
+        branchDirectory,
+        screenshotRegistry,
+      );
+    }
 
     const uniqueDays = [...new Set(contactEvidence.map((entry) => entry.day))].sort((left, right) => left - right);
     assert(uniqueDays.length === 7 && uniqueDays.every((day, index) => day === index + 1), `${branch} did not visibly resolve all seven nights`);
@@ -1535,6 +1768,7 @@ async function runBranch(browser, branch) {
       compactThermalDrawer,
       fixtureSetup,
       reloadCheckpoints,
+      alternateEndingAudit,
       actionCount: actionLog.length,
       actionLog,
       browserErrors,
@@ -1659,8 +1893,20 @@ const report = {
     reloadCheckpoints: ["EV057", "T009-first-miss", "ending"],
     wrongRevealRetry: branchReports.some((branch) => branch.day4T009?.mode === "wrong-reveal-retry"),
     manualScrape: branchReports.some((branch) => branch.day4T009?.mode === "wrong-reveal-manual"),
+    alternateEmergencyShelterEnding: branchReports.some((branch) => (
+      branch.branch === "CARE"
+      && branch.alternateEndingAudit?.status === "passed"
+      && branch.alternateEndingAudit?.finalDecision === "emergency-stop"
+      && branch.alternateEndingAudit?.endingId === "frost-emergency-shelter"
+      && branch.alternateEndingAudit?.rewardSettledExactlyOnce === true
+    )),
     compact: { viewport: COMPACT_VIEWPORT, textScale: COMPACT_TEXT_SCALE, minimumTouchTarget: 48 },
-    consoleAndPageErrors: branchReports.reduce((total, branch) => total + (branch.browserErrors?.length ?? 0), 0),
+    consoleAndPageErrors: branchReports.reduce(
+      (total, branch) => total
+        + (branch.browserErrors?.length ?? 0)
+        + (branch.alternateEndingAudit?.browserErrors?.length ?? 0),
+      0,
+    ),
   },
   emergencyRouteAudit,
   fixtureDisclosure: {

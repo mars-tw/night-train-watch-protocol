@@ -3,6 +3,7 @@
   "baseUrl": "http://127.0.0.1:4312",
   "viewport": "390x844",
   "actionsExercised": [
+    "arm-threat-tool",
     "build-module",
     "carriage",
     "comfort",
@@ -12,6 +13,7 @@
     "counter",
     "cycle-text",
     "decorate",
+    "emergency-route",
     "event-choice",
     "event-preview",
     "finish-decor",
@@ -43,6 +45,11 @@
     "settings",
     "swipe-carriage",
     "tech",
+    "thermal-commit",
+    "thermal-reset",
+    "thermal-select",
+    "thermal-target",
+    "threat-interact",
     "toggle-countdown",
     "toggle-module",
     "toggle-motion",
@@ -53,8 +60,8 @@
     "water-crops",
     "workshop-scrap"
   ],
-  "actionCount": 49,
-  "assertions": 498,
+  "actionCount": 56,
+  "assertions": 591,
   "visualLayoutMetrics": {
     "uninterruptedSceneHeight": 534,
     "dockHeight": 70,
@@ -62,14 +69,101 @@
     "minimumTouchHeight": 48
   },
   "compactLayoutMetrics": {
-    "uninterruptedSceneHeight": 327,
-    "dockBottom": 639,
+    "uninterruptedSceneHeight": 338,
+    "dockBottom": 628,
     "minimumTouchWidth": 60,
     "minimumTouchHeight": 48,
     "horizontalOverflow": 0,
     "selectorLabelFontSize": 9,
     "dockLabelFontSize": 10,
     "cropInfoFontSize": 9
+  },
+  "r01ActionCount": 49,
+  "frostSupplementMetrics": {
+    "actions": [
+      "emergency-route",
+      "arm-threat-tool",
+      "threat-interact",
+      "thermal-select",
+      "thermal-target",
+      "thermal-reset",
+      "thermal-commit"
+    ],
+    "normalR02Opening": {
+      "eventId": "EV053",
+      "choiceId": "a07-layout",
+      "thermalStartDay": 1
+    },
+    "thermal": {
+      "selectedToken": "H1",
+      "targetZone": "LOOP",
+      "resetAllocation": {
+        "BERTH": 2,
+        "DEICER": 2,
+        "LOOP": 2
+      },
+      "committedDay": 1,
+      "settlementId": "thermal:R02:D1:UNSET",
+      "resourceDelta": {
+        "energy": -2,
+        "fuel": -1,
+        "water": 0
+      }
+    },
+    "disclosedFixtures": {
+      "threat": {
+        "day": 3,
+        "phase": "night",
+        "threatId": "T004",
+        "targetPlotId": "plot-a",
+        "noCountdown": true,
+        "consumedOverdueEvent": "EV054"
+      },
+      "braceImpact": {
+        "day": 3,
+        "phase": "night",
+        "threatId": "T003",
+        "energy": 0,
+        "fuel": 0,
+        "noCountdown": true
+      },
+      "emergencyRoute": {
+        "day": 2,
+        "phase": "route",
+        "fuel": 0,
+        "seenEventAdded": "EV055",
+        "baseline": {
+          "hull": 100,
+          "temperature": 12,
+          "sleep": 100,
+          "stress": 20
+        }
+      }
+    },
+    "t004Result": {
+      "resolvedContactId": "button-audit-t004",
+      "phase": "aftermath",
+      "activeContact": null
+    },
+    "braceImpactResult": {
+      "phase": "night",
+      "wave": 2,
+      "totalWaves": 2,
+      "energy": 0,
+      "fuel": 0,
+      "hull": 78,
+      "sleep": 82,
+      "stress": 32
+    },
+    "emergencyRouteResult": {
+      "selectedRouteNodeId": "RN01",
+      "phase": "travel",
+      "fuel": 0,
+      "hull": 94,
+      "temperature": 9,
+      "sleep": 92,
+      "stress": 28
+    }
   },
   "mobileGameFeel": {
     "horizontalCarriageSwipe": true,
@@ -82,5 +176,5 @@
     "semanticPauseControl": true
   },
   "browserErrors": [],
-  "generatedAt": "2026-07-25T14:58:42.991Z"
+  "generatedAt": "2026-07-28T06:15:00.439Z"
 }

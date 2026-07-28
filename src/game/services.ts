@@ -608,14 +608,7 @@ export class RunService {
       this.endRunIfTerminal(run);
       return;
     }
-    const incomingDamage = threat.damage + (run.day - 1) * 2;
-    const cropBuffer = run.day === 7 ? Math.min(run.story.finaleHealthBuffer, Math.max(0, incomingDamage - 2)) : 0;
-    if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
-    this.applyEnvironment(run, "hull", -(incomingDamage - cropBuffer), `threat.${threat.id}.breach`);
-    this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
-    this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
-    run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
-    this.endRunIfTerminal(run);
+    this.applyStandardBreachDamage(run, threat);
   }
 
   public counterThreat(run: RunState, counterId: string): boolean {
@@ -631,6 +624,17 @@ export class RunService {
     if (contact.interaction) {
       run.lastMessage = "這個接觸需要在可見線索上指定目標，不能用舊式一鍵反制跳過。";
       return false;
+    }
+    if (counterId === "brace-impact") {
+      if (threat.id !== "T002" && threat.id !== "T003") {
+        run.lastMessage = "只有一般窗外接觸能選擇承受撞擊；此威脅必須完成場景互動。";
+        return false;
+      }
+      contact.stage = "breach";
+      contact.resolvedBy = counterId;
+      const ended = this.applyStandardBreachDamage(run, threat);
+      if (ended) return true;
+      return this.advanceNightContactOrFinish(run, `${threat.name}的撞擊已承受，列車帶傷繼續前進。`);
     }
     const readiness = counterReadiness(run, counterId);
     if (!readiness.available) {
@@ -1484,6 +1488,22 @@ export class RunService {
       healthDelta: 0,
       message,
     };
+  }
+
+  private applyStandardBreachDamage(
+    run: RunState,
+    threat: { id: string; name: string; damage: number },
+  ): boolean {
+    const incomingDamage = threat.damage + (run.day - 1) * 2;
+    const cropBuffer = run.day === 7
+      ? Math.min(run.story.finaleHealthBuffer, Math.max(0, incomingDamage - 2))
+      : 0;
+    if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
+    this.applyEnvironment(run, "hull", -(incomingDamage - cropBuffer), `threat.${threat.id}.breach`);
+    this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
+    this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
+    run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
+    return this.endRunIfTerminal(run);
   }
 
   private advanceNightContactOrFinish(run: RunState, result: string): boolean {

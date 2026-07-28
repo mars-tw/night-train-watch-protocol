@@ -75,6 +75,7 @@ tags: [design, game, story, mobile, white-frost, open-source]
 - **REQ-016**: 所有正式美術必須本地載入；不得包含 runtime GPT API、密鑰或網路依賴。
 - **REQ-017**: 390×844／100% 與 360×640／140% 必須無水平溢位；所有操作目標至少 48×48 CSS px，面板不得永久蓋住車廂。
 - **REQ-018**: 公開專案必須包含 R02 三分支通關 QA JSON、至少兩支完整 WebM、白霜車廂／分支／T009／小螢幕／結局截圖及 README 引用。
+- **REQ-019**: 開啟「無倒數」時，T002／T003 若沒有任何可負擔的正確反制，必須提供可見的「承受撞擊」；它套用同一套破口傷害並推進接觸或正確結束失敗局，不能讓玩家卡在夜間。
 - **CON-001**: UI 只發送意圖；所有資源、旗標、互動進度及結局由 RunService／story service 修改。
 - **CON-002**: 所有隨機目標使用 `seed + stream key`，不得使用 `Math.random()`。
 - **CON-003**: 每畫面最多一個暖金主 CTA；危險、資訊及安全狀態沿用視覺稿色彩。
@@ -296,6 +297,7 @@ type T009Command =
 - **AC-013**: Given 360×640／140%，When 完成 EV057、thermal board、T009、EV065，Then水平 overflow≤1px、所有 enabled 目標≥48×48、中心 hit-test 未被覆蓋。
 - **AC-014**: Given 公開 clone，When 離線執行，Then R01/R02、GPT 圖、故事、存檔與所有按鈕可用，無外部 runtime 請求。
 - **AC-015**: Given 三個分支固定 seed，When 各完成一局，Then CARE／CLEAR／SUSTAIN 的畫面、Day 5 操作、T009 配置及結局證據各自不同且可重現。
+- **AC-016**: Given T003、燃料 0 且無可用誘餌，When 玩家點「承受撞擊」，Then 車體、睡眠與壓力依破口規則只結算一次，接觸立即前進；瀏覽器驗收不得以無界等待吞掉失敗。
 
 ## 6. Test Automation Strategy
 
@@ -310,6 +312,7 @@ type T009Command =
   - 真 pointer drag 與 tap-target 各一次。
   - 分支後、T009 第一次操作後、結局後三個 reload checkpoint。
   - 390×844／100% 與 360×640／140%。
+  - 全按鈕流程必須以真實中心點擊覆蓋 56 個 controller actions；不得直接寫入 coverage set 代替點擊。
   - 所有 `data-action + data-value` 組合至少命中一次；console/page errors=0。
 - **CI**: `npm run check` 保持快速 gate；browser audits 在 Draft PR 報告中另列實際執行證據，不得以 CI 綠燈取代。
 - **Media**: QA JSON 必須含 `commitSha`、`appVersion`、viewport、branch、actionValues；WebM 必須以瀏覽器 metadata 或 ffprobe 驗證可播放、寬高與 duration>0。

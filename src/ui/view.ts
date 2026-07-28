@@ -708,7 +708,7 @@ function carriageScreen(state: AppState): string {
     T003: [
       { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
       { id: "decoy", icon: "◎", label: "誘餌廣播", cost: "E 6" },
-      { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
+      { id: "brace-impact", icon: "▰", label: "承受撞擊", cost: "車體受損・強制推進" },
     ],
     T004: [
       { id: "drag-cutter", icon: "剪", label: "拖動割具斷藤", cost: "點按割除根節" },
@@ -728,7 +728,7 @@ function carriageScreen(state: AppState): string {
   }[threat?.id ?? ""] ?? [
     { id: "close-shutter", icon: icons.shield, label: "關閉百葉", cost: "E 8" },
     { id: "shock-window", icon: icons.shock, label: "窗框電擊", cost: "E 12" },
-    { id: "emergency-boost", icon: icons.boost, label: "緊急加速", cost: "F 4" },
+    { id: "brace-impact", icon: "▰", label: "承受撞擊", cost: "車體受損・強制推進" },
   ];
   const visibleThreatInteraction = night && contact ? threatInteractionPanel(run, contact) : "";
   const drawerOpen = !night && (state.decorating || state.carriagePanel !== "scene");

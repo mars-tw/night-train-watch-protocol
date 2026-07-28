@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "generatedAt": "2026-07-28T04:08:45.737Z",
+  "generatedAt": "2026-07-28T06:26:34.330Z",
   "baseUrl": "http://127.0.0.1:4312",
   "requestedBranches": [
     "GO",
@@ -14,6 +14,39 @@
   },
   "threatInteractionSelector": "[data-testid=\"threat-interaction\"][data-threat-id] [data-action=\"threat-interact\"][data-value]",
   "allowLegacyThreatUi": false,
+  "fixturePolicy": {
+    "kind": "qa-only-branch-resource-fixture",
+    "appliesToBranch": "STOP",
+    "eventId": "EV044",
+    "choiceId": "STOP",
+    "choiceMinimum": {
+      "food": 3,
+      "water": 3
+    },
+    "legalTarget": {
+      "food": 8,
+      "water": 8
+    },
+    "legalTargetSource": "src/game/content.ts BALANCE.max",
+    "mutatedFields": [
+      "resources.food",
+      "resources.water"
+    ],
+    "preservedState": [
+      "routeId",
+      "day",
+      "phase",
+      "activeEventId",
+      "selectedRouteNodeId",
+      "story"
+    ],
+    "storage": [
+      "localStorage:run.current",
+      "IndexedDB:night-train-save/snapshots/run.current"
+    ],
+    "resume": "reload menu, re-sync the same serialized fixture, then use the visible Continue button",
+    "interaction": "click the visible STOP button at its rendered center with page.mouse.click"
+  },
   "compactFinale": {
     "viewport": {
       "width": 360,
@@ -40,13 +73,13 @@
           "day": 7,
           "wave": 1,
           "totalWaves": 3,
-          "threatId": "T002"
+          "threatId": "T003"
         },
         {
           "day": 7,
           "wave": 2,
           "totalWaves": 3,
-          "threatId": "T003"
+          "threatId": "T002"
         },
         {
           "day": 7,
@@ -102,12 +135,17 @@
         ]
       },
       "encounteredThreats": [
-        "T002",
         "T003",
+        "T002",
         "T006"
       ],
       "screenshots": 4,
-      "videos": 1
+      "videos": 1,
+      "video": {
+        "output": "output/playwright/story-flow/go/go-day1-7-story-playthrough.webm",
+        "public": "public/assets/video/night-train-story-v090.webm",
+        "bytes": 7216638
+      }
     },
     {
       "status": "passed",
@@ -194,7 +232,12 @@
         "T004"
       ],
       "screenshots": 4,
-      "videos": 1
+      "videos": 1,
+      "video": {
+        "output": "output/playwright/story-flow/detour/detour-day1-7-story-playthrough.webm",
+        "public": "public/assets/video/night-train-story-v090-detour.webm",
+        "bytes": 7368536
+      }
     },
     {
       "status": "passed",
@@ -214,13 +257,13 @@
           "day": 7,
           "wave": 1,
           "totalWaves": 3,
-          "threatId": "T003"
+          "threatId": "T002"
         },
         {
           "day": 7,
           "wave": 2,
           "totalWaves": 3,
-          "threatId": "T002"
+          "threatId": "T003"
         },
         {
           "day": 7,
@@ -232,8 +275,8 @@
       "interactionAudit": {
         "threatId": "T005",
         "ui": "dedicated",
-        "action": "signal:sig-a",
-        "target": "sig-a",
+        "action": "signal:sig-b",
+        "target": "sig-b",
         "attempts": 1
       },
       "compactFinale": {
@@ -275,13 +318,67 @@
           "result:primary"
         ]
       },
+      "day4ResourceFixture": {
+        "policy": "qa-only-branch-resource-fixture",
+        "branch": "STOP",
+        "eventId": "EV044",
+        "choiceMinimum": {
+          "food": 3,
+          "water": 3
+        },
+        "before": {
+          "food": 2,
+          "water": 3
+        },
+        "after": {
+          "food": 8,
+          "water": 8
+        },
+        "changedFields": [
+          "resources.food",
+          "resources.water"
+        ],
+        "preReloadSync": {
+          "localStorageMatches": true,
+          "indexedDBMatches": true
+        },
+        "postReloadSync": {
+          "localStorageMatches": true,
+          "indexedDBMatches": true
+        },
+        "reloaded": true,
+        "continuedThroughVisibleUi": true,
+        "preservedStateVerified": true,
+        "centerClick": {
+          "method": "page.mouse.click",
+          "center": {
+            "x": 187.5,
+            "y": 636.8125
+          },
+          "hitTarget": {
+            "action": "event-choice",
+            "value": "STOP",
+            "disabled": false
+          },
+          "hitBox": {
+            "width": 307,
+            "height": 162.1875
+          }
+        },
+        "choicePersisted": true
+      },
       "encounteredThreats": [
-        "T003",
         "T002",
+        "T003",
         "T005"
       ],
       "screenshots": 4,
-      "videos": 1
+      "videos": 1,
+      "video": {
+        "output": "output/playwright/story-flow/stop/stop-day1-7-story-playthrough.webm",
+        "public": "public/assets/video/night-train-story-v090-stop.webm",
+        "bytes": 5227859
+      }
     }
   ]
 }

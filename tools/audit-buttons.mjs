@@ -4,7 +4,11 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.GAME_URL ?? "http://127.0.0.1:4312";
 const outputDirectory = resolve("output/playwright/button-audit");
-await mkdir(outputDirectory, { recursive: true });
+const publicQaDirectory = resolve("public/assets/qa");
+await Promise.all([
+  mkdir(outputDirectory, { recursive: true }),
+  mkdir(publicQaDirectory, { recursive: true }),
+]);
 
 const expectedActions = [
   "new-game", "continue", "menu", "hub", "settings", "carriage", "pause", "route", "modules", "modules-preview",
@@ -20,6 +24,7 @@ const assertions = [];
 const browserErrors = [];
 let visualLayoutMetrics = null;
 let compactLayoutMetrics = null;
+let frostSupplementMetrics = null;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -34,15 +39,15 @@ page.on("console", (message) => {
   if (message.type() === "error") browserErrors.push(message.text());
 });
 
-async function auditRenderedButtons(label) {
-  const missingAction = await page.locator("button:not([data-action])").count();
+async function auditRenderedButtons(label, activePage = page) {
+  const missingAction = await activePage.locator("button:not([data-action])").count();
   assert(missingAction === 0, `${label}: every button exposes a data-action`);
-  const unknownActions = await page.locator("button[data-action]").evaluateAll((buttons, expected) => {
+  const unknownActions = await activePage.locator("button[data-action]").evaluateAll((buttons, expected) => {
     const allow = new Set(expected);
     return [...new Set(buttons.map((button) => button.dataset.action).filter((action) => action && !allow.has(action)))];
   }, expectedActions);
   assert(unknownActions.length === 0, `${label}: every rendered action is part of the controller contract`);
-  const obstructed = await page.locator("button[data-action]:not([disabled])").evaluateAll((buttons) => buttons.flatMap((button) => {
+  const obstructed = await activePage.locator("button[data-action]:not([disabled])").evaluateAll((buttons) => buttons.flatMap((button) => {
     const rect = button.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
@@ -54,32 +59,54 @@ async function auditRenderedButtons(label) {
   assert(obstructed.length === 0, `${label}: every visible enabled button has an unobstructed center target${obstructed.length ? ` (${JSON.stringify(obstructed)})` : ""}`);
 }
 
-async function clickAction(action, value) {
+async function clickAction(action, value, activePage = page) {
   const suffix = value === undefined ? "" : `[data-value="${value}"]`;
-  const target = page.locator(`[data-action="${action}"]${suffix}:not([disabled])`).first();
-  assert(await target.count() === 1, `${action}${value ? `:${value}` : ""} is present and enabled`);
+  const selector = `[data-action="${action}"]${suffix}:not([disabled])`;
   let hitTest;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    hitTest = await target.evaluate((button) => {
-      const rect = button.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      const top = document.elementFromPoint(x, y);
-      return {
-        clear: rect.width > 0 && rect.height > 0 && (top === button || Boolean(top && button.contains(top))),
-        top: top ? `${top.tagName.toLowerCase()}.${[...top.classList].join(".")}` : "none",
-        x,
-        y,
-      };
-    });
-    if (hitTest.clear) break;
-    await page.waitForTimeout(40);
+  let present = false;
+  let clicked = false;
+  let lastFailure = "target did not settle";
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const target = activePage.locator(selector).first();
+    try {
+      if (await target.count() !== 1) {
+        lastFailure = "target missing or disabled";
+      } else {
+        present = true;
+        await target.scrollIntoViewIfNeeded();
+        hitTest = await target.evaluate((button) => {
+          const rect = button.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          const top = document.elementFromPoint(x, y);
+          return {
+            clear: rect.width > 0 && rect.height > 0 && (top === button || Boolean(top && button.contains(top))),
+            top: top ? `${top.tagName.toLowerCase()}.${[...top.classList].join(".")}` : "none",
+            x,
+            y,
+          };
+        });
+        if (hitTest.clear) {
+          await activePage.mouse.click(hitTest.x, hitTest.y);
+          clicked = true;
+          break;
+        }
+        lastFailure = `covered by ${hitTest.top}`;
+      }
+    } catch (error) {
+      lastFailure = error instanceof Error ? error.message : String(error);
+    }
+    await activePage.waitForTimeout(80);
   }
-  assert(hitTest?.clear, `${action}${value ? `:${value}` : ""} can be hit at its visible center (${Math.round(hitTest?.x ?? -1)},${Math.round(hitTest?.y ?? -1)}; top ${hitTest?.top ?? "none"})`);
-  await page.mouse.click(hitTest.x, hitTest.y);
+  assert(present, `${action}${value ? `:${value}` : ""} is present and enabled`);
+  assert(
+    clicked,
+    `${action}${value ? `:${value}` : ""} can be hit at its visible center `
+    + `(${Math.round(hitTest?.x ?? -1)},${Math.round(hitTest?.y ?? -1)}; ${lastFailure})`,
+  );
   clickedActions.add(action);
-  await page.waitForTimeout(await page.locator(".screen-enter").count() ? 560 : 60);
-  await auditRenderedButtons(`after ${action}`);
+  await activePage.waitForTimeout(await activePage.locator(".screen-enter").count() ? 560 : 60);
+  await auditRenderedButtons(`after ${action}`, activePage);
   console.log(`✓ ${action}${value === undefined ? "" : `:${value}`}`);
 }
 
@@ -115,6 +142,357 @@ async function swipeCarriage(direction, expectedCarriage) {
   clickedActions.add("swipe-carriage");
   await page.waitForSelector(`.screen--carriage[data-carriage="${expectedCarriage}"]`);
   await auditRenderedButtons(`after ${direction} carriage swipe`);
+}
+
+async function readSavedRun(activePage) {
+  return JSON.parse((await activePage.evaluate(() => localStorage.getItem("run.current"))) ?? "{}");
+}
+
+async function writeSavedRun(activePage, run) {
+  const serialized = JSON.stringify(run);
+  await activePage.evaluate(async (snapshot) => {
+    localStorage.setItem("run.current", snapshot);
+    await new Promise((resolveWrite) => {
+      const request = indexedDB.open("night-train-save", 1);
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction("snapshots", "readwrite");
+        transaction.objectStore("snapshots").put(snapshot, "run.current");
+        transaction.oncomplete = () => {
+          database.close();
+          resolveWrite(undefined);
+        };
+        transaction.onerror = () => resolveWrite(undefined);
+      };
+      request.onerror = () => resolveWrite(undefined);
+    });
+  }, serialized);
+  return serialized;
+}
+
+async function resumeInjectedRun(activePage, serialized) {
+  await activePage.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+  await activePage.waitForSelector(".screen--menu");
+  await activePage.evaluate(async (snapshot) => {
+    localStorage.setItem("run.current", snapshot);
+    await new Promise((resolveWrite) => {
+      const request = indexedDB.open("night-train-save", 1);
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction("snapshots", "readwrite");
+        transaction.objectStore("snapshots").put(snapshot, "run.current");
+        transaction.oncomplete = () => {
+          database.close();
+          resolveWrite(undefined);
+        };
+        transaction.onerror = () => resolveWrite(undefined);
+      };
+      request.onerror = () => resolveWrite(undefined);
+    });
+  }, serialized);
+  await clickAction("continue", undefined, activePage);
+}
+
+async function auditFrostControllerActions() {
+  const frostActions = [
+    "emergency-route",
+    "arm-threat-tool",
+    "threat-interact",
+    "thermal-select",
+    "thermal-target",
+    "thermal-reset",
+    "thermal-commit",
+  ];
+  const frostContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-TW" });
+  const frostPage = await frostContext.newPage();
+  frostPage.on("pageerror", (error) => browserErrors.push(`R02: ${error.message}`));
+  frostPage.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`R02: ${message.text()}`);
+  });
+
+  try {
+    await frostPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await frostPage.waitForSelector(".screen--menu");
+    await frostPage.evaluate(async () => {
+      localStorage.clear();
+      await new Promise((resolveDelete) => {
+        const request = indexedDB.deleteDatabase("night-train-save");
+        request.onsuccess = () => resolveDelete(undefined);
+        request.onerror = () => resolveDelete(undefined);
+        request.onblocked = () => resolveDelete(undefined);
+      });
+      localStorage.setItem("settings", JSON.stringify({
+        textScale: 100,
+        reducedMotion: false,
+        noCountdown: true,
+        lowSpeed: false,
+        sound: false,
+      }));
+    });
+    await frostPage.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+    await frostPage.waitForSelector(".screen--menu");
+
+    // Normal R02 opening: no story state is injected for the thermal controls.
+    await clickAction("new-game", "R02", frostPage);
+    await frostPage.waitForSelector('[data-event-id="EV053"]');
+    await clickAction("event-choice", "a07-layout", frostPage);
+    await frostPage.waitForSelector(".screen--carriage.is-prep");
+    await clickAction("power", undefined, frostPage);
+    await frostPage.waitForSelector('[data-testid="thermal-board"]');
+
+    const thermalBefore = await readSavedRun(frostPage);
+    const initialH1Zone = thermalBefore.story.whiteFrost.thermal.tokens
+      .find((token) => token.id === "H1")?.zone;
+    const initialRevision = thermalBefore.story.whiteFrost.thermal.revision;
+    assert(initialH1Zone === "BERTH", "R02 normal opening starts H1 in BERTH");
+
+    await clickAction("thermal-select", "H1", frostPage);
+    const afterSelect = await readSavedRun(frostPage);
+    assert(
+      afterSelect.story.whiteFrost.thermal.selectedTokenId === "H1",
+      "thermal-select visibly persists H1 as the selected token",
+    );
+
+    await clickAction("thermal-target", "LOOP", frostPage);
+    const afterTarget = await readSavedRun(frostPage);
+    assert(
+      afterTarget.story.whiteFrost.thermal.tokens.find((token) => token.id === "H1")?.zone === "LOOP"
+      && afterTarget.story.whiteFrost.thermal.selectedTokenId === null
+      && afterTarget.story.whiteFrost.thermal.revision === initialRevision + 1,
+      "thermal-target visibly moves H1 to LOOP and persists the revision",
+    );
+
+    await clickAction("thermal-reset", undefined, frostPage);
+    const afterReset = await readSavedRun(frostPage);
+    const resetAllocation = afterReset.story.whiteFrost.thermal.tokens.reduce((counts, token) => {
+      counts[token.zone] = (counts[token.zone] ?? 0) + 1;
+      return counts;
+    }, {});
+    assert(
+      afterReset.story.whiteFrost.thermal.tokens.find((token) => token.id === "H1")?.zone === "BERTH"
+      && resetAllocation.BERTH === 2
+      && resetAllocation.DEICER === 2
+      && resetAllocation.LOOP === 2
+      && afterReset.story.whiteFrost.thermal.revision === initialRevision + 2,
+      "thermal-reset visibly restores the committed 2/2/2 allocation",
+    );
+
+    const resourcesBeforeCommit = { ...afterReset.resources };
+    await clickAction("thermal-commit", undefined, frostPage);
+    const afterCommit = await readSavedRun(frostPage);
+    assert(
+      afterCommit.story.whiteFrost.thermal.committedDay === 1
+      && afterCommit.story.whiteFrost.thermal.settlementIds.includes("thermal:R02:D1:UNSET"),
+      "thermal-commit persists the Day 1 settlement exactly through the visible button",
+    );
+    assert(
+      afterCommit.resources.energy === resourcesBeforeCommit.energy - 2
+      && afterCommit.resources.fuel === resourcesBeforeCommit.fuel - 1
+      && afterCommit.resources.water === resourcesBeforeCommit.water,
+      "thermal-commit applies the visible 2 energy and 1 fuel cost once",
+    );
+
+    // Disclosed local fixture: isolate T004's tap fallback without replaying seven nights.
+    const t004Fixture = structuredClone(afterCommit);
+    t004Fixture.day = 3;
+    t004Fixture.phase = "night";
+    t004Fixture.activeEventId = undefined;
+    t004Fixture.selectedRouteNodeId = "RN01";
+    // The fixture jumps from Day 1 to Day 3. Mark the queued Day 1 ledger as
+    // already seen so this check isolates T004 instead of opening an overdue
+    // EV054 immediately after the contact resolves.
+    t004Fixture.story.queue = t004Fixture.story.queue.filter((event) => event.eventId !== "EV054");
+    t004Fixture.story.seenEventIds = [...new Set([
+      ...t004Fixture.story.seenEventIds,
+      "EV054",
+    ])];
+    t004Fixture.activeContact = {
+      id: "button-audit-t004",
+      definitionId: "T004",
+      stage: "approach",
+      secondsLeft: 10,
+      wave: 1,
+      totalWaves: 1,
+      interaction: {
+        kind: "T004",
+        targetPlotId: "plot-a",
+        attempts: 0,
+        targetRevealed: false,
+      },
+    };
+    const serializedT004Fixture = await writeSavedRun(frostPage, t004Fixture);
+    await resumeInjectedRun(frostPage, serializedT004Fixture);
+    await frostPage.waitForSelector('[data-testid="threat-interaction"][data-threat-id="T004"]');
+
+    const cutter = frostPage.locator('[data-action="arm-threat-tool"][data-threat-tool="cutter"]').first();
+    assert(await cutter.getAttribute("aria-pressed") === "false", "T004 cutter starts visibly unarmed");
+    await clickAction("arm-threat-tool", undefined, frostPage);
+    assert(
+      await cutter.getAttribute("aria-pressed") === "true"
+      && await frostPage.locator(".threat-interaction--vine.is-tool-armed").count() === 1,
+      "arm-threat-tool visibly arms the cutter through a center-hit browser click",
+    );
+
+    await clickAction("threat-interact", "cutter:plot-a", frostPage);
+    const afterThreatInteraction = await readSavedRun(frostPage);
+    assert(
+      afterThreatInteraction.phase === "aftermath"
+      && !afterThreatInteraction.activeContact,
+      "threat-interact resolves the disclosed T004 contact and persists aftermath state",
+    );
+
+    // Disclosed local fixture: no-countdown cannot wait for a breach, so the
+    // zero-resource brace action must visibly apply breach costs and advance.
+    const braceFixture = structuredClone(afterThreatInteraction);
+    braceFixture.day = 3;
+    braceFixture.phase = "night";
+    braceFixture.resources.energy = 0;
+    braceFixture.resources.fuel = 0;
+    braceFixture.environment.hull = 100;
+    braceFixture.survivor.sleep = 100;
+    braceFixture.survivor.stress = 20;
+    braceFixture.story.finaleHealthBuffer = 0;
+    braceFixture.activeEventId = undefined;
+    braceFixture.activeContact = {
+      id: "button-audit-brace-impact",
+      definitionId: "T003",
+      stage: "approach",
+      secondsLeft: 7,
+      wave: 1,
+      totalWaves: 2,
+    };
+    const serializedBraceFixture = await writeSavedRun(frostPage, braceFixture);
+    await resumeInjectedRun(frostPage, serializedBraceFixture);
+    await frostPage.waitForSelector('.screen--carriage.is-night[data-threat-id="T003"]');
+    await clickAction("counter", "brace-impact", frostPage);
+    const afterBraceImpact = await readSavedRun(frostPage);
+    assert(
+      afterBraceImpact.phase === "night"
+      && afterBraceImpact.activeContact?.wave === 2
+      && afterBraceImpact.activeContact?.totalWaves === 2,
+      "brace-impact visibly advances a zero-resource T003 contact from wave 1 to wave 2",
+    );
+    assert(
+      afterBraceImpact.environment.hull === 78
+      && afterBraceImpact.survivor.sleep === 82
+      && afterBraceImpact.survivor.stress === 32
+      && afterBraceImpact.resources.energy === 0
+      && afterBraceImpact.resources.fuel === 0,
+      "brace-impact persists the Day 3 breach costs without creating energy or fuel",
+    );
+
+    // Disclosed local fixture: fuel-zero route deadlock recovery at authored baselines.
+    const emergencyFixture = structuredClone(afterBraceImpact);
+    emergencyFixture.day = 2;
+    emergencyFixture.phase = "route";
+    emergencyFixture.resources.fuel = 0;
+    emergencyFixture.environment.hull = 100;
+    emergencyFixture.environment.temperature = 12;
+    emergencyFixture.survivor.sleep = 100;
+    emergencyFixture.survivor.stress = 20;
+    emergencyFixture.activeEventId = undefined;
+    emergencyFixture.activeContact = undefined;
+    emergencyFixture.selectedRouteNodeId = undefined;
+    emergencyFixture.ended = false;
+    emergencyFixture.outcome = "active";
+    emergencyFixture.story.seenEventIds = [...new Set([
+      ...emergencyFixture.story.seenEventIds,
+      "EV055",
+    ])];
+    const serializedEmergencyFixture = await writeSavedRun(frostPage, emergencyFixture);
+    await resumeInjectedRun(frostPage, serializedEmergencyFixture);
+    await frostPage.waitForSelector(".screen--route.has-emergency-route");
+    await clickAction("emergency-route", undefined, frostPage);
+    const afterEmergencyRoute = await readSavedRun(frostPage);
+    assert(
+      afterEmergencyRoute.selectedRouteNodeId === "RN01"
+      && afterEmergencyRoute.phase === "travel"
+      && afterEmergencyRoute.resources.fuel === 0,
+      "emergency-route visibly selects RN01 and advances to travel without creating fuel",
+    );
+    assert(
+      afterEmergencyRoute.environment.hull === 94
+      && afterEmergencyRoute.environment.temperature === 9
+      && afterEmergencyRoute.survivor.sleep === 92
+      && afterEmergencyRoute.survivor.stress === 28,
+      "emergency-route persists hull 94, temperature 9, sleep 92 and stress 28",
+    );
+
+    for (const action of frostActions) {
+      assert(clickedActions.has(action), `${action} was recorded only after its real center-hit browser click`);
+    }
+    return {
+      actions: frostActions,
+      normalR02Opening: {
+        eventId: "EV053",
+        choiceId: "a07-layout",
+        thermalStartDay: thermalBefore.day,
+      },
+      thermal: {
+        selectedToken: "H1",
+        targetZone: "LOOP",
+        resetAllocation,
+        committedDay: afterCommit.story.whiteFrost.thermal.committedDay,
+        settlementId: "thermal:R02:D1:UNSET",
+        resourceDelta: {
+          energy: afterCommit.resources.energy - resourcesBeforeCommit.energy,
+          fuel: afterCommit.resources.fuel - resourcesBeforeCommit.fuel,
+          water: afterCommit.resources.water - resourcesBeforeCommit.water,
+        },
+      },
+      disclosedFixtures: {
+        threat: {
+          day: 3,
+          phase: "night",
+          threatId: "T004",
+          targetPlotId: "plot-a",
+          noCountdown: true,
+          consumedOverdueEvent: "EV054",
+        },
+        braceImpact: {
+          day: 3,
+          phase: "night",
+          threatId: "T003",
+          energy: 0,
+          fuel: 0,
+          noCountdown: true,
+        },
+        emergencyRoute: {
+          day: 2,
+          phase: "route",
+          fuel: 0,
+          seenEventAdded: "EV055",
+          baseline: { hull: 100, temperature: 12, sleep: 100, stress: 20 },
+        },
+      },
+      t004Result: {
+        resolvedContactId: "button-audit-t004",
+        phase: afterThreatInteraction.phase,
+        activeContact: afterThreatInteraction.activeContact ?? null,
+      },
+      braceImpactResult: {
+        phase: afterBraceImpact.phase,
+        wave: afterBraceImpact.activeContact?.wave,
+        totalWaves: afterBraceImpact.activeContact?.totalWaves,
+        energy: afterBraceImpact.resources.energy,
+        fuel: afterBraceImpact.resources.fuel,
+        hull: afterBraceImpact.environment.hull,
+        sleep: afterBraceImpact.survivor.sleep,
+        stress: afterBraceImpact.survivor.stress,
+      },
+      emergencyRouteResult: {
+        selectedRouteNodeId: afterEmergencyRoute.selectedRouteNodeId,
+        phase: afterEmergencyRoute.phase,
+        fuel: afterEmergencyRoute.resources.fuel,
+        hull: afterEmergencyRoute.environment.hull,
+        temperature: afterEmergencyRoute.environment.temperature,
+        sleep: afterEmergencyRoute.survivor.sleep,
+        stress: afterEmergencyRoute.survivor.stress,
+      },
+    };
+  } finally {
+    await frostContext.close();
+  }
 }
 
 try {
@@ -438,6 +816,25 @@ try {
   await compactPage.screenshot({ path: resolve(outputDirectory, "20-compact-360x640.png"), fullPage: true });
   await compactContext.close();
 
+  const frostOnlyActions = [
+    "emergency-route",
+    "arm-threat-tool",
+    "threat-interact",
+    "thermal-select",
+    "thermal-target",
+    "thermal-reset",
+    "thermal-commit",
+  ];
+  const missingBeforeFrost = expectedActions.filter((action) => !clickedActions.has(action));
+  assert(clickedActions.size === 49, `existing R01 flow still exercises exactly 49 controller actions (${clickedActions.size})`);
+  assert(
+    missingBeforeFrost.length === frostOnlyActions.length
+    && frostOnlyActions.every((action) => missingBeforeFrost.includes(action)),
+    "only the seven disclosed R02 controller actions remain after the existing R01 flow",
+  );
+  frostSupplementMetrics = await auditFrostControllerActions();
+  assert(clickedActions.size === 56, `R01 plus R02 browser clicks exercise exactly 56 controller actions (${clickedActions.size})`);
+
   const missingCoverage = expectedActions.filter((action) => !clickedActions.has(action));
   assert(missingCoverage.length === 0, `all ${expectedActions.length} controller actions were exercised`);
   assert(browserErrors.length === 0, "browser emitted no page or console errors");
@@ -452,6 +849,8 @@ try {
     assertions: assertions.length,
     visualLayoutMetrics,
     compactLayoutMetrics,
+    r01ActionCount: 49,
+    frostSupplementMetrics,
     mobileGameFeel: {
       horizontalCarriageSwipe: true,
       firstUseSwipeGuidance: true,
@@ -465,8 +864,15 @@ try {
     browserErrors,
     generatedAt: new Date().toISOString(),
   };
-  await writeFile(resolve(outputDirectory, "report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
-  console.log(`Button audit passed: ${report.actionCount} actions, ${report.assertions} assertions; report written to ${outputDirectory}`);
+  const serializedReport = `${JSON.stringify(report, null, 2)}\n`;
+  await Promise.all([
+    writeFile(resolve(outputDirectory, "report.json"), serializedReport, "utf8"),
+    writeFile(resolve(publicQaDirectory, "mobile-playability-report.json"), serializedReport, "utf8"),
+  ]);
+  console.log(
+    `Button audit passed: ${report.actionCount} actions, ${report.assertions} assertions; `
+    + `reports written to ${outputDirectory} and ${publicQaDirectory}`,
+  );
 } finally {
   await Promise.race([browser.close(), new Promise((resolveClose) => setTimeout(resolveClose, 5000))]);
 }

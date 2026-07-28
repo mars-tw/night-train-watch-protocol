@@ -310,6 +310,61 @@ describe("authoritative run service", () => {
     expect(run.lastMessage).toContain("未供電");
   });
 
+  it("lets no-countdown runs accept a standard-threat breach when every proper counter is unavailable", () => {
+    const run = createRun("brace-impact-fallback");
+    const service = new RunService();
+    run.day = 7;
+    run.phase = "night";
+    run.resources.energy = 0;
+    run.resources.fuel = 0;
+    run.environment.hull = 100;
+    run.story.finaleStage = "contact";
+    run.story.finaleHealthBuffer = 0;
+    run.activeContact = {
+      id: "brace-impact-wave-2",
+      definitionId: "T003",
+      stage: "approach",
+      secondsLeft: 7,
+      wave: 2,
+      totalWaves: 3,
+    };
+    const sleepBefore = run.survivor.sleep;
+    const stressBefore = run.survivor.stress;
+
+    expect(service.counterThreat(run, "brace-impact")).toBe(true);
+    expect(run.environment.hull).toBe(70);
+    expect(run.survivor.sleep).toBe(sleepBefore - 18);
+    expect(run.survivor.stress).toBe(stressBefore + 12);
+    expect(run.resources.energy).toBe(0);
+    expect(run.resources.fuel).toBe(0);
+    expect(run.activeContact).toMatchObject({ wave: 3, totalWaves: 3, stage: "approach" });
+    expect(run.lastMessage).toContain("列車帶傷繼續前進");
+  });
+
+  it("ends a brace-impact run before it can advance after lethal hull damage", () => {
+    const run = createRun("brace-impact-terminal");
+    const service = new RunService();
+    run.day = 7;
+    run.phase = "night";
+    run.environment.hull = 20;
+    run.story.finaleStage = "contact";
+    run.activeContact = {
+      id: "brace-impact-lethal",
+      definitionId: "T003",
+      stage: "approach",
+      secondsLeft: 7,
+      wave: 2,
+      totalWaves: 3,
+    };
+
+    expect(service.counterThreat(run, "brace-impact")).toBe(true);
+    expect(run.environment.hull).toBe(0);
+    expect(run.ended).toBe(true);
+    expect(run.phase).toBe("ending");
+    expect(run.outcome).toBe("hull-lost");
+    expect(run.activeContact).toBeUndefined();
+  });
+
   it("preserves breach sleep damage in the dawn calculation", () => {
     const run = createRun("fixed");
     const service = new RunService();
