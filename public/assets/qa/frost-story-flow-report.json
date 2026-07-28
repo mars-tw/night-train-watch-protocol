@@ -1,0 +1,1682 @@
+{
+  "status": "passed",
+  "generatedAt": "2026-07-28T06:40:22.554Z",
+  "commitSha": "4d3757dce3d99d8f3512250b476f630b4dd9c07e",
+  "packageVersion": "1.0.0",
+  "workingTreeDirty": false,
+  "baseUrl": "http://127.0.0.1:4312",
+  "routeId": "R02",
+  "requestedBranches": [
+    "CARE",
+    "CLEAR",
+    "SUSTAIN"
+  ],
+  "acceptance": {
+    "completeSevenNightUiFlows": true,
+    "emergencyRouteVisibleClick": true,
+    "branchMatrix": [
+      "CARE",
+      "CLEAR",
+      "SUSTAIN"
+    ],
+    "thermalTap": true,
+    "realPointerDrag": true,
+    "reloadCheckpoints": [
+      "EV057",
+      "T009-first-miss",
+      "ending"
+    ],
+    "wrongRevealRetry": true,
+    "manualScrape": true,
+    "alternateEmergencyShelterEnding": true,
+    "compact": {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 140,
+      "minimumTouchTarget": 48
+    },
+    "consoleAndPageErrors": 0
+  },
+  "emergencyRouteAudit": {
+    "status": "passed",
+    "disclosedFixture": {
+      "day": 2,
+      "phase": "route",
+      "fuel": 0,
+      "activeEventId": null,
+      "seenEventAdded": "EV055",
+      "baseline": {
+        "hull": 100,
+        "temperature": 12,
+        "sleep": 100,
+        "stress": 20
+      }
+    },
+    "viewports": [
+      {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "horizontalOverflow": 0,
+        "textScale": 140,
+        "nodes": [
+          {
+            "nodeId": "RN01",
+            "label": "灰霧月台",
+            "summary": "灰霧月台",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          },
+          {
+            "nodeId": "RN02",
+            "label": "廢棄水塔",
+            "summary": "廢棄水塔",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          },
+          {
+            "nodeId": "RN03",
+            "label": "備用電池",
+            "summary": "備用電池",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          }
+        ],
+        "emergencyButton": {
+          "centerHit": true,
+          "width": 310,
+          "height": 76.796875
+        }
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "horizontalOverflow": 0,
+        "textScale": 140,
+        "nodes": [
+          {
+            "nodeId": "RN01",
+            "label": "灰霧月台",
+            "summary": "灰霧月台",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          },
+          {
+            "nodeId": "RN02",
+            "label": "廢棄水塔",
+            "summary": "廢棄水塔",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          },
+          {
+            "nodeId": "RN03",
+            "label": "備用電池",
+            "summary": "備用電池",
+            "disabled": true,
+            "centerHit": true,
+            "width": 48,
+            "height": 48,
+            "overlapsSummary": false,
+            "overlapsEmergency": false
+          }
+        ],
+        "emergencyButton": {
+          "centerHit": true,
+          "width": 340,
+          "height": 76.796875
+        }
+      }
+    ],
+    "result": {
+      "selectedRouteNodeId": "RN01",
+      "phase": "travel",
+      "fuel": 0,
+      "hull": 94,
+      "temperature": 9,
+      "sleep": 92,
+      "stress": 28
+    },
+    "actionLog": [
+      "settings",
+      "toggle-countdown",
+      "toggle-sound",
+      "menu",
+      "settings",
+      "cycle-text",
+      "cycle-text",
+      "toggle-motion",
+      "menu",
+      "new-game:R02",
+      "event-choice:a07-layout",
+      "continue",
+      "select-route:RN01",
+      "select-route:RN02",
+      "select-route:RN03",
+      "select-route:RN01",
+      "select-route:RN02",
+      "select-route:RN03",
+      "emergency-route"
+    ],
+    "browserErrors": [],
+    "screenshots": [
+      "public/assets/screenshots/frost-emergency-route-360x640-v100.png"
+    ]
+  },
+  "fixtureDisclosure": {
+    "purpose": "Prevent long-form QA exhaustion from masking R02 story/UI behavior.",
+    "resumeMechanism": "Active game screens intentionally omit a menu shortcut. A one-shot pre-document storage handoff restores the disclosed resource-only fixture after unload persistence, then the real Continue control loads it into app memory.",
+    "changedBeforeResourceConsumingPlay": [
+      "resources set to legal caps: energy 100, fuel 60, food 8, water 8, parts 20, medicine 5",
+      "survivor health and sleep set to 100",
+      "environment hull set to 100 and temperature to 18",
+      "starting modules switched off"
+    ],
+    "notChanged": [
+      "day, phase, active event, seen events, branch, T009 interaction, final decision, ending and reward state"
+    ],
+    "progressionRule": "EV053 was resolved through visible UI before the fixture; every later route, event, thermal allocation/commit, threat response, next day and ending choice also used visible UI controls. This is not claimed as a natural-economy balance clear."
+  },
+  "branches": [
+    {
+      "status": "passed",
+      "branch": "CARE",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "routeId": "R02",
+      "day": 7,
+      "branchOperationComplete": true,
+      "finalDecision": "joint",
+      "endingId": "frost-shared-arrival",
+      "rewardSettled": true,
+      "rewardEntries": 1,
+      "sevenNights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "contactEvidence": [
+        {
+          "day": 1,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 2,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 3,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 4,
+          "threatId": "T009",
+          "contactId": "contact-4-1",
+          "requiredZones": [
+            "BERTH",
+            "DEICER"
+          ],
+          "wrongInspection": "LOOP",
+          "firstMiss": {
+            "attempts": 1,
+            "reveal": true,
+            "hullDelta": 0,
+            "healthDelta": 0
+          },
+          "mode": "wrong-reveal-retry",
+          "resolvedBy": "thermal",
+          "manualHullDelta": 0,
+          "reloadCheckpoint": {
+            "checkpoint": "T009-first-miss",
+            "contactId": "contact-4-1",
+            "attempts": 1,
+            "revealPersisted": true,
+            "fastReloadAfterUi": true,
+            "compact": {
+              "viewport": {
+                "width": 360,
+                "height": 640
+              },
+              "textScale": 1.4,
+              "horizontalOverflow": 0,
+              "reducedMotionClass": true,
+              "revealCue": true,
+              "revealedZoneCount": 2,
+              "cueOutlineStyle": "solid",
+              "cueOutlineWidth": "2px",
+              "tokenTransitionDuration": "0s",
+              "rootBounds": {
+                "left": 7,
+                "right": 353,
+                "width": 346
+              },
+              "touchTargets": [
+                {
+                  "label": "thermal-select:H1",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-select:H2",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "threat-interact:frost:inspect:BERTH",
+                  "width": 101.33,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-target:BERTH",
+                  "width": 101.33,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-select:H3",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-select:H4",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "threat-interact:frost:inspect:DEICER",
+                  "width": 101.33,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-target:DEICER",
+                  "width": 101.33,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-select:H5",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-select:H6",
+                  "width": 48,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "threat-interact:frost:inspect:LOOP",
+                  "width": 101.34,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "thermal-target:LOOP",
+                  "width": 101.34,
+                  "height": 48,
+                  "centerHit": true
+                },
+                {
+                  "label": "threat-interact:frost:confirm",
+                  "width": 161,
+                  "height": 52,
+                  "centerHit": true
+                },
+                {
+                  "label": "threat-interact:frost:manual-scrape",
+                  "width": 161,
+                  "height": 52,
+                  "centerHit": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "day": 5,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 6,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 7,
+          "threatId": "T009",
+          "contactId": "contact-7-1",
+          "requiredZones": [
+            "DEICER",
+            "LOOP"
+          ],
+          "inspectedZones": [
+            "DEICER",
+            "LOOP"
+          ],
+          "allocation": {
+            "BERTH": 2,
+            "DEICER": 2,
+            "LOOP": 2
+          },
+          "resolvedBy": "thermal"
+        }
+      ],
+      "storyPhaseEvidence": [
+        {
+          "day": 1,
+          "eventId": "EV053",
+          "duePhase": "prep"
+        },
+        {
+          "day": 2,
+          "eventId": "EV055",
+          "duePhase": "travel"
+        },
+        {
+          "day": 3,
+          "eventId": "EV056",
+          "duePhase": "prep"
+        },
+        {
+          "day": 4,
+          "eventId": "EV057",
+          "duePhase": "route",
+          "evidence": "visible forced-event DOM before route-node selection"
+        },
+        {
+          "day": 5,
+          "eventId": "EV058",
+          "duePhase": "prep"
+        },
+        {
+          "day": 6,
+          "eventId": "EV061",
+          "duePhase": "prep"
+        }
+      ],
+      "day4T009": {
+        "day": 4,
+        "threatId": "T009",
+        "contactId": "contact-4-1",
+        "requiredZones": [
+          "BERTH",
+          "DEICER"
+        ],
+        "wrongInspection": "LOOP",
+        "firstMiss": {
+          "attempts": 1,
+          "reveal": true,
+          "hullDelta": 0,
+          "healthDelta": 0
+        },
+        "mode": "wrong-reveal-retry",
+        "resolvedBy": "thermal",
+        "manualHullDelta": 0,
+        "reloadCheckpoint": {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true,
+          "compact": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "reducedMotionClass": true,
+            "revealCue": true,
+            "revealedZoneCount": 2,
+            "cueOutlineStyle": "solid",
+            "cueOutlineWidth": "2px",
+            "tokenTransitionDuration": "0s",
+            "rootBounds": {
+              "left": 7,
+              "right": 353,
+              "width": 346
+            },
+            "touchTargets": [
+              {
+                "label": "thermal-select:H1",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H2",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:BERTH",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:BERTH",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H3",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H4",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:DEICER",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:DEICER",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H5",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H6",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:LOOP",
+                "width": 101.34,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:LOOP",
+                "width": 101.34,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:confirm",
+                "width": 161,
+                "height": 52,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:manual-scrape",
+                "width": 161,
+                "height": 52,
+                "centerHit": true
+              }
+            ]
+          }
+        }
+      },
+      "day7T009": {
+        "day": 7,
+        "threatId": "T009",
+        "contactId": "contact-7-1",
+        "requiredZones": [
+          "DEICER",
+          "LOOP"
+        ],
+        "inspectedZones": [
+          "DEICER",
+          "LOOP"
+        ],
+        "allocation": {
+          "BERTH": 2,
+          "DEICER": 2,
+          "LOOP": 2
+        },
+        "resolvedBy": "thermal"
+      },
+      "day7Thermal": {
+        "allocation": {
+          "BERTH": 2,
+          "DEICER": 3,
+          "LOOP": 1
+        },
+        "returnedToBoardViaEventChoice": true,
+        "returnedToEventAfterCommit": true,
+        "committedDay": 7,
+        "settlementIds": [
+          "thermal:R02:D7:CARE"
+        ]
+      },
+      "pointerDrag": {
+        "tokenId": "H2",
+        "targetZone": "LOOP",
+        "start": {
+          "x": 99.65625,
+          "y": 512
+        },
+        "end": {
+          "x": 315.328125,
+          "y": 544
+        },
+        "attempts": 1,
+        "persisted": true
+      },
+      "primaryFrostCard": {
+        "className": "action-button action-button--primary route-launch-card route-launch-card--frost",
+        "color": "rgb(244, 251, 253)",
+        "borderColor": "rgb(226, 168, 93)",
+        "backgroundImage": "linear-gradient(120deg, rgba(8, 24, 32, 0.68), rgba(9, 14, 18, 0.94) 62%), url(\"http://127.0.0.1:4312/assets/art/story/carriage-frostline-gpt-v1.png\")",
+        "textShadow": "rgba(0, 0, 0, 0.9) 0px 1px 2px",
+        "titleColor": "rgb(244, 251, 253)",
+        "detailColor": "rgba(226, 242, 247, 0.86)",
+        "declaredDarkBackdropContrast": 18.523364267755735,
+        "touchTarget": {
+          "width": 173,
+          "height": 76
+        },
+        "centerHit": true
+      },
+      "compactThermalDrawer": {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "textScale": 1.4,
+        "horizontalOverflow": 0,
+        "reducedMotionClass": true,
+        "boardBounds": {
+          "left": 8,
+          "right": 352,
+          "width": 344
+        },
+        "actionBarPosition": "sticky",
+        "actionBarBottom": "-8px",
+        "actionBarZIndex": "5",
+        "controls": [
+          {
+            "action": "thermal-reset",
+            "width": 160,
+            "height": 52,
+            "bounds": {
+              "x": 17,
+              "y": 497,
+              "width": 160,
+              "height": 52
+            },
+            "centerHit": true
+          },
+          {
+            "action": "thermal-commit",
+            "width": 160,
+            "height": 52,
+            "bounds": {
+              "x": 183,
+              "y": 497,
+              "width": 160,
+              "height": 52
+            },
+            "centerHit": true
+          }
+        ]
+      },
+      "fixtureSetup": {
+        "initialSaveSettledMs": 312,
+        "day1StorySaveSettledMs": 142,
+        "verifiedAfterVisibleResume": true,
+        "resumedThroughContinueAfterGuardedReload": true,
+        "legalResourceCaps": true,
+        "modulesOff": true
+      },
+      "reloadCheckpoints": [
+        {
+          "checkpoint": "EV057",
+          "branch": "CARE",
+          "phase": "route",
+          "fastReloadAfterUi": true,
+          "persisted": true
+        },
+        {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true,
+          "compact": {
+            "viewport": {
+              "width": 360,
+              "height": 640
+            },
+            "textScale": 1.4,
+            "horizontalOverflow": 0,
+            "reducedMotionClass": true,
+            "revealCue": true,
+            "revealedZoneCount": 2,
+            "cueOutlineStyle": "solid",
+            "cueOutlineWidth": "2px",
+            "tokenTransitionDuration": "0s",
+            "rootBounds": {
+              "left": 7,
+              "right": 353,
+              "width": 346
+            },
+            "touchTargets": [
+              {
+                "label": "thermal-select:H1",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H2",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:BERTH",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:BERTH",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H3",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H4",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:DEICER",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:DEICER",
+                "width": 101.33,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H5",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-select:H6",
+                "width": 48,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:inspect:LOOP",
+                "width": 101.34,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "thermal-target:LOOP",
+                "width": 101.34,
+                "height": 48,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:confirm",
+                "width": 161,
+                "height": 52,
+                "centerHit": true
+              },
+              {
+                "label": "threat-interact:frost:manual-scrape",
+                "width": 161,
+                "height": 52,
+                "centerHit": true
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "ending",
+          "endingId": "frost-shared-arrival",
+          "rewardEntriesBefore": 1,
+          "rewardEntriesAfter": 1,
+          "persisted": true
+        }
+      ],
+      "alternateEndingAudit": {
+        "status": "passed",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "alternateChoiceCheckpoint": {
+          "source": "CARE natural Day 7 EV065 pre-decision save",
+          "eventId": "EV065",
+          "storage": [
+            "localStorage:run.current",
+            "IndexedDB:night-train-save/snapshots/run.current"
+          ],
+          "serializedBytes": 14578,
+          "authoritativeValuesChangedBeforeChoice": false,
+          "copiedWithoutMutation": true
+        },
+        "finalDecision": "emergency-stop",
+        "endingId": "frost-emergency-shelter",
+        "ended": true,
+        "rewardEntriesBeforeReload": 1,
+        "rewardEntriesAfterReload": 1,
+        "rewardSettledExactlyOnce": true,
+        "actionLog": [
+          "continue",
+          "event-choice:emergency-stop",
+          "continue"
+        ],
+        "browserErrors": [],
+        "screenshot": "public/assets/screenshots/frost-emergency-shelter-ending-v100.png"
+      },
+      "actionCount": 111,
+      "actionLog": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R02",
+        "event-choice:a07-layout",
+        "continue",
+        "settings",
+        "cycle-text",
+        "cycle-text",
+        "toggle-motion",
+        "menu",
+        "continue",
+        "power",
+        "power",
+        "settings",
+        "cycle-text",
+        "toggle-motion",
+        "menu",
+        "continue",
+        "meal",
+        "select-ration:strict",
+        "meal",
+        "power",
+        "thermal-select:H1",
+        "thermal-target:LOOP",
+        "thermal-select:H1",
+        "thermal-target:BERTH",
+        "pointer-drag:H2:LOOP",
+        "thermal-select:H2",
+        "thermal-target:BERTH",
+        "power",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:calibrate",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:repair",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:ask-repair",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "power",
+        "thermal-select:H4",
+        "thermal-target:DEICER",
+        "power",
+        "route",
+        "event-choice:CARE",
+        "continue",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "threat-interact:frost:inspect:LOOP",
+        "threat-interact:frost:confirm",
+        "settings",
+        "cycle-text",
+        "cycle-text",
+        "toggle-motion",
+        "menu",
+        "continue",
+        "settings",
+        "cycle-text",
+        "toggle-motion",
+        "menu",
+        "continue",
+        "threat-interact:frost:inspect:BERTH",
+        "threat-interact:frost:inspect:DEICER",
+        "threat-interact:frost:confirm",
+        "next-day",
+        "event-choice:open",
+        "select-carriage:sleep",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:shared",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:offset",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:thermal-board",
+        "thermal-select:H5",
+        "thermal-target:DEICER",
+        "thermal-commit",
+        "event-choice:warm",
+        "threat-interact:frost:inspect:DEICER",
+        "threat-interact:frost:inspect:LOOP",
+        "thermal-select:H3",
+        "thermal-target:LOOP",
+        "threat-interact:frost:confirm",
+        "event-choice:manual",
+        "event-choice:joint",
+        "continue"
+      ],
+      "browserErrors": [],
+      "screenshots": [
+        "public/assets/screenshots/frost-route-selection-v100.png",
+        "public/assets/screenshots/frost-thermal-drawer-360x640-text140-v100.png",
+        "public/assets/screenshots/frost-thermal-pointer-drag-v100.png",
+        "public/assets/screenshots/frost-ev057-three-branches-v100.png",
+        "public/assets/screenshots/frost-care-t009-first-miss-v100.png",
+        "public/assets/screenshots/frost-t009-first-miss-360x640-text140-v100.png",
+        "public/assets/screenshots/frost-care-carriage-v100.png",
+        "public/assets/screenshots/frost-care-thermal-day7-v100.png",
+        "public/assets/screenshots/frost-care-ending-decisions-v100.png",
+        "public/assets/screenshots/frost-care-ending-v100.png",
+        "public/assets/screenshots/frost-emergency-shelter-ending-v100.png"
+      ],
+      "video": {
+        "output": "output/playwright/frost-story/care/care-r02-seven-night-playthrough.webm",
+        "public": "public/assets/video/night-train-frost-v100-care.webm",
+        "bytes": 20633292,
+        "metadata": {
+          "durationSeconds": 184.24,
+          "width": 390,
+          "height": 844
+        }
+      }
+    },
+    {
+      "status": "passed",
+      "branch": "CLEAR",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "routeId": "R02",
+      "day": 7,
+      "branchOperationComplete": true,
+      "finalDecision": "shield",
+      "endingId": "frost-guarded-arrival",
+      "rewardSettled": true,
+      "rewardEntries": 1,
+      "sevenNights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "contactEvidence": [
+        {
+          "day": 1,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 2,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 3,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 4,
+          "threatId": "T009",
+          "contactId": "contact-4-1",
+          "requiredZones": [
+            "LOOP",
+            "DEICER"
+          ],
+          "wrongInspection": "BERTH",
+          "firstMiss": {
+            "attempts": 1,
+            "reveal": true,
+            "hullDelta": 0,
+            "healthDelta": 0
+          },
+          "mode": "wrong-reveal-manual",
+          "resolvedBy": "manual-scrape",
+          "manualHullDelta": -6,
+          "reloadCheckpoint": {
+            "checkpoint": "T009-first-miss",
+            "contactId": "contact-4-1",
+            "attempts": 1,
+            "revealPersisted": true,
+            "fastReloadAfterUi": true
+          }
+        },
+        {
+          "day": 5,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 6,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 7,
+          "threatId": "T009",
+          "contactId": "contact-7-1",
+          "requiredZones": [
+            "LOOP",
+            "DEICER"
+          ],
+          "inspectedZones": [
+            "LOOP",
+            "DEICER"
+          ],
+          "allocation": {
+            "BERTH": 2,
+            "DEICER": 2,
+            "LOOP": 2
+          },
+          "resolvedBy": "thermal"
+        }
+      ],
+      "storyPhaseEvidence": [
+        {
+          "day": 1,
+          "eventId": "EV053",
+          "duePhase": "prep"
+        },
+        {
+          "day": 2,
+          "eventId": "EV055",
+          "duePhase": "travel"
+        },
+        {
+          "day": 3,
+          "eventId": "EV056",
+          "duePhase": "prep"
+        },
+        {
+          "day": 4,
+          "eventId": "EV057",
+          "duePhase": "route",
+          "evidence": "visible forced-event DOM before route-node selection"
+        },
+        {
+          "day": 5,
+          "eventId": "EV059",
+          "duePhase": "prep"
+        },
+        {
+          "day": 6,
+          "eventId": "EV061",
+          "duePhase": "prep"
+        }
+      ],
+      "day4T009": {
+        "day": 4,
+        "threatId": "T009",
+        "contactId": "contact-4-1",
+        "requiredZones": [
+          "LOOP",
+          "DEICER"
+        ],
+        "wrongInspection": "BERTH",
+        "firstMiss": {
+          "attempts": 1,
+          "reveal": true,
+          "hullDelta": 0,
+          "healthDelta": 0
+        },
+        "mode": "wrong-reveal-manual",
+        "resolvedBy": "manual-scrape",
+        "manualHullDelta": -6,
+        "reloadCheckpoint": {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true
+        }
+      },
+      "day7T009": {
+        "day": 7,
+        "threatId": "T009",
+        "contactId": "contact-7-1",
+        "requiredZones": [
+          "LOOP",
+          "DEICER"
+        ],
+        "inspectedZones": [
+          "LOOP",
+          "DEICER"
+        ],
+        "allocation": {
+          "BERTH": 2,
+          "DEICER": 2,
+          "LOOP": 2
+        },
+        "resolvedBy": "thermal"
+      },
+      "day7Thermal": {
+        "allocation": {
+          "BERTH": 3,
+          "DEICER": 2,
+          "LOOP": 1
+        },
+        "returnedToBoardViaEventChoice": true,
+        "returnedToEventAfterCommit": true,
+        "committedDay": 7,
+        "settlementIds": [
+          "thermal:R02:D7:CLEAR"
+        ]
+      },
+      "primaryFrostCard": {
+        "className": "action-button action-button--primary route-launch-card route-launch-card--frost",
+        "color": "rgb(244, 251, 253)",
+        "borderColor": "rgb(226, 168, 93)",
+        "backgroundImage": "linear-gradient(120deg, rgba(8, 24, 32, 0.68), rgba(9, 14, 18, 0.94) 62%), url(\"http://127.0.0.1:4312/assets/art/story/carriage-frostline-gpt-v1.png\")",
+        "textShadow": "rgba(0, 0, 0, 0.9) 0px 1px 2px",
+        "titleColor": "rgb(244, 251, 253)",
+        "detailColor": "rgba(226, 242, 247, 0.86)",
+        "declaredDarkBackdropContrast": 18.523364267755735,
+        "touchTarget": {
+          "width": 173,
+          "height": 76
+        },
+        "centerHit": true
+      },
+      "fixtureSetup": {
+        "initialSaveSettledMs": 265,
+        "day1StorySaveSettledMs": 156,
+        "verifiedAfterVisibleResume": true,
+        "resumedThroughContinueAfterGuardedReload": true,
+        "legalResourceCaps": true,
+        "modulesOff": true
+      },
+      "reloadCheckpoints": [
+        {
+          "checkpoint": "EV057",
+          "branch": "CLEAR",
+          "phase": "route",
+          "fastReloadAfterUi": true,
+          "persisted": true
+        },
+        {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true
+        },
+        {
+          "checkpoint": "ending",
+          "endingId": "frost-guarded-arrival",
+          "rewardEntriesBefore": 1,
+          "rewardEntriesAfter": 1,
+          "persisted": true
+        }
+      ],
+      "actionCount": 83,
+      "actionLog": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R02",
+        "event-choice:a07-layout",
+        "continue",
+        "meal",
+        "select-ration:strict",
+        "meal",
+        "power",
+        "thermal-select:H1",
+        "thermal-target:LOOP",
+        "thermal-select:H1",
+        "thermal-target:BERTH",
+        "power",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:calibrate",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:repair",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:ask-repair",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "power",
+        "thermal-select:H4",
+        "thermal-target:DEICER",
+        "power",
+        "route",
+        "event-choice:CLEAR",
+        "continue",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "threat-interact:frost:inspect:BERTH",
+        "threat-interact:frost:confirm",
+        "continue",
+        "threat-interact:frost:manual-scrape",
+        "next-day",
+        "event-choice:scrape",
+        "select-carriage:defense",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:protected",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:offset",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:thermal-board",
+        "thermal-select:H5",
+        "thermal-target:BERTH",
+        "thermal-commit",
+        "event-choice:warm",
+        "threat-interact:frost:inspect:LOOP",
+        "threat-interact:frost:inspect:DEICER",
+        "thermal-select:H1",
+        "thermal-target:LOOP",
+        "threat-interact:frost:confirm",
+        "event-choice:manual",
+        "event-choice:shield",
+        "continue"
+      ],
+      "browserErrors": [],
+      "screenshots": [
+        "public/assets/screenshots/frost-clear-t009-first-miss-v100.png",
+        "public/assets/screenshots/frost-clear-carriage-v100.png",
+        "public/assets/screenshots/frost-clear-thermal-day7-v100.png",
+        "public/assets/screenshots/frost-clear-ending-decisions-v100.png",
+        "public/assets/screenshots/frost-clear-ending-v100.png"
+      ],
+      "video": {
+        "output": "output/playwright/frost-story/clear/clear-r02-seven-night-playthrough.webm",
+        "public": "public/assets/video/night-train-frost-v100-clear.webm",
+        "bytes": 17923262,
+        "metadata": {
+          "durationSeconds": 148.04,
+          "width": 390,
+          "height": 844
+        }
+      }
+    },
+    {
+      "status": "passed",
+      "branch": "SUSTAIN",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "routeId": "R02",
+      "day": 7,
+      "branchOperationComplete": true,
+      "finalDecision": "a07-plan",
+      "endingId": "frost-chosen-detour",
+      "rewardSettled": true,
+      "rewardEntries": 1,
+      "sevenNights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "contactEvidence": [
+        {
+          "day": 1,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 2,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 3,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 4,
+          "threatId": "T009",
+          "contactId": "contact-4-1",
+          "requiredZones": [
+            "BERTH",
+            "DEICER"
+          ],
+          "wrongInspection": "LOOP",
+          "firstMiss": {
+            "attempts": 1,
+            "reveal": true,
+            "hullDelta": 0,
+            "healthDelta": 0
+          },
+          "mode": "wrong-reveal-retry",
+          "resolvedBy": "thermal",
+          "manualHullDelta": 0,
+          "reloadCheckpoint": {
+            "checkpoint": "T009-first-miss",
+            "contactId": "contact-4-1",
+            "attempts": 1,
+            "revealPersisted": true,
+            "fastReloadAfterUi": true
+          }
+        },
+        {
+          "day": 5,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 6,
+          "wave": 1,
+          "totalWaves": 1,
+          "threatId": "T003",
+          "action": "emergency-boost"
+        },
+        {
+          "day": 7,
+          "threatId": "T009",
+          "contactId": "contact-7-1",
+          "requiredZones": [
+            "DEICER",
+            "LOOP"
+          ],
+          "inspectedZones": [
+            "DEICER",
+            "LOOP"
+          ],
+          "allocation": {
+            "BERTH": 2,
+            "DEICER": 2,
+            "LOOP": 2
+          },
+          "resolvedBy": "thermal"
+        }
+      ],
+      "storyPhaseEvidence": [
+        {
+          "day": 1,
+          "eventId": "EV053",
+          "duePhase": "prep"
+        },
+        {
+          "day": 2,
+          "eventId": "EV055",
+          "duePhase": "travel"
+        },
+        {
+          "day": 3,
+          "eventId": "EV056",
+          "duePhase": "prep"
+        },
+        {
+          "day": 4,
+          "eventId": "EV057",
+          "duePhase": "route",
+          "evidence": "visible forced-event DOM before route-node selection"
+        },
+        {
+          "day": 5,
+          "eventId": "EV060",
+          "duePhase": "prep"
+        },
+        {
+          "day": 6,
+          "eventId": "EV061",
+          "duePhase": "prep"
+        }
+      ],
+      "day4T009": {
+        "day": 4,
+        "threatId": "T009",
+        "contactId": "contact-4-1",
+        "requiredZones": [
+          "BERTH",
+          "DEICER"
+        ],
+        "wrongInspection": "LOOP",
+        "firstMiss": {
+          "attempts": 1,
+          "reveal": true,
+          "hullDelta": 0,
+          "healthDelta": 0
+        },
+        "mode": "wrong-reveal-retry",
+        "resolvedBy": "thermal",
+        "manualHullDelta": 0,
+        "reloadCheckpoint": {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true
+        }
+      },
+      "day7T009": {
+        "day": 7,
+        "threatId": "T009",
+        "contactId": "contact-7-1",
+        "requiredZones": [
+          "DEICER",
+          "LOOP"
+        ],
+        "inspectedZones": [
+          "DEICER",
+          "LOOP"
+        ],
+        "allocation": {
+          "BERTH": 2,
+          "DEICER": 2,
+          "LOOP": 2
+        },
+        "resolvedBy": "thermal"
+      },
+      "day7Thermal": {
+        "allocation": {
+          "BERTH": 2,
+          "DEICER": 2,
+          "LOOP": 2
+        },
+        "returnedToBoardViaEventChoice": true,
+        "returnedToEventAfterCommit": true,
+        "committedDay": 7,
+        "settlementIds": [
+          "thermal:R02:D7:SUSTAIN"
+        ]
+      },
+      "primaryFrostCard": {
+        "className": "action-button action-button--primary route-launch-card route-launch-card--frost",
+        "color": "rgb(244, 251, 253)",
+        "borderColor": "rgb(226, 168, 93)",
+        "backgroundImage": "linear-gradient(120deg, rgba(8, 24, 32, 0.68), rgba(9, 14, 18, 0.94) 62%), url(\"http://127.0.0.1:4312/assets/art/story/carriage-frostline-gpt-v1.png\")",
+        "textShadow": "rgba(0, 0, 0, 0.9) 0px 1px 2px",
+        "titleColor": "rgb(244, 251, 253)",
+        "detailColor": "rgba(226, 242, 247, 0.86)",
+        "declaredDarkBackdropContrast": 18.523364267755735,
+        "touchTarget": {
+          "width": 173,
+          "height": 76
+        },
+        "centerHit": true
+      },
+      "fixtureSetup": {
+        "initialSaveSettledMs": 264,
+        "day1StorySaveSettledMs": 42,
+        "verifiedAfterVisibleResume": true,
+        "resumedThroughContinueAfterGuardedReload": true,
+        "legalResourceCaps": true,
+        "modulesOff": true
+      },
+      "reloadCheckpoints": [
+        {
+          "checkpoint": "EV057",
+          "branch": "SUSTAIN",
+          "phase": "route",
+          "fastReloadAfterUi": true,
+          "persisted": true
+        },
+        {
+          "checkpoint": "T009-first-miss",
+          "contactId": "contact-4-1",
+          "attempts": 1,
+          "revealPersisted": true,
+          "fastReloadAfterUi": true
+        },
+        {
+          "checkpoint": "ending",
+          "endingId": "frost-chosen-detour",
+          "rewardEntriesBefore": 1,
+          "rewardEntriesAfter": 1,
+          "persisted": true
+        }
+      ],
+      "actionCount": 81,
+      "actionLog": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R02",
+        "event-choice:a07-layout",
+        "continue",
+        "meal",
+        "select-ration:strict",
+        "meal",
+        "power",
+        "thermal-select:H1",
+        "thermal-target:LOOP",
+        "thermal-select:H1",
+        "thermal-target:BERTH",
+        "power",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:calibrate",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:repair",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:ask-repair",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "power",
+        "thermal-select:H4",
+        "thermal-target:DEICER",
+        "power",
+        "route",
+        "event-choice:SUSTAIN",
+        "continue",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "threat-interact:frost:inspect:LOOP",
+        "threat-interact:frost:confirm",
+        "continue",
+        "threat-interact:frost:inspect:BERTH",
+        "threat-interact:frost:inspect:DEICER",
+        "threat-interact:frost:confirm",
+        "next-day",
+        "event-choice:share-berth",
+        "select-carriage:greenhouse",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "next-day",
+        "event-choice:a07-plan",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:B",
+        "counter:emergency-boost",
+        "event-choice:offset",
+        "next-day",
+        "route",
+        "select-route:RN01",
+        "confirm-route:RN01",
+        "event-choice:thermal-board",
+        "thermal-commit",
+        "event-choice:warm",
+        "threat-interact:frost:inspect:DEICER",
+        "threat-interact:frost:inspect:LOOP",
+        "threat-interact:frost:confirm",
+        "event-choice:manual",
+        "event-choice:a07-plan",
+        "continue"
+      ],
+      "browserErrors": [],
+      "screenshots": [
+        "public/assets/screenshots/frost-sustain-t009-first-miss-v100.png",
+        "public/assets/screenshots/frost-sustain-carriage-v100.png",
+        "public/assets/screenshots/frost-sustain-thermal-day7-v100.png",
+        "public/assets/screenshots/frost-sustain-ending-decisions-v100.png",
+        "public/assets/screenshots/frost-sustain-ending-v100.png"
+      ],
+      "video": {
+        "output": "output/playwright/frost-story/sustain/sustain-r02-seven-night-playthrough.webm",
+        "public": "public/assets/video/night-train-frost-v100-sustain.webm",
+        "bytes": 15370760,
+        "metadata": {
+          "durationSeconds": 124.36,
+          "width": 390,
+          "height": 844
+        }
+      }
+    }
+  ]
+}

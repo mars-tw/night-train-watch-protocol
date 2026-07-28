@@ -87,11 +87,11 @@ tags: [feature, game, story, mobile, white-frost, open-source]
 |------|-------------|-----------|------|
 | TASK-020 | 新增 frost content/story tests：ID、edge、排程、三分支、thermal、T009、R02 endings、R01 regression。依賴 TASK-013。 | ✅ | 2026-07-28 |
 | TASK-021 | 擴充 save tests：schema 3 R01、R02 branch reload、T009 first move reload、ending reload、corrupt current→backup。依賴 TASK-009、TASK-012。 | ✅ | 2026-07-28 |
-| TASK-022 | 泛化 `tools/audit-story-flow.mjs` 或新增 R02 audit：CARE／CLEAR／SUSTAIN 各七夜，drag/tap、wrong/retry、三 reload checkpoint、390×844／360×640 140%。依賴 TASK-018、TASK-021。 | ✅ | 2026-07-28 |
-| TASK-023 | 擴充全按鈕報告為 action/value union，實際命中所有 R02 conditional value、中心 hit-test、disabled reason、console/page errors。依賴 TASK-018。 |  |  |
-| TASK-024 | 執行 `npm run check`、R01 三分支 audit、R02 三分支 audit、全按鈕 audit；任何 failure 回到對應任務修正。依賴 TASK-020–TASK-023。 |  |  |
-| TASK-025 | 擷取白霜 route card、三分支車廂、thermal board、T009、360×640 140%、四結局截圖，並錄製至少兩支完整 WebM。依賴 TASK-024。 |  |  |
-| TASK-026 | QA JSON 寫入 commitSha、appVersion、viewport、branch、actionValues；驗證 WebM 可播放、尺寸及 duration>0。依賴 TASK-025。 |  |  |
+| TASK-022 | 新增 `tools/audit-frost-story.mjs`；audit harness 與完整 CARE／CLEAR／SUSTAIN 七夜矩陣均 PASS，覆蓋 drag/tap、wrong/retry、三 reload checkpoint、390×844 與 360×640／140%。依賴 TASK-018、TASK-021。 | ✅ | 2026-07-28 |
+| TASK-023 | 全按鈕報告已擴充至 R01+R02 action/value union，真實命中 56 個 controller actions、591 項斷言，包含 R02 conditional values、中心 hit-test、disabled reason，console/page errors 為 0。依賴 TASK-018。 | ✅ | 2026-07-28 |
+| TASK-024 | `npm run check` 的 typecheck、146 tests、build 均 PASS；R01 GO／DETOUR／STOP、R02 CARE／CLEAR／SUSTAIN 與全按鈕 audit 全數 PASS。依賴 TASK-020–TASK-023。 | ✅ | 2026-07-28 |
+| TASK-025 | 已產出並放入 `public` 的 22 張白霜 runtime PNG 與 CARE／CLEAR／SUSTAIN 三支完整 WebM；畫面涵蓋 route card、三分支車廂、thermal board、T009、360×640／140% 及四個可見結局（含 `frost-emergency-shelter`）。依賴 TASK-024。 | ✅ | 2026-07-28 |
+| TASK-026 | `frost-story-flow-report.json` 精確記錄 `commitSha`、`packageVersion`、`workingTreeDirty`、`baseUrl`、`routeId`、requested branches 與 acceptance；各分支記錄 viewport、action count/log、browser errors、screenshots，以及 WebM output/public/bytes/metadata（durationSeconds、width、height），三片皆可播放且為 390×844、duration>0。依賴 TASK-025。 | ✅ | 2026-07-28 |
 
 ### Implementation Phase 6 — Open-source publication
 
@@ -99,10 +99,24 @@ tags: [feature, game, story, mobile, white-frost, open-source]
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-027 | 更新 README、版本、開源執行說明、R02 畫面／影片／QA 連結及 stacked dependency 說明。依賴 TASK-026。 |  |  |
-| TASK-028 | Codex 審查 diff、授權、無密鑰、runtime 資產引用、測試及媒體後提交並推送 `codex/story-expansion-v100`。依賴 TASK-027。 |  |  |
+| TASK-027 | 已更新 v1.0 版本、開源執行／驗收說明、R02 runtime 畫面／影片／QA 連結及 stacked dependency 說明。依賴 TASK-026。 | ✅ | 2026-07-28 |
+| TASK-028 | Codex 完成最終 local diff、授權、無密鑰、runtime 資產、測試與媒體審查後，建立乾淨 commit 並推送 `codex/story-expansion-v100`；目前最終證據／文件尚未 commit，分支亦無 upstream/push 證據，因此保持未完成。依賴 TASK-027。 |  |  |
 | TASK-029 | 建立 Draft PR，base=`codex/story-expansion-v090`，標示 Depends on #5 / do not merge first；等待 CI。依賴 TASK-028。 |  |  |
 | TASK-030 | iOS Safari／Android Chrome 人工完成 R02 關鍵流程後才能轉 Ready；#5 合併後 rebase/retarget main 並重跑全部證據。依賴 TASK-029。 |  |  |
+
+## 2.1 Evidence gates
+
+總狀態維持 **In progress**：自動化與本機 Chromium 證據已通過，但 final commit/push、乾淨工作樹及 iOS Safari／Android Chrome 實機人工驗收尚未完成。
+
+| Gate | Evidence | Status |
+|---|---|---|
+| Typecheck／tests／build | `npm run check`：typecheck PASS、146 tests PASS、build PASS。 | ✅ PASS |
+| 全按鈕可玩性 | [`mobile-playability-report.json`](../public/assets/qa/mobile-playability-report.json)：56 controller actions、591 assertions、browser errors 0。 | ✅ PASS |
+| R01 三分支 | [`story-flow-report.json`](../public/assets/qa/story-flow-report.json)：GO／DETOUR／STOP 全 PASS；Day 7 第三波為 T006／T004／T005。 | ✅ PASS |
+| R02 三分支 | [`frost-story-flow-report.json`](../public/assets/qa/frost-story-flow-report.json)：CARE／CLEAR／SUSTAIN 七夜全 PASS，三個主結局與 `frost-emergency-shelter` 替代結局均由 runtime 操作驗證。 | ✅ PASS |
+| 公開 runtime 媒體 | `public/assets/screenshots/frost-*-v100.png` 共 22 張；`public/assets/video/night-train-frost-v100-*.webm` 共 3 支且 metadata 為 390×844、duration>0；均為 runtime capture，非 concept。 | ✅ PASS |
+| Final commit／clean／push | HEAD 報告來源為 `4d3757d`，但最終證據與文件仍未 commit，工作樹不乾淨，且分支尚無 upstream/push 證據。 | ⏳ Pending |
+| 實機發布門檻 | iOS Safari／Android Chrome 人工關鍵流程與 Draft→Ready 核准。 | ⏳ Pending |
 
 ## 3. Alternatives
 
