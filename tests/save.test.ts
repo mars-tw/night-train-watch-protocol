@@ -10,17 +10,29 @@ describe("story save migration", () => {
     const migrated = parseRun(JSON.stringify(legacy));
 
     expect(migrated).not.toBeNull();
-    expect(migrated?.schemaVersion).toBe(4);
+    expect(migrated?.schemaVersion).toBe(5);
     expect(migrated?.routeId).toBe("R01");
     expect(migrated?.seed).toBe("legacy-v2");
     expect(migrated?.resources).toEqual(legacy.resources);
     expect(migrated?.story).toMatchObject({
-      version: 2,
+      version: 3,
       cargoConversion: "none",
       finaleStage: "inactive",
       endingId: null,
       whiteFrost: null,
+      greenTide: null,
     });
+  });
+
+  it.each([1, 2, 3, 4, 5])("accepts supported schema %i and normalizes it to schema 5", (schemaVersion) => {
+    const routeId = schemaVersion === 5 ? "R03" : "R02";
+    const raw = createRun(`supported-schema-${schemaVersion}`, routeId) as unknown as Record<string, unknown>;
+    raw.schemaVersion = schemaVersion;
+
+    const restored = parseRun(JSON.stringify(raw));
+    expect(restored).toMatchObject({ schemaVersion: 5, routeId });
+    expect(restored?.story.whiteFrost === null).toBe(routeId !== "R02");
+    expect(restored?.story.greenTide === null).toBe(routeId !== "R03");
   });
 
   it("deep-merges newly added story flags into an older partial story save", () => {
@@ -48,7 +60,7 @@ describe("story save migration", () => {
     const restored = parseRun(JSON.stringify(run));
 
     expect(restored).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       routeId: "R01",
       day: 7,
       phase: "travel",
@@ -78,6 +90,7 @@ describe("story save migration", () => {
 
     const restored = parseRun(JSON.stringify(raw));
     expect(restored?.routeId).toBe("R02");
+    expect(restored?.story.greenTide).toBeNull();
     expect(restored?.story.whiteFrost).toMatchObject({
       version: 1,
       branch: null,
@@ -98,13 +111,43 @@ describe("story save migration", () => {
 
     const restored = parseRun(JSON.stringify(r01));
     expect(restored).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       routeId: "R01",
       story: {
-        version: 2,
+        version: 3,
         whiteFrost: null,
+        greenTide: null,
       },
     });
+  });
+
+  it("defaults only a legacy save with a missing route id to R01", () => {
+    const legacy = createRun("legacy-without-route") as unknown as Record<string, unknown>;
+    legacy.schemaVersion = 1;
+    delete legacy.routeId;
+
+    const restored = parseRun(JSON.stringify(legacy));
+    expect(restored).toMatchObject({
+      schemaVersion: 5,
+      routeId: "R01",
+      story: {
+        version: 3,
+        whiteFrost: null,
+        greenTide: null,
+      },
+    });
+  });
+
+  it("rejects an unknown route instead of silently loading it as R01", () => {
+    const raw = JSON.parse(JSON.stringify(createRun("unknown-route"))) as Record<string, unknown>;
+    raw.routeId = "R99";
+    expect(() => parseRun(JSON.stringify(raw))).toThrow(/Invalid save route/);
+  });
+
+  it("rejects a schema 5 save with a missing route id", () => {
+    const raw = JSON.parse(JSON.stringify(createRun("current-without-route"))) as Record<string, unknown>;
+    delete raw.routeId;
+    expect(() => parseRun(JSON.stringify(raw))).toThrow(/Invalid save route/);
   });
 
   it("rejects unsupported save schemas", () => {

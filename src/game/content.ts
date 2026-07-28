@@ -1,6 +1,7 @@
 import type {
   CargoConversion,
   CarriageId,
+  CropPlotId,
   CropId,
   Day4Route,
   DecorationId,
@@ -15,6 +16,10 @@ import type {
   FrostSwitchMethod,
   FrostZone,
   GameEvent,
+  GreenBranch,
+  GreenEndingId,
+  GreenFinalDecision,
+  GreenFinaleStage,
   HeatTokenId,
   ModuleDefinition,
   ResourceState,
@@ -37,7 +42,11 @@ export type StoryTransition =
   | "thermal-board"
   | "frost-finale-contact"
   | "frost-finale-decision"
-  | "frost-story-complete";
+  | "frost-story-complete"
+  | "green-cycle-board"
+  | "green-finale-contact"
+  | "green-finale-decision"
+  | "green-story-complete";
 
 type StoryFlagValue = boolean | number | string | null;
 
@@ -75,8 +84,30 @@ export interface StoryContentConsequence {
     warmRequirementDiscountDelta?: number;
     settleColdDebt?: "apply" | "offset-two";
   };
+  greenTide?: {
+    set?: Partial<{
+      branch: GreenBranch | null;
+      finaleStage: GreenFinaleStage;
+      branchOperationComplete: boolean;
+      sourceLocated: boolean;
+      filterCalibrated: boolean;
+      truthShared: boolean;
+    }>;
+    seedStockDelta?: number;
+    reservoirContaminationDelta?: number;
+    plotContaminationDelta?: Partial<Record<CropPlotId, number>>;
+    isolatePlot?: CropPlotId;
+    plantPlots?: CropPlotId[];
+    cropStageDelta?: Partial<Record<CropPlotId, number>>;
+    resetPlots?: CropPlotId[];
+    establishCycle?: boolean;
+    grantEmergencySeedIfEmpty?: boolean;
+    firebreakCost?: { energy: number; water: number; waivedForBranch: "PURGE" };
+  };
   frostFinalDecision?: FrostFinalDecision;
   frostEndingId?: FrostEndingId;
+  greenFinalDecision?: GreenFinalDecision;
+  greenEndingId?: GreenEndingId;
 }
 
 export interface StoryContentChoice extends EventChoice {
@@ -94,6 +125,13 @@ export interface StoryContentChoice extends EventChoice {
     frostConsent?: FrostConsent;
     frostCoauthorEvidence?: boolean;
     frostThermal?: "day7-committed" | "warm-ready" | "clear-ready";
+    greenBranch?: GreenBranch;
+    greenSeedStockMinimum?: number;
+    greenReservoirContaminationMaximum?: number;
+    greenCleanMaturePlot?: boolean;
+    greenInfectionRange?: { minimum: number; maximum: number };
+    greenTruthShared?: boolean;
+    greenFirebreakReady?: boolean;
   };
   consequence: StoryContentConsequence;
 }
@@ -102,6 +140,7 @@ export interface StoryContentEvent extends Omit<GameEvent, "choices"> {
   day: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   storyPhase: StoryDuePhase;
   finaleStage?: "arrival" | "contact" | "decision" | "resolved";
+  greenFinaleStage?: GreenFinaleStage;
   forced: true;
   requirements?: {
     allFlags?: string[];
@@ -1944,7 +1983,1018 @@ export const FROST_STORY_EVENTS: StoryContentEvent[] = [
   },
 ];
 
-export const ALL_STORY_EVENTS: StoryContentEvent[] = [...STORY_EVENTS, ...FROST_STORY_EVENTS];
+export const GREEN_STORY_EVENTS: StoryContentEvent[] = [
+  {
+    id: "EV066",
+    day: 1,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "集水槽的綠膜",
+    body: "溫室回水浮出綠膜，四枚水樣仍停在未檢疫入口。",
+    artKey: "green.intake-film",
+    nightLine: "綠膜正沿回水管逆流。",
+    payoff: "建立可保存的四枚水樣與循環檢疫板。",
+    choices: [
+      {
+        id: "scan",
+        label: "完整掃描",
+        cost: "電量 −2",
+        known: "建立水樣；保留最完整污染讀值",
+        deltas: { energy: -2 },
+        result: "掃描線把濁度、根屑與孢子輪廓分成四份樣本。",
+        risk: "low",
+        tags: ["檢疫", "電量", "水樣"],
+        visibleCost: "電量 −2",
+        permanentConsequence: "建立 S1–S4；後續品質由 R03 專用 seed stream 固定。",
+        requirements: { minimum: { energy: 2 } },
+        consequence: {
+          resourceDelta: { energy: -2 },
+          greenTide: { establishCycle: true },
+          nextEventId: "EV067",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "boil",
+        label: "煮沸回水",
+        cost: "電量 −1；水 +1",
+        known: "建立水樣；reservoir contamination −5",
+        deltas: { energy: -1, water: 1 },
+        result: "蒸氣凝成一份可用水，綠膜仍被留下採樣。",
+        risk: "low",
+        tags: ["煮沸", "水", "保底前置"],
+        visibleCost: "電量 −1；水 +1",
+        permanentConsequence: "建立 S1–S4；儲水槽污染降低 5。",
+        requirements: { minimum: { energy: 1 } },
+        consequence: {
+          resourceDelta: { energy: -1, water: 1 },
+          greenTide: { establishCycle: true, reservoirContaminationDelta: -5 },
+          nextEventId: "EV067",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "skim",
+        label: "手動撇除綠膜",
+        cost: "壓力 +2",
+        known: "永遠可選；建立水樣",
+        deltas: {},
+        survivor: { stress: 2 },
+        result: "A-07 用透明袋收起綠膜，沒有讓檢疫停在資源門檻。",
+        risk: "medium",
+        tags: ["手動", "保底", "壓力"],
+        visibleCost: "壓力 +2",
+        permanentConsequence: "無資源仍建立 S1–S4；儲水槽污染增加 3。",
+        consequence: {
+          survivorDelta: { stress: 2 },
+          greenTide: { establishCycle: true, reservoirContaminationDelta: 3 },
+          nextEventId: "EV067",
+          transition: "queue-next-phase",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV067",
+    day: 1,
+    phase: "travel",
+    storyPhase: "aftermath",
+    forced: true,
+    title: "第一批種子",
+    body: "兩個水培槽空著；種子必須真正進入既有 plot-a 與 plot-b。",
+    artKey: "green.first-seeds",
+    nightLine: "兩個空槽等待第一批種子。",
+    payoff: "R03 主流程開始使用可灌溉、成長、收成與污染的真實作物槽。",
+    choices: [
+      {
+        id: "plant-both",
+        label: "兩槽都播種",
+        cost: "種子 −2",
+        known: "plot-a、plot-b 都進入生長",
+        deltas: {},
+        result: "兩道播種燈依序亮起，四枚水樣仍等待分流。",
+        risk: "medium",
+        tags: ["播種", "雙槽", "種源"],
+        visibleCost: "seedStock −2",
+        permanentConsequence: "plot-a 與 plot-b 使用既有作物生命週期；seedStock −2。",
+        requirements: { greenSeedStockMinimum: 2 },
+        consequence: {
+          greenTide: { seedStockDelta: -2, plantPlots: ["plot-a", "plot-b"] },
+          nextEventId: "EV068",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "plant-one",
+        label: "播一槽、留一種",
+        cost: "種子 −1",
+        known: "plot-a 生長；保留一份種源",
+        deltas: {},
+        result: "左槽覆上濕潤培養層，右槽維持隔離。",
+        risk: "low",
+        tags: ["播種", "保留", "單槽"],
+        visibleCost: "seedStock −1",
+        permanentConsequence: "plot-a 進入既有作物生命週期；seedStock −1。",
+        requirements: { greenSeedStockMinimum: 1 },
+        consequence: {
+          greenTide: { seedStockDelta: -1, plantPlots: ["plot-a"] },
+          nextEventId: "EV068",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "a07-choice",
+        label: "讓 A-07 選一槽",
+        cost: "信任 +2；最多使用種子 1",
+        known: "永遠可選；seedStock=0 時啟用應急種",
+        deltas: {},
+        survivor: { trust: 2 },
+        result: "A-07 選了靠窗的 plot-a，應急種匣在空庫存時彈開。",
+        risk: "low",
+        tags: ["A-07", "保底", "播種"],
+        visibleCost: "信任 +2；seedStock 最多 −1",
+        permanentConsequence: "確保至少 plot-a 可見播種；空庫存只補一枚應急種後立即使用。",
+        consequence: {
+          survivorDelta: { trust: 2 },
+          greenTide: {
+            grantEmergencySeedIfEmpty: true,
+            seedStockDelta: -1,
+            plantPlots: ["plot-a"],
+          },
+          nextEventId: "EV068",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV068",
+    day: 2,
+    phase: "travel",
+    storyPhase: "travel",
+    forced: true,
+    title: "污染水塔",
+    body: "高架水塔仍有餘量，取水管內卻黏著不自然的根鬚。",
+    artKey: "green.tainted-tower",
+    nightLine: "水塔根鬚纏住第一枚污染樣本。",
+    payoff: "循環板揭露第一枚 tainted 水樣，取水量不再等同安全。",
+    choices: [
+      {
+        id: "filter-water",
+        label: "過濾後取水",
+        cost: "電量 −2；水 +2",
+        known: "校準濾芯；污染 −8",
+        deltas: { energy: -2, water: 2 },
+        result: "冷凝管流出兩份清水，濾芯留下可辨識的孢子紋。",
+        risk: "low",
+        tags: ["濾芯", "水", "校準"],
+        visibleCost: "電量 −2；水 +2",
+        permanentConsequence: "filterCalibrated=true；reservoir contamination −8。",
+        requirements: { minimum: { energy: 2 } },
+        consequence: {
+          resourceDelta: { energy: -2, water: 2 },
+          greenTide: {
+            set: { filterCalibrated: true },
+            reservoirContaminationDelta: -8,
+          },
+          setFlags: { r03TaintedSampleVisible: true },
+          nextEventId: "EV069",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "sample-water",
+        label: "直接取樣",
+        cost: "水 +3；儲水污染 +12",
+        known: "取得更多水；污染樣本完整可見",
+        deltas: { water: 3 },
+        result: "三份水進入儲槽，濁度條同步上升。",
+        risk: "high",
+        tags: ["取樣", "污染", "水"],
+        visibleCost: "水 +3；reservoir contamination +12",
+        permanentConsequence: "reservoir contamination +12；第一枚 tainted 樣本揭露。",
+        consequence: {
+          resourceDelta: { water: 3 },
+          greenTide: { reservoirContaminationDelta: 12 },
+          setFlags: { r03TaintedSampleVisible: true },
+          nextEventId: "EV069",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "skip",
+        label: "封閥略過",
+        cost: "無",
+        known: "永遠可選；不取得額外水",
+        deltas: {},
+        result: "你封住水塔接頭，把污染輪廓留在外側觀察窗。",
+        risk: "low",
+        tags: ["略過", "保底", "封閥"],
+        visibleCost: "無立即成本",
+        permanentConsequence: "不改變資源；仍揭露一枚 tainted 樣本，避免資訊軟鎖。",
+        consequence: {
+          setFlags: { r03TaintedSampleVisible: true },
+          nextEventId: "EV069",
+          transition: "queue-next-phase",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV069",
+    day: 2,
+    phase: "travel",
+    storyPhase: "aftermath",
+    forced: true,
+    title: "根系回聲",
+    body: "根脈震動從冠層、濾芯與床下依序傳回，像有東西在模仿水泵。",
+    artKey: "green.root-echo",
+    nightLine: "根脈回聲藏在三個實體區域。",
+    payoff: "建立 T008 的非色彩根脈線索，不直接揭露目標。",
+    choices: [
+      {
+        id: "canopy",
+        label: "檢查冠層",
+        cost: "無",
+        known: "取得 CANOPY 根脈紋理",
+        deltas: {},
+        result: "冠層葉背留下逆向刮痕，線索不依賴綠色深淺。",
+        risk: "low",
+        tags: ["T008", "冠層", "紋理"],
+        visibleCost: "無立即成本",
+        permanentConsequence: "保存 CANOPY 實體紋理提示；T008 仍需逐區檢查。",
+        consequence: {
+          setFlags: { r03RootHint: "CANOPY" },
+          nextEventId: "EV070",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "underbed",
+        label: "檢查床下",
+        cost: "無",
+        known: "取得 UNDERBED 根脈輪廓",
+        deltas: {},
+        result: "床腳灰塵被拖成兩道平行根痕。",
+        risk: "low",
+        tags: ["T008", "床下", "輪廓"],
+        visibleCost: "無立即成本",
+        permanentConsequence: "保存 UNDERBED 實體輪廓提示；T008 仍需逐區檢查。",
+        consequence: {
+          setFlags: { r03RootHint: "UNDERBED" },
+          nextEventId: "EV070",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "compare",
+        label: "比對兩槽根壓",
+        cost: "電量 −1",
+        known: "取得 FILTER 候選線索",
+        deltas: { energy: -1 },
+        result: "兩槽壓差指向濾芯抽屜，但沒有替玩家完成定位。",
+        risk: "low",
+        tags: ["T008", "濾芯", "比對"],
+        visibleCost: "電量 −1",
+        permanentConsequence: "保存 FILTER 壓差提示；T008 仍需逐區檢查。",
+        requirements: { minimum: { energy: 1 } },
+        consequence: {
+          resourceDelta: { energy: -1 },
+          setFlags: { r03RootHint: "FILTER" },
+          nextEventId: "EV070",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV070",
+    day: 3,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "可疑收成",
+    body: "作物與污染讀值同屏；其中一槽葉緣出現不規則透明斑。",
+    artKey: "green.suspect-harvest",
+    nightLine: "透明斑正沿成熟葉緣擴散。",
+    payoff: "玩家必須檢測、隔離或提早收成，不能把作物當背景。",
+    choices: [
+      {
+        id: "test",
+        label: "檢測汁液",
+        cost: "電量 −1",
+        known: "校準濾芯；槽污染 −1",
+        deltas: { energy: -1 },
+        result: "試紙浮出條紋與文字，污染不只以顏色呈現。",
+        risk: "low",
+        tags: ["檢測", "作物", "非色彩"],
+        visibleCost: "電量 −1",
+        permanentConsequence: "filterCalibrated=true；兩槽污染各降低 1。",
+        requirements: { minimum: { energy: 1 } },
+        consequence: {
+          resourceDelta: { energy: -1 },
+          greenTide: {
+            set: { filterCalibrated: true },
+            plotContaminationDelta: { "plot-a": -1, "plot-b": -1 },
+          },
+          nextEventId: "EV071",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "isolate",
+        label: "隔離 plot-a",
+        cost: "無",
+        known: "永遠可選；plot-a 暫停循環",
+        deltas: {},
+        result: "透明罩落下，plot-a 的水路被移到獨立回收袋。",
+        risk: "medium",
+        tags: ["隔離", "保底", "plot-a"],
+        visibleCost: "plot-a 暫停生長與供應",
+        permanentConsequence: "plot-a 加入 isolatedPlots，直到後續事件處理。",
+        consequence: {
+          greenTide: { isolatePlot: "plot-a" },
+          nextEventId: "EV071",
+          transition: "queue-next-phase",
+        },
+      },
+      {
+        id: "early-harvest",
+        label: "提早收成",
+        cost: "感染 +3",
+        known: "種子 +1；清空 plot-a",
+        deltas: {},
+        survivor: { infection: 3 },
+        result: "未成熟葉片被封進種匣，A-07 的感染讀值同步上升。",
+        risk: "high",
+        tags: ["收成", "感染", "種源"],
+        visibleCost: "感染 +3；plot-a 重置",
+        permanentConsequence: "seedStock +1；plot-a 使用既有收成重置流程。",
+        consequence: {
+          survivorDelta: { infection: 3 },
+          greenTide: { seedStockDelta: 1, resetPlots: ["plot-a"] },
+          nextEventId: "EV071",
+          transition: "queue-next-phase",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV071",
+    day: 3,
+    phase: "night",
+    storyPhase: "aftermath",
+    forced: true,
+    title: "孢子雨",
+    body: "細粉沿進氣網落入回水，T013 的污染方式第一次完整可見。",
+    artKey: "green.spore-rain",
+    nightLine: "孢子雨正落進回水與葉面。",
+    payoff: "把 T013 綁定 reservoir、作物與感染，而非一般車體傷害。",
+    choices: [
+      {
+        id: "close-intake",
+        label: "關閉進氣",
+        cost: "睡眠 −5",
+        known: "儲水污染 −5",
+        deltas: {},
+        survivor: { sleep: -5 },
+        result: "進氣百葉閉合，車內悶熱但孢子流被截斷。",
+        risk: "medium",
+        tags: ["T013", "進氣", "睡眠"],
+        visibleCost: "睡眠 −5；reservoir contamination −5",
+        permanentConsequence: "保存進氣切斷線索；T013 仍需用循環板解除。",
+        consequence: {
+          survivorDelta: { sleep: -5 },
+          greenTide: { reservoirContaminationDelta: -5 },
+          setFlags: { r03SporeHint: "intake" },
+          nextEventId: "EV072",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "flush",
+        label: "循環沖洗",
+        cost: "水 −1",
+        known: "儲水污染 −10",
+        deltas: { water: -1 },
+        result: "一輪乾淨回水把孢子推向可見排放槽。",
+        risk: "low",
+        tags: ["T013", "沖洗", "水"],
+        visibleCost: "水 −1；reservoir contamination −10",
+        permanentConsequence: "保存排放線索；T013 仍需 inspect 兩枚污染樣本。",
+        requirements: { minimum: { water: 1 } },
+        consequence: {
+          resourceDelta: { water: -1 },
+          greenTide: { reservoirContaminationDelta: -10 },
+          setFlags: { r03SporeHint: "drain" },
+          nextEventId: "EV072",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "endure",
+        label: "承受薄霧",
+        cost: "感染 +4；儲水污染 +12",
+        known: "永遠可選；保留完整 T013 輪廓",
+        deltas: {},
+        survivor: { infection: 4 },
+        result: "葉面與水箱同時留下白色粉脈，風險不再隱藏。",
+        risk: "high",
+        tags: ["T013", "保底", "感染"],
+        visibleCost: "感染 +4；reservoir contamination +12",
+        permanentConsequence: "T013 線索完整揭露；污染實際進入 reservoir。",
+        consequence: {
+          survivorDelta: { infection: 4 },
+          greenTide: { reservoirContaminationDelta: 12 },
+          setFlags: { r03SporeHint: "full" },
+          nextEventId: "EV072",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV072",
+    day: 4,
+    phase: "travel",
+    storyPhase: "route",
+    forced: true,
+    title: "三條活體根脈",
+    body: "列車只能永久採用培育、深濾或焚除其中一套封閉循環。",
+    artKey: "green.three-roots",
+    nightLine: "三條根脈只允許一次永久選擇。",
+    payoff: "分支立即改變車廂、Day 5 操作與 Day 7 優勢。",
+    choices: [
+      {
+        id: "CULTIVATE",
+        label: "CULTIVATE 受控培育",
+        cost: "感染 +2；壓力 +2",
+        known: "永遠可選；Day 5 EV073",
+        deltas: {},
+        survivor: { infection: 2, stress: 2 },
+        result: "嫁接環沿溫室管線展開，琥珀生長燈逐段亮起。",
+        risk: "irreversible",
+        tags: ["CULTIVATE", "保底", "共生"],
+        visibleCost: "感染 +2；壓力 +2",
+        permanentConsequence: "branch=CULTIVATE；顯示嫁接環與擴張冠層；Day 5 EV073。",
+        consequence: {
+          survivorDelta: { infection: 2, stress: 2 },
+          greenTide: {
+            set: { branch: "CULTIVATE", branchOperationComplete: false },
+          },
+          nextEventId: "EV073",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "FILTER",
+        label: "FILTER 深度過濾",
+        cost: "零件 −3、電量 −2",
+        known: "工坊多級濾芯；Day 5 EV074",
+        deltas: { parts: -3, energy: -2 },
+        result: "多級濾芯塔升起，樣本抽屜與冷凝管接入回水。",
+        risk: "irreversible",
+        tags: ["FILTER", "工坊", "濾水"],
+        visibleCost: "零件 −3、電量 −2",
+        permanentConsequence: "branch=FILTER；每日第一枚 tainted 免費淨化；Day 5 EV074。",
+        requirements: { minimum: { parts: 3, energy: 2 } },
+        consequence: {
+          resourceDelta: { parts: -3, energy: -2 },
+          greenTide: {
+            set: {
+              branch: "FILTER",
+              branchOperationComplete: false,
+              filterCalibrated: true,
+            },
+          },
+          nextEventId: "EV074",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "PURGE",
+        label: "PURGE 焚除斷路",
+        cost: "食物 −2；兩槽成長各 −1",
+        known: "防禦車廂焚化導軌；Day 5 EV075",
+        deltas: { food: -2 },
+        result: "密封百葉落下，焚化導軌在根脈上留下焦黑切口。",
+        risk: "irreversible",
+        tags: ["PURGE", "焚除", "防禦"],
+        visibleCost: "食物 −2；plot-a、plot-b 成長各 −1",
+        permanentConsequence: "branch=PURGE；DRAIN tainted 額外降污染；Day 5 EV075。",
+        requirements: { minimum: { food: 2 } },
+        consequence: {
+          resourceDelta: { food: -2 },
+          greenTide: {
+            set: { branch: "PURGE", branchOperationComplete: false },
+            cropStageDelta: { "plot-a": -1, "plot-b": -1 },
+          },
+          nextEventId: "EV075",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV073",
+    day: 5,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "嫁接環",
+    body: "CULTIVATE 的冠層可擴張、受控維持或切除病葉。",
+    artKey: "green.cultivate-ring",
+    nightLine: "嫁接環在受控感染間持續生長。",
+    payoff: "CULTIVATE 操作完成後保留共生門檻與種源優勢。",
+    choices: [
+      {
+        id: "expand",
+        label: "擴張冠層",
+        cost: "感染 +3；種子 +2",
+        known: "提高共生產能",
+        deltas: {},
+        survivor: { infection: 3 },
+        result: "冠層越過上層管線，兩枚新種落入隔離匣。",
+        risk: "high",
+        tags: ["CULTIVATE", "感染", "種源"],
+        visibleCost: "感染 +3；seedStock +2",
+        permanentConsequence: "branchOperationComplete=true；seedStock +2。",
+        requirements: { greenBranch: "CULTIVATE" },
+        consequence: {
+          survivorDelta: { infection: 3 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            seedStockDelta: 2,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "control",
+        label: "控制生長",
+        cost: "無",
+        known: "永遠可選；維持目前污染",
+        deltas: {},
+        result: "嫁接環停在標記線內，A-07 記下每道新根。",
+        risk: "low",
+        tags: ["CULTIVATE", "保底", "控制"],
+        visibleCost: "無立即成本",
+        permanentConsequence: "branchOperationComplete=true；不增加污染或感染。",
+        requirements: { greenBranch: "CULTIVATE" },
+        consequence: {
+          greenTide: { set: { branchOperationComplete: true } },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "trim",
+        label: "切除病葉",
+        cost: "食物 −1；儲水污染 −8",
+        known: "降低污染並保留存活作物",
+        deltas: { food: -1 },
+        result: "病葉落進密封袋，健康根系仍留在槽內。",
+        risk: "medium",
+        tags: ["CULTIVATE", "修剪", "污染"],
+        visibleCost: "食物 −1；reservoir contamination −8",
+        permanentConsequence: "branchOperationComplete=true；reservoir contamination −8。",
+        requirements: { minimum: { food: 1 }, greenBranch: "CULTIVATE" },
+        consequence: {
+          resourceDelta: { food: -1 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -8,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV074",
+    day: 5,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "多級濾芯塔",
+    body: "FILTER 分支把每一層濁度、壓差與耗電並排顯示。",
+    artKey: "green.filter-tower",
+    nightLine: "多級濾芯等待一個可見的校準。",
+    payoff: "FILTER 操作改變 Day 7 淨化成本，不只播放動畫。",
+    choices: [
+      {
+        id: "full-filter",
+        label: "全級過濾",
+        cost: "電量 −3；污染 −20",
+        known: "完成深濾校準",
+        deltas: { energy: -3 },
+        result: "三層濾材依壓差啟動，回水濁度連續下降。",
+        risk: "low",
+        tags: ["FILTER", "電量", "深濾"],
+        visibleCost: "電量 −3；reservoir contamination −20",
+        permanentConsequence: "branchOperationComplete=true；filterCalibrated=true。",
+        requirements: { minimum: { energy: 3 }, greenBranch: "FILTER" },
+        consequence: {
+          resourceDelta: { energy: -3 },
+          greenTide: {
+            set: { branchOperationComplete: true, filterCalibrated: true },
+            reservoirContaminationDelta: -20,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "half-filter",
+        label: "半級過濾",
+        cost: "電量 −1；污染 −8",
+        known: "保留電力並完成操作",
+        deltas: { energy: -1 },
+        result: "只有前兩層濾材運轉，污染降到可追蹤範圍。",
+        risk: "medium",
+        tags: ["FILTER", "省電", "污染"],
+        visibleCost: "電量 −1；reservoir contamination −8",
+        permanentConsequence: "branchOperationComplete=true；保留每日首枚免費淨化。",
+        requirements: { minimum: { energy: 1 }, greenBranch: "FILTER" },
+        consequence: {
+          resourceDelta: { energy: -1 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -8,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "hand-crank",
+        label: "手搖濾芯",
+        cost: "壓力 +4；污染 −5",
+        known: "永遠可選；不耗電",
+        deltas: {},
+        survivor: { stress: 4 },
+        result: "A-07 手搖壓差泵，濾材留下可見的條紋。",
+        risk: "medium",
+        tags: ["FILTER", "保底", "手動"],
+        visibleCost: "壓力 +4；reservoir contamination −5",
+        permanentConsequence: "branchOperationComplete=true；零電量仍可完成 Day 5。",
+        requirements: { greenBranch: "FILTER" },
+        consequence: {
+          survivorDelta: { stress: 4 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -5,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV075",
+    day: 5,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "焚化導軌",
+    body: "PURGE 分支必須在污水、病株與封存灰燼間選擇實際損失。",
+    artKey: "green.purge-rail",
+    nightLine: "焚化導軌在三份損失間發紅。",
+    payoff: "PURGE 操作完成後強化 DRAIN，並留下焦黑場景層。",
+    choices: [
+      {
+        id: "burn-water",
+        label: "焚除污水",
+        cost: "水 −1；污染 −18",
+        known: "保留作物",
+        deltas: { water: -1 },
+        result: "污水霧化後通過高溫網，種植槽保持原樣。",
+        risk: "medium",
+        tags: ["PURGE", "污水", "焚除"],
+        visibleCost: "水 −1；reservoir contamination −18",
+        permanentConsequence: "branchOperationComplete=true；保留兩槽作物。",
+        requirements: { minimum: { water: 1 }, greenBranch: "PURGE" },
+        consequence: {
+          resourceDelta: { water: -1 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -18,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "burn-crops",
+        label: "焚除病株",
+        cost: "兩槽作物重置；污染 −25",
+        known: "失去本輪作物與成熟度",
+        deltas: {},
+        result: "兩槽葉片化為灰燼，根系切口被完整封住。",
+        risk: "high",
+        tags: ["PURGE", "作物", "重置"],
+        visibleCost: "plot-a、plot-b 重置；reservoir contamination −25",
+        permanentConsequence: "branchOperationComplete=true；兩槽使用既有 crop reset。",
+        requirements: { greenBranch: "PURGE" },
+        consequence: {
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -25,
+            resetPlots: ["plot-a", "plot-b"],
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "seal-ash",
+        label: "封存灰燼",
+        cost: "壓力 +3；污染 −5",
+        known: "永遠可選；不耗全域資源",
+        deltas: {},
+        survivor: { stress: 3 },
+        result: "灰燼被推入密封匣，焚化導軌完成最低限度斷路。",
+        risk: "medium",
+        tags: ["PURGE", "保底", "封存"],
+        visibleCost: "壓力 +3；reservoir contamination −5",
+        permanentConsequence: "branchOperationComplete=true；空資源仍可完成 Day 5。",
+        requirements: { greenBranch: "PURGE" },
+        consequence: {
+          survivorDelta: { stress: 3 },
+          greenTide: {
+            set: { branchOperationComplete: true },
+            reservoirContaminationDelta: -5,
+          },
+          nextEventId: "EV076",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV076",
+    day: 6,
+    phase: "travel",
+    storyPhase: "prep",
+    forced: true,
+    title: "A-07 的發燒",
+    body: "感染讀值與作物污染並排顯示；是否公開真相會改變共生結局。",
+    artKey: "green.a07-fever",
+    nightLine: "A-07 的體溫與根脈同時上升。",
+    payoff: "用藥、隔離與公開真相都有可保存的終局後果。",
+    choices: [
+      {
+        id: "medicine",
+        label: "使用藥物",
+        cost: "藥品 −1；感染 −10",
+        known: "壓低感染，不自動清除作物污染",
+        deltas: { medicine: -1 },
+        survivor: { infection: -10 },
+        result: "退燒藥壓低體溫，水箱濁度仍留在原位。",
+        risk: "low",
+        tags: ["藥品", "感染", "A-07"],
+        visibleCost: "藥品 −1；感染 −10",
+        permanentConsequence: "只降低感染；不隱藏 reservoir 或 plot contamination。",
+        requirements: { minimum: { medicine: 1 } },
+        consequence: {
+          resourceDelta: { medicine: -1 },
+          survivorDelta: { infection: -10 },
+          nextEventId: "EV077",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "isolate-crop",
+        label: "隔離病株",
+        cost: "plot-b 停止循環；污染 −10",
+        known: "保留藥品",
+        deltas: {},
+        result: "plot-b 的透明罩閉合，病根離開共用回水。",
+        risk: "medium",
+        tags: ["隔離", "作物", "污染"],
+        visibleCost: "plot-b 隔離；reservoir contamination −10",
+        permanentConsequence: "plot-b 加入 isolatedPlots；reservoir contamination −10。",
+        consequence: {
+          greenTide: {
+            isolatePlot: "plot-b",
+            reservoirContaminationDelta: -10,
+          },
+          nextEventId: "EV077",
+          transition: "queue-next-day",
+        },
+      },
+      {
+        id: "tell-truth",
+        label: "說明全部真相",
+        cost: "信任 +4；壓力 +2",
+        known: "永遠可選；truthShared=true",
+        deltas: {},
+        survivor: { trust: 4, stress: 2 },
+        result: "你把水源、作物與感染紀錄全部交給 A-07。",
+        risk: "irreversible",
+        tags: ["真相", "保底", "共生"],
+        visibleCost: "信任 +4；壓力 +2",
+        permanentConsequence: "truthShared=true；成為 green-symbiosis 的必要條件。",
+        consequence: {
+          survivorDelta: { trust: 4, stress: 2 },
+          greenTide: { set: { truthShared: true } },
+          nextEventId: "EV077",
+          transition: "queue-next-day",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV077",
+    day: 7,
+    phase: "travel",
+    storyPhase: "travel",
+    greenFinaleStage: "gate",
+    forced: true,
+    title: "封閉溫室站",
+    body: "根脈封住種庫閘；通過後必須依序處理 T013 與 T008。",
+    artKey: "green.closed-station",
+    nightLine: "種庫閘後還有孢子者與潛伏者。",
+    payoff: "進入 GATE → CONTACT(T013、T008) → DECISION 的固定順序。",
+    choices: [
+      {
+        id: "open-vault",
+        label: "開啟種庫閘",
+        cost: "電量 −2",
+        known: "定位感染源；進入雙接觸",
+        deltas: { energy: -2 },
+        result: "電磁鎖解除，根脈源頭在閘後亮出條紋。",
+        risk: "high",
+        tags: ["GATE", "種庫", "電量"],
+        visibleCost: "電量 −2",
+        permanentConsequence: "sourceLocated=true；finaleStage=contact；建立 T013→T008。",
+        requirements: { minimum: { energy: 2 } },
+        consequence: {
+          resourceDelta: { energy: -2 },
+          greenTide: {
+            set: { sourceLocated: true, finaleStage: "contact" },
+          },
+          nextEventId: "EV078",
+          transition: "green-finale-contact",
+        },
+      },
+      {
+        id: "external-sample",
+        label: "外部採樣",
+        cost: "電量 −1",
+        known: "取得根脈紋理；進入雙接觸",
+        deltas: { energy: -1 },
+        result: "採樣臂帶回根脈切片，文字與紋理同時標出源頭。",
+        risk: "medium",
+        tags: ["GATE", "採樣", "線索"],
+        visibleCost: "電量 −1",
+        permanentConsequence: "sourceLocated=true；finaleStage=contact；T008 增加非色彩線索。",
+        requirements: { minimum: { energy: 1 } },
+        consequence: {
+          resourceDelta: { energy: -1 },
+          greenTide: {
+            set: { sourceLocated: true, finaleStage: "contact" },
+          },
+          setFlags: { r03FinalRootSample: true },
+          nextEventId: "EV078",
+          transition: "green-finale-contact",
+        },
+      },
+      {
+        id: "hand-winch",
+        label: "手動絞盤",
+        cost: "車體 −4",
+        known: "永遠可選；進入雙接觸",
+        deltas: {},
+        environment: { hull: -4 },
+        result: "絞盤把閘門硬拉到半開，車體側梁留下新的裂痕。",
+        risk: "high",
+        tags: ["GATE", "保底", "車體"],
+        visibleCost: "車體 −4",
+        permanentConsequence: "sourceLocated=true；finaleStage=contact；零資源不會卡死。",
+        consequence: {
+          greenTide: {
+            set: { sourceLocated: true, finaleStage: "contact" },
+          },
+          nextEventId: "EV078",
+          transition: "green-finale-contact",
+        },
+      },
+    ],
+  },
+  {
+    id: "EV078",
+    day: 7,
+    phase: "travel",
+    storyPhase: "aftermath",
+    greenFinaleStage: "resolved",
+    forced: true,
+    title: "取種或焚源",
+    body: "四個最終操作同屏顯示；不滿足的選項保留並列出缺少條件。",
+    artKey: "green.final-choice",
+    nightLine: "種庫、共生、焚源與隔離同時可見。",
+    payoff: "鎖定一個 R03 ending、一次路線獎勵與一次結算。",
+    choices: [
+      {
+        id: "seedbank",
+        label: "保存種庫",
+        cost: "需種子 4、乾淨成熟槽、儲水污染 ≤30",
+        known: "green-seedbank",
+        deltas: {},
+        result: "乾淨種匣被封入冷藏櫃，列車保留重新播種的可能。",
+        risk: "irreversible",
+        tags: ["種庫", "乾淨作物", "結局"],
+        visibleCost: "seedStock ≥4；成熟乾淨槽 ≥1；reservoir contamination ≤30",
+        permanentConsequence: "finalDecision=seedbank；endingId=green-seedbank；路線獎勵一次。",
+        requirements: {
+          greenSeedStockMinimum: 4,
+          greenReservoirContaminationMaximum: 30,
+          greenCleanMaturePlot: true,
+        },
+        consequence: {
+          greenTide: { set: { finaleStage: "resolved" } },
+          greenFinalDecision: "seedbank",
+          greenEndingId: "green-seedbank",
+          transition: "green-story-complete",
+        },
+      },
+      {
+        id: "symbiosis",
+        label: "接受受控共生",
+        cost: "需 CULTIVATE、感染 20–69、存活作物及公開真相",
+        known: "green-symbiosis",
+        deltas: {},
+        result: "A-07 與你共同封存受控感染規則，活體循環留在車上。",
+        risk: "irreversible",
+        tags: ["共生", "CULTIVATE", "結局"],
+        visibleCost: "CULTIVATE；感染 20–69；存活作物 ≥1；truthShared=true",
+        permanentConsequence: "finalDecision=symbiosis；endingId=green-symbiosis；路線獎勵一次。",
+        requirements: {
+          greenBranch: "CULTIVATE",
+          greenInfectionRange: { minimum: 20, maximum: 69 },
+          greenTruthShared: true,
+        },
+        consequence: {
+          greenTide: { set: { finaleStage: "resolved" } },
+          greenFinalDecision: "symbiosis",
+          greenEndingId: "green-symbiosis",
+          transition: "green-story-complete",
+        },
+      },
+      {
+        id: "firebreak",
+        label: "燒毀感染源",
+        cost: "PURGE 或支付電量 3、水 1",
+        known: "green-firebreak；結算後污染 ≤20",
+        deltas: {},
+        result: "焚化導軌切斷站內根脈，焦線停在列車門外。",
+        risk: "irreversible",
+        tags: ["焚源", "PURGE", "結局"],
+        visibleCost: "PURGE 分支免除額外成本；其他分支電量 −3、水 −1",
+        permanentConsequence: "finalDecision=firebreak；endingId=green-firebreak；污染結算至 ≤20。",
+        requirements: { greenFirebreakReady: true },
+        consequence: {
+          greenTide: {
+            set: { finaleStage: "resolved" },
+            reservoirContaminationDelta: -100,
+            firebreakCost: { energy: 3, water: 1, waivedForBranch: "PURGE" },
+          },
+          greenFinalDecision: "firebreak",
+          greenEndingId: "green-firebreak",
+          transition: "green-story-complete",
+        },
+      },
+      {
+        id: "quarantine",
+        label: "封站隔離",
+        cost: "放棄種源；留下污染警示",
+        known: "永遠可選；green-quarantine",
+        deltas: {},
+        result: "站門閉合，警示燈與污染紀錄留給下一班列車。",
+        risk: "irreversible",
+        tags: ["隔離", "保底", "結局"],
+        visibleCost: "放棄站內種源；無資源門檻",
+        permanentConsequence: "finalDecision=quarantine；endingId=green-quarantine；路線獎勵一次。",
+        consequence: {
+          greenTide: { set: { finaleStage: "resolved" } },
+          greenFinalDecision: "quarantine",
+          greenEndingId: "green-quarantine",
+          transition: "green-story-complete",
+        },
+      },
+    ],
+  },
+];
+
+export const ALL_STORY_EVENTS: StoryContentEvent[] = [
+  ...STORY_EVENTS,
+  ...FROST_STORY_EVENTS,
+  ...GREEN_STORY_EVENTS,
+];
 
 export const THREATS: ThreatDefinition[] = [
   { id: "T002", name: "敲窗者", anchor: "right-window", counterIds: ["close-shutter", "shock-window"], warningSeconds: 10, damage: 14, artKey: "threat.knocker" },
@@ -1952,8 +3002,14 @@ export const THREATS: ThreatDefinition[] = [
   { id: "T004", name: "霧噬藤", anchor: "door", counterIds: ["drag-cutter"], warningSeconds: 10, damage: 12, artKey: "threat.fog-vine" },
   { id: "T005", name: "回聲乘客", anchor: "right-window", counterIds: ["match-echo"], warningSeconds: 10, damage: 2, artKey: "threat.echo-passenger" },
   { id: "T006", name: "靜默群", anchor: "roof", counterIds: ["trace-leaves", "trace-meter"], warningSeconds: 8, damage: 16, artKey: "threat.silent-crowd" },
+  { id: "T008", name: "潛伏者", anchor: "door", counterIds: ["lurker-inspection", "manual-seal"], warningSeconds: 12, damage: 0, artKey: "threat.lurker" },
   { id: "T009", name: "暴風雪", anchor: "roof", counterIds: ["thermal-routing", "manual-scrape"], warningSeconds: 14, damage: 0, artKey: "threat.blizzard" },
+  { id: "T013", name: "孢子者", anchor: "roof", counterIds: ["cycle-routing", "manual-drain"], warningSeconds: 14, damage: 0, artKey: "threat.spore-bearer" },
 ];
+
+export const GREEN_THREAT_DEFINITIONS: readonly ThreatDefinition[] = THREATS.filter(
+  (threat) => threat.id === "T008" || threat.id === "T013",
+);
 
 export const TECH_NODES = [
   { id: "E1", branch: "能源", name: "高效率配線", cost: 1, prerequisite: [], description: "模組待機耗電降低。" },
@@ -2022,6 +3078,8 @@ export interface StoryScheduleEntry {
   duePhase: StoryDuePhase;
   finaleStage?: "arrival" | "contact" | "decision" | "resolved";
   frostBranch?: FrostBranch;
+  greenBranch?: GreenBranch;
+  greenFinaleStage?: GreenFinaleStage;
 }
 
 export const FROST_STORY_DAY_SCHEDULE: Record<1 | 2 | 3 | 4 | 5 | 6 | 7, readonly StoryScheduleEntry[]> = {
@@ -2048,10 +3106,54 @@ export const FROST_STORY_DAY_SCHEDULE: Record<1 | 2 | 3 | 4 | 5 | 6 | 7, readonl
   ],
 };
 
+export const GREEN_STORY_DAY_SCHEDULE: Record<1 | 2 | 3 | 4 | 5 | 6 | 7, readonly StoryScheduleEntry[]> = {
+  1: [
+    { eventId: "EV066", duePhase: "prep" },
+    { eventId: "EV067", duePhase: "aftermath" },
+  ],
+  2: [
+    { eventId: "EV068", duePhase: "travel" },
+    { eventId: "EV069", duePhase: "aftermath" },
+  ],
+  3: [
+    { eventId: "EV070", duePhase: "prep" },
+    { eventId: "EV071", duePhase: "aftermath" },
+  ],
+  4: [{ eventId: "EV072", duePhase: "route" }],
+  5: [
+    { eventId: "EV073", duePhase: "prep", greenBranch: "CULTIVATE" },
+    { eventId: "EV074", duePhase: "prep", greenBranch: "FILTER" },
+    { eventId: "EV075", duePhase: "prep", greenBranch: "PURGE" },
+  ],
+  6: [{ eventId: "EV076", duePhase: "prep" }],
+  7: [
+    { eventId: "EV077", duePhase: "travel", greenFinaleStage: "gate" },
+    { eventId: "EV078", duePhase: "aftermath", greenFinaleStage: "resolved" },
+  ],
+};
+
 export const STORY_DAY_SCHEDULE_BY_ROUTE = {
   R01: STORY_DAY_SCHEDULE,
   R02: FROST_STORY_DAY_SCHEDULE,
+  R03: GREEN_STORY_DAY_SCHEDULE,
 } as const satisfies Record<StoryRouteId, Record<1 | 2 | 3 | 4 | 5 | 6 | 7, readonly StoryScheduleEntry[]>>;
+
+function buildStoryEventRouteOwnership(): Readonly<Record<string, StoryRouteId>> {
+  const ownership: Record<string, StoryRouteId> = {};
+  for (const [routeId, schedule] of Object.entries(STORY_DAY_SCHEDULE_BY_ROUTE) as Array<
+    [StoryRouteId, Record<1 | 2 | 3 | 4 | 5 | 6 | 7, readonly StoryScheduleEntry[]>]
+  >) {
+    for (const entry of Object.values(schedule).flat()) {
+      if (ownership[entry.eventId] && ownership[entry.eventId] !== routeId) {
+        throw new Error(`Story event ${entry.eventId} is owned by multiple routes`);
+      }
+      ownership[entry.eventId] = routeId;
+    }
+  }
+  return Object.freeze(ownership);
+}
+
+export const STORY_EVENT_ROUTE_OWNERSHIP = buildStoryEventRouteOwnership();
 
 export const FROST_BRANCH_DEFINITIONS = {
   CARE: {
@@ -2098,6 +3200,51 @@ export const FROST_BRANCH_DEFINITIONS = {
   }
 >;
 
+export const GREEN_BRANCH_DEFINITIONS = {
+  CULTIVATE: {
+    id: "CULTIVATE",
+    day5EventId: "EV073",
+    visibleCarriage: "greenhouse",
+    visibleLayer: "嫁接環、琥珀生長燈與沿管線擴張的冠層",
+    sceneArtKey: "green.branch.cultivate",
+    day5Operation: "擴張冠層、控制生長或切除病葉",
+    cycleModifier: "保留有限污染；成熟收成的 seed yield +1",
+    day7Advantage: "green-symbiosis 的感染與種源門檻可達",
+  },
+  FILTER: {
+    id: "FILTER",
+    day5EventId: "EV074",
+    visibleCarriage: "workshop",
+    visibleLayer: "多級濾芯塔、樣本抽屜與冷凝管",
+    sceneArtKey: "green.branch.filter",
+    day5Operation: "全濾、半濾或手搖壓差泵",
+    cycleModifier: "每日第一枚 tainted 水樣免費淨化",
+    day7Advantage: "降低 reservoir contamination 並保留乾淨成熟槽",
+  },
+  PURGE: {
+    id: "PURGE",
+    day5EventId: "EV075",
+    visibleCarriage: "defense",
+    visibleLayer: "密封百葉、焚化導軌與焦黑根脈切口",
+    sceneArtKey: "green.branch.purge",
+    day5Operation: "焚污水、焚病株或封存灰燼",
+    cycleModifier: "每枚送入 DRAIN 的 tainted 額外降低 reservoir contamination 5",
+    day7Advantage: "firebreak 免除終局額外電量與水成本",
+  },
+} as const satisfies Record<
+  GreenBranch,
+  {
+    id: GreenBranch;
+    day5EventId: "EV073" | "EV074" | "EV075";
+    visibleCarriage: CarriageId;
+    visibleLayer: string;
+    sceneArtKey: string;
+    day5Operation: string;
+    cycleModifier: string;
+    day7Advantage: string;
+  }
+>;
+
 export const STORY_ROUTE_DEFINITIONS = {
   R01: {
     id: "R01",
@@ -2113,10 +3260,57 @@ export const STORY_ROUTE_DEFINITIONS = {
     firstEventId: "EV053",
     finalEventId: "EV065",
   },
+  R03: {
+    id: "R03",
+    name: "綠潮線",
+    description: "森林藤蔓、封閉循環、食物信任與會沿資源系統傳入的污染。",
+    firstEventId: "EV066",
+    finalEventId: "EV078",
+  },
 } as const satisfies Record<
   StoryRouteId,
   { id: StoryRouteId; name: string; description: string; firstEventId: string; finalEventId: string }
 >;
+
+export interface RouteRuntimePolicy {
+  id: StoryRouteId;
+  initialCarriageId: CarriageId;
+  startsWithPrepStory: boolean;
+  storyStateKey: "base" | "whiteFrost" | "greenTide";
+  standardThreatIds: readonly string[];
+  sceneArtKey: string;
+  completionLedgerSource: string;
+}
+
+export const STORY_ROUTE_RUNTIME_POLICIES = {
+  R01: {
+    id: "R01",
+    initialCarriageId: "greenhouse",
+    startsWithPrepStory: false,
+    storyStateKey: "base",
+    standardThreatIds: ["T002", "T003"],
+    sceneArtKey: "story.grayline",
+    completionLedgerSource: "story.R01.route-complete",
+  },
+  R02: {
+    id: "R02",
+    initialCarriageId: "defense",
+    startsWithPrepStory: true,
+    storyStateKey: "whiteFrost",
+    standardThreatIds: ["T003"],
+    sceneArtKey: "story.frost",
+    completionLedgerSource: "story.R02.route-complete",
+  },
+  R03: {
+    id: "R03",
+    initialCarriageId: "greenhouse",
+    startsWithPrepStory: true,
+    storyStateKey: "greenTide",
+    standardThreatIds: ["T008", "T013"],
+    sceneArtKey: "story.green-tide",
+    completionLedgerSource: "story.R03.route-complete",
+  },
+} as const satisfies Record<StoryRouteId, RouteRuntimePolicy>;
 
 export const FROST_THREAT_METADATA = {
   T009: {
@@ -2135,6 +3329,70 @@ export const FROST_DAY7_FINALE_SEQUENCE = [
   { stage: "blizzard", durationSeconds: 75, eventIds: [], operation: "完成 T009 霜區檢查與重新分熱" },
   { stage: "clear", durationSeconds: 45, eventIds: ["EV064"], operation: "除冰、手動清障或等待空檔" },
   { stage: "accelerate", durationSeconds: 45, eventIds: ["EV065"], operation: "確認唯一控制權與路線結局" },
+] as const;
+
+export const GREEN_THREAT_METADATA = {
+  T008: {
+    id: "T008",
+    warningLine: "先檢查冠層、濾芯與床下，再標記潛伏位置。",
+    visibleOperation: "逐一檢查 CANOPY、FILTER、UNDERBED 三個實體區域，再標記一處。",
+    inspectZones: ["CANOPY", "FILTER", "UNDERBED"],
+    oldCounterResolves: false,
+    firstMistakeEffects: { infection: 0, stress: 0, revealCandidateCount: 2 },
+    secondMistakeEffects: { infection: 4, stress: 3 },
+    manualFallback: {
+      command: "lurker:manual-seal",
+      availableAfterFirstMiss: true,
+      noCountdownAvailable: true,
+      effects: { hull: -4, stress: 5 },
+    },
+    timeoutCountsAsMistake: true,
+    noCountdownAutoTimeout: false,
+  },
+  T013: {
+    id: "T013",
+    legacyGddId: "T006",
+    legacyAliasEnabled: false,
+    warningLine: "檢查兩枚污染水樣，再送入濾芯或排放槽。",
+    visibleOperation: "以當日 Cycle Board inspect 兩枚 tainted 水樣，再移至 FILTER 或 DRAIN。",
+    contaminatedSampleCount: 2,
+    oldCounterResolves: false,
+    firstMistakeEffects: { infection: 0, reservoirContamination: 0, revealTaintedSamples: true },
+    secondMistakeEffects: { infection: 4, reservoirContamination: 15 },
+    timeoutEffects: {
+      reservoirContamination: 12,
+      plotContamination: { "plot-a": 1, "plot-b": 1 },
+    },
+    manualFallback: {
+      command: "cycle:manual-drain",
+      alwaysVisible: true,
+    },
+    genericHullDamage: false,
+  },
+} as const;
+
+export const GREEN_DAY7_FINALE_SEQUENCE = [
+  {
+    stage: "gate",
+    durationSeconds: 45,
+    eventIds: ["EV077"],
+    threatIds: [],
+    operation: "以種庫電鎖、外部採樣或手動絞盤定位感染源",
+  },
+  {
+    stage: "contact",
+    durationSeconds: 120,
+    eventIds: [],
+    threatIds: ["T013", "T008"],
+    operation: "依序完成孢子者循環檢疫與潛伏者三區定位",
+  },
+  {
+    stage: "decision",
+    durationSeconds: 45,
+    eventIds: ["EV078"],
+    threatIds: [],
+    operation: "在同屏四個操作中確認唯一 R03 結局",
+  },
 ] as const;
 
 export const DAY4_BRANCH_DEFINITIONS = {

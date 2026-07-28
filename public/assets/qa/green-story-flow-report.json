@@ -1,0 +1,421 @@
+{
+  "audit": "R03 Green Tide mobile browser gameplay preview",
+  "packageVersion": "1.1.0",
+  "generatedAt": "2026-07-28T08:53:10.656Z",
+  "status": "PASS",
+  "disclosure": "The videos use visible UI controls with disclosed checkpoint injection to demonstrate Cycle, branch, threat, and ending states; they are gameplay previews, not uninterrupted seven-night runs.",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "compactViewport": {
+    "width": 360,
+    "height": 640
+  },
+  "checks": {
+    "routeCardVisible": true,
+    "cycleTapAndTarget": true,
+    "compactText140": true,
+    "compactCenterHit": true,
+    "branchEquipmentVisible": true,
+    "t013ThenT008": true,
+    "firstMissNoDamage": true,
+    "fourEndingsCaptured": true,
+    "runtimeGptAssetsUsed": true
+  },
+  "branches": [
+    {
+      "branch": "CULTIVATE",
+      "endingChoice": "symbiosis",
+      "actions": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R03",
+        "event-choice:skim",
+        "continue",
+        "power",
+        "cycle-select:S1",
+        "cycle-inspect:S1",
+        "cycle-select:S2",
+        "cycle-inspect:S2",
+        "cycle-select:S3",
+        "cycle-inspect:S3",
+        "cycle-select:S4",
+        "cycle-inspect:S4",
+        "cycle-select:S1",
+        "cycle-target:FILTER",
+        "cycle-select:S2",
+        "cycle-target:GROW_A",
+        "cycle-select:S3",
+        "cycle-target:FILTER",
+        "cycle-select:S4",
+        "cycle-target:GROW_B",
+        "cycle-commit",
+        "continue",
+        "event-choice:CULTIVATE",
+        "continue",
+        "event-choice:control",
+        "select-carriage:greenhouse",
+        "continue",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:inspect:S1",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:inspect:S2",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:inspect:S3",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:inspect:S4",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:commit",
+        "threat-interact:lurker:inspect:FILTER",
+        "threat-interact:lurker:mark:FILTER",
+        "threat-interact:lurker:inspect:CANOPY",
+        "threat-interact:lurker:mark:CANOPY",
+        "event-choice:symbiosis",
+        "continue",
+        "event-choice:quarantine"
+      ],
+      "checkpoints": [
+        "EV066 visible choice → disclosed Day 3 Cycle Board showcase",
+        "Cycle Board all-sample inspect/move/commit",
+        "EV072 visible irreversible CULTIVATE choice",
+        "EV073 visible control operation",
+        "Day 7 visible T013 → T008 first-miss/retry → EV078"
+      ],
+      "screenshots": [
+        "public/assets/screenshots/green-cultivate-carriage-v110.png",
+        "public/assets/screenshots/green-cultivate-t013-cycle-v110.png",
+        "public/assets/screenshots/green-cultivate-t008-first-miss-v110.png",
+        "public/assets/screenshots/green-cultivate-ending-v110.png",
+        "public/assets/screenshots/green-quarantine-ending-v110.png"
+      ],
+      "video": {
+        "public": "public/assets/video/night-train-green-v110-cultivate.webm",
+        "bytes": 10539887,
+        "sha256": "0db9153b7348edc843364a0e3170ebad5bf1716d9394b78c2e0869c5f21cf387",
+        "metadata": {
+          "width": 390,
+          "height": 844,
+          "durationSeconds": 85.52
+        }
+      }
+    },
+    {
+      "branch": "FILTER",
+      "endingChoice": "seedbank",
+      "actions": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R03",
+        "event-choice:scan",
+        "continue",
+        "power",
+        "cycle-select:S1",
+        "cycle-inspect:S1",
+        "cycle-select:S2",
+        "cycle-inspect:S2",
+        "cycle-select:S3",
+        "cycle-inspect:S3",
+        "cycle-select:S4",
+        "cycle-inspect:S4",
+        "cycle-select:S1",
+        "cycle-target:GROW_A",
+        "cycle-select:S2",
+        "cycle-target:GROW_B",
+        "cycle-select:S3",
+        "cycle-target:FILTER",
+        "cycle-select:S4",
+        "cycle-target:FILTER",
+        "continue",
+        "power",
+        "continue",
+        "power",
+        "cycle-commit",
+        "continue",
+        "event-choice:FILTER",
+        "continue",
+        "event-choice:full-filter",
+        "select-carriage:workshop",
+        "continue",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:inspect:S1",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:inspect:S2",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:inspect:S3",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:inspect:S4",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:commit",
+        "threat-interact:lurker:inspect:FILTER",
+        "threat-interact:lurker:mark:FILTER",
+        "threat-interact:lurker:inspect:CANOPY",
+        "threat-interact:lurker:mark:CANOPY",
+        "event-choice:seedbank"
+      ],
+      "checkpoints": [
+        "EV066 visible choice → disclosed Day 3 Cycle Board showcase",
+        "Cycle Board all-sample inspect/move/commit",
+        "EV072 visible irreversible FILTER choice",
+        "EV074 visible full-filter operation",
+        "Day 7 visible T013 → T008 first-miss/retry → EV078"
+      ],
+      "screenshots": [
+        "public/assets/screenshots/green-route-selection-v110.png",
+        "public/assets/screenshots/green-ev066-intake-v110.png",
+        "public/assets/screenshots/green-cycle-board-360x640-text140-v110.png",
+        "public/assets/screenshots/green-ev072-three-branches-v110.png",
+        "public/assets/screenshots/green-filter-carriage-v110.png",
+        "public/assets/screenshots/green-filter-t013-cycle-v110.png",
+        "public/assets/screenshots/green-filter-t008-first-miss-v110.png",
+        "public/assets/screenshots/green-ev078-four-endings-v110.png",
+        "public/assets/screenshots/green-filter-ending-v110.png"
+      ],
+      "compact": {
+        "viewport": {
+          "width": 360,
+          "height": 640
+        },
+        "horizontalOverflow": 0,
+        "textScale": 1.4,
+        "reducedMotion": true,
+        "board": {
+          "left": 8,
+          "right": 352,
+          "top": 290,
+          "bottom": 536
+        },
+        "touchTargets": [
+          {
+            "label": "power:",
+            "width": 48,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-select:S1",
+            "width": 59.5,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-select:S2",
+            "width": 59.5,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-select:S3",
+            "width": 59.5,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-select:S4",
+            "width": 59.5,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-inspect:S1",
+            "width": 74,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-target:INTAKE",
+            "width": 62.8,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-target:FILTER",
+            "width": 62.8,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-target:GROW_A",
+            "width": 62.8,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-target:GROW_B",
+            "width": 62.8,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-target:DRAIN",
+            "width": 62.8,
+            "height": 48,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-reset:",
+            "width": 105.33,
+            "height": 50,
+            "centerHit": true
+          },
+          {
+            "label": "cycle-commit:",
+            "width": 105.34,
+            "height": 50,
+            "centerHit": true
+          }
+        ]
+      },
+      "video": {
+        "public": "public/assets/video/night-train-green-v110-filter.webm",
+        "bytes": 13790997,
+        "sha256": "0381408f68a490296b65530b7f1053448e2528637a8944af70327e892067fd8c",
+        "metadata": {
+          "width": 390,
+          "height": 844,
+          "durationSeconds": 121.36
+        }
+      }
+    },
+    {
+      "branch": "PURGE",
+      "endingChoice": "firebreak",
+      "actions": [
+        "settings",
+        "toggle-countdown",
+        "toggle-sound",
+        "menu",
+        "new-game:R03",
+        "event-choice:skim",
+        "continue",
+        "power",
+        "cycle-select:S1",
+        "cycle-inspect:S1",
+        "cycle-select:S2",
+        "cycle-inspect:S2",
+        "cycle-select:S3",
+        "cycle-inspect:S3",
+        "cycle-select:S4",
+        "cycle-inspect:S4",
+        "cycle-select:S1",
+        "cycle-target:GROW_A",
+        "cycle-select:S2",
+        "cycle-target:FILTER",
+        "cycle-select:S3",
+        "cycle-target:FILTER",
+        "cycle-select:S4",
+        "cycle-target:GROW_B",
+        "cycle-commit",
+        "continue",
+        "event-choice:PURGE",
+        "continue",
+        "event-choice:burn-water",
+        "select-carriage:defense",
+        "continue",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:inspect:S1",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:inspect:S2",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:inspect:S3",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:inspect:S4",
+        "threat-interact:cycle:select:S1",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S2",
+        "threat-interact:cycle:target:FILTER",
+        "threat-interact:cycle:select:S3",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:select:S4",
+        "threat-interact:cycle:target:DRAIN",
+        "threat-interact:cycle:commit",
+        "threat-interact:lurker:inspect:CANOPY",
+        "threat-interact:lurker:mark:CANOPY",
+        "threat-interact:lurker:inspect:FILTER",
+        "threat-interact:lurker:mark:FILTER",
+        "event-choice:firebreak"
+      ],
+      "checkpoints": [
+        "EV066 visible choice → disclosed Day 3 Cycle Board showcase",
+        "Cycle Board all-sample inspect/move/commit",
+        "EV072 visible irreversible PURGE choice",
+        "EV075 visible burn-water operation",
+        "Day 7 visible T013 → T008 first-miss/retry → EV078"
+      ],
+      "screenshots": [
+        "public/assets/screenshots/green-purge-carriage-v110.png",
+        "public/assets/screenshots/green-purge-t013-cycle-v110.png",
+        "public/assets/screenshots/green-purge-t008-first-miss-v110.png",
+        "public/assets/screenshots/green-purge-ending-v110.png"
+      ],
+      "video": {
+        "public": "public/assets/video/night-train-green-v110-purge.webm",
+        "bytes": 10739664,
+        "sha256": "c5177e1525465958977ecaa36264779a65d175bd7d449681cfda36c177277cfa",
+        "metadata": {
+          "width": 390,
+          "height": 844,
+          "durationSeconds": 87.12
+        }
+      }
+    }
+  ],
+  "screenshots": [
+    "public/assets/screenshots/green-cultivate-carriage-v110.png",
+    "public/assets/screenshots/green-cultivate-ending-v110.png",
+    "public/assets/screenshots/green-cultivate-t008-first-miss-v110.png",
+    "public/assets/screenshots/green-cultivate-t013-cycle-v110.png",
+    "public/assets/screenshots/green-cycle-board-360x640-text140-v110.png",
+    "public/assets/screenshots/green-ev066-intake-v110.png",
+    "public/assets/screenshots/green-ev072-three-branches-v110.png",
+    "public/assets/screenshots/green-ev078-four-endings-v110.png",
+    "public/assets/screenshots/green-filter-carriage-v110.png",
+    "public/assets/screenshots/green-filter-ending-v110.png",
+    "public/assets/screenshots/green-filter-t008-first-miss-v110.png",
+    "public/assets/screenshots/green-filter-t013-cycle-v110.png",
+    "public/assets/screenshots/green-purge-carriage-v110.png",
+    "public/assets/screenshots/green-purge-ending-v110.png",
+    "public/assets/screenshots/green-purge-t008-first-miss-v110.png",
+    "public/assets/screenshots/green-purge-t013-cycle-v110.png",
+    "public/assets/screenshots/green-quarantine-ending-v110.png",
+    "public/assets/screenshots/green-route-selection-v110.png"
+  ],
+  "screenshotSha256": {
+    "public/assets/screenshots/green-cultivate-carriage-v110.png": "e2e61d7b21d1fa5676b03b94302400ec5046e6ae705359f10748ec5392ed50fc",
+    "public/assets/screenshots/green-cultivate-ending-v110.png": "19d38239058f91523b482ecc54b1efeddb4d8e1c05df37249ffda965aadc0844",
+    "public/assets/screenshots/green-cultivate-t008-first-miss-v110.png": "4993b6a0af043ea257699c7a2f6df345f4a1ab856431040a2c0a12ff4fe32d1f",
+    "public/assets/screenshots/green-cultivate-t013-cycle-v110.png": "2e57ed40acfe6d6ccb69774d6af8c1a088290ad0ab2aeeeba4d58776b3425be0",
+    "public/assets/screenshots/green-cycle-board-360x640-text140-v110.png": "4cc7b7753576f73af9dc2e0b771de9d1db3dc29907925c722d070b9e9bf1e679",
+    "public/assets/screenshots/green-ev066-intake-v110.png": "d197ed4b99081e7e1ba5c20dc8d99225469f748c62dded2ac6e838fcf670caeb",
+    "public/assets/screenshots/green-ev072-three-branches-v110.png": "4ab15bbaecfcac10c3f7ded9cbc27c64b00d43714cd5f7c499ba2ee4d5dad2ed",
+    "public/assets/screenshots/green-ev078-four-endings-v110.png": "3fca7e3da9dfd236f48d2f5bfdf4f2a3be3492f8df22a4a383246cfc31bbf19f",
+    "public/assets/screenshots/green-filter-carriage-v110.png": "7a22716c20ac1eb238931e687ec049d55b9b3ffd889cd548d12d47d01bba9bc1",
+    "public/assets/screenshots/green-filter-ending-v110.png": "5d033338fb324d7609716a74e6b95a46751bec19a5d2e48c57481a8950f04b40",
+    "public/assets/screenshots/green-filter-t008-first-miss-v110.png": "368c14f1b10794536b8c65a27a504772101abdf2e3c3ff24f6a1b4b8f9ab7eed",
+    "public/assets/screenshots/green-filter-t013-cycle-v110.png": "7b02b78e8cae5785f8267ca25d9f1749bdab6fb398e7f110a9a739edc56a30e3",
+    "public/assets/screenshots/green-purge-carriage-v110.png": "b150e5bb3b7d8261075a6dfb477ec9b270118c6670b78bb0d0f5dca21ede46ab",
+    "public/assets/screenshots/green-purge-ending-v110.png": "530e05e9790322f322ac20bff27df9329376a4c90be89cfaf1e5b019c1cac299",
+    "public/assets/screenshots/green-purge-t008-first-miss-v110.png": "70d3ce0e2b49fa4d97d7e96d11016e977af2c80097a9bf2c2f988ebebe010f87",
+    "public/assets/screenshots/green-purge-t013-cycle-v110.png": "3333e97d476dc9d029b95e12beefcc9ccb834ef3de56da46b8de857e05868ded",
+    "public/assets/screenshots/green-quarantine-ending-v110.png": "3ec0c54e755a7447c71f456bdf9ebab5a20714703380f8246d16d880872b9966",
+    "public/assets/screenshots/green-route-selection-v110.png": "aadf1714f204bc9bfea0717b4c45a23d6279c8cc97c77f59c4da577b8fcc02d8"
+  }
+}

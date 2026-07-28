@@ -25,10 +25,31 @@ export function createCropPlots(): CropPlot[] {
   ];
 }
 
+const ROUTE_START_STATE = {
+  R01: {
+    resources: { energy: 75, fuel: 40, food: 5, water: 6, parts: 8, medicine: 1, data: 0 },
+    environment: { temperature: 18, noise: 14, visibility: 42, hull: 100, weight: 54 },
+    lastMessage: "守護協定已啟動。先檢查配電與乘客狀態。",
+  },
+  R02: {
+    resources: { energy: 78, fuel: 44, food: 5, water: 6, parts: 8, medicine: 1, data: 0 },
+    environment: { temperature: 12, noise: 14, visibility: 42, hull: 100, weight: 54 },
+    lastMessage: "白霜線守護協定已啟動。先確認六枚熱能單元與臥鋪溫度。",
+  },
+  R03: {
+    resources: { energy: 75, fuel: 40, food: 5, water: 8, parts: 8, medicine: 1, data: 0 },
+    environment: { temperature: 18, noise: 14, visibility: 42, hull: 100, weight: 54 },
+    lastMessage: "綠潮線守護協定已啟動。先檢查集水槽、四枚水樣與兩座種植槽。",
+  },
+} as const satisfies Record<
+  StoryRouteId,
+  Pick<RunState, "resources" | "environment" | "lastMessage">
+>;
+
 export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01"): RunState {
-  const whiteFrost = routeId === "R02";
+  const routeStart = ROUTE_START_STATE[routeId];
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     seed,
     day: 1,
     maxDays: 7,
@@ -38,9 +59,9 @@ export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01")
     nightPowerDemand: 0,
     outcome: "active",
     routeId,
-    resources: { energy: whiteFrost ? 78 : 75, fuel: whiteFrost ? 44 : 40, food: 5, water: 6, parts: 8, medicine: 1, data: 0 },
+    resources: { ...routeStart.resources },
     survivor: { health: 85, stress: 20, infection: 0, trust: 50, sleep: 100, wakeups: 0 },
-    environment: { temperature: whiteFrost ? 12 : 18, noise: 14, visibility: 42, hull: 100, weight: 54 },
+    environment: { ...routeStart.environment },
     modules: MODULES.slice(0, 3).map((definition, index) => ({
       id: `MI${index + 1}`,
       definitionId: definition.id,
@@ -57,9 +78,7 @@ export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01")
     flags: [],
     ledger: [],
     ended: false,
-    lastMessage: whiteFrost
-      ? "白霜線守護協定已啟動。先確認六枚熱能單元與臥鋪溫度。"
-      : "守護協定已啟動。先檢查配電與乘客狀態。",
+    lastMessage: routeStart.lastMessage,
   };
 }
 
