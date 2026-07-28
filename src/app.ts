@@ -4,7 +4,7 @@ import { createAppState, createRun } from "./game/model";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
-import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, FeedbackTone, ModuleCategory, RationMode, RunState, ScreenId, TechBranch, ThreatInteractionCommand } from "./game/types";
+import type { AppState, CarriageId, CropId, CropPlotId, DecorationId, EventChoice, FeedbackTone, ModuleCategory, RationMode, RunState, ScreenId, StoryRouteId, TechBranch, ThermalCommand, ThreatInteractionCommand } from "./game/types";
 import { GameView } from "./ui/view";
 
 export class NightTrainApp {
@@ -44,28 +44,38 @@ export class NightTrainApp {
     this.state.actionFeedback = [];
     switch (action) {
       case "new-game":
-        this.state.run = createRun();
-        this.state.screen = "carriage";
+        {
+          const routeId: StoryRouteId = value === "R02" ? "R02" : "R01";
+          const createdRun = createRun(undefined, routeId);
+          this.runService.enterStoryPhase(createdRun, "prep");
+          this.state.run = createdRun;
+          this.state.activeCarriageId = routeId === "R02" ? "defense" : "greenhouse";
+        }
+        this.state.screen = this.state.run?.activeEventId ? "event" : "carriage";
         this.state.carriagePanel = "scene";
         this.state.nightPaused = false;
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
         this.state.decorating = false;
-        this.state.activeCarriageId = "greenhouse";
         this.state.saveStatus = "saving";
         await this.persist();
         break;
       case "continue": {
         const loaded = await this.saveService.load();
         this.state.run = loaded.run;
-        if (loaded.run) this.runService.ensureThreatInteraction(loaded.run);
+        if (loaded.run) {
+          this.runService.ensureThreatInteraction(loaded.run);
+          if (loaded.run.phase === "prep") this.runService.enterStoryPhase(loaded.run, "prep");
+          if (loaded.run.phase === "route") this.runService.enterStoryPhase(loaded.run, "route");
+        }
         this.state.nightPaused = false;
         this.state.eventPreview = false;
         this.state.routePreview = false;
         this.state.modulePreview = false;
         this.state.decorating = false;
         this.state.saveStatus = loaded.recovered ? "recovered" : "saved";
+        if (loaded.run?.routeId === "R02") this.state.activeCarriageId = "defense";
         this.state.screen = this.screenForPhase();
         break;
       }
@@ -117,8 +127,11 @@ export class NightTrainApp {
           this.state.decorating = false;
           this.state.routePreview = this.state.screen === "hub" || run.ended;
           this.state.modulePreview = false;
-          if (!this.state.routePreview) run.phase = "route";
-          this.state.screen = "route";
+          if (!this.state.routePreview) {
+            run.phase = "route";
+            this.runService.enterStoryPhase(run, "route");
+          }
+          this.state.screen = run.activeEventId ? "event" : "route";
         }
         break;
       case "modules":
@@ -156,10 +169,17 @@ export class NightTrainApp {
       case "confirm-route":
         if (run && value && !this.state.routePreview) {
           this.runService.chooseRoute(run, value);
-          if (run.phase === "travel") {
+          if (run.activeEventId) {
             this.state.eventPreview = false;
             this.state.screen = "event";
           }
+          await this.persist();
+        }
+        break;
+      case "emergency-route":
+        if (run && !this.state.routePreview && this.runService.emergencyRoute(run)) {
+          this.state.eventPreview = false;
+          this.state.screen = this.screenForPhase();
           await this.persist();
         }
         break;
@@ -170,7 +190,9 @@ export class NightTrainApp {
           if (choice && this.runService.resolveEvent(run, choice)) {
             this.state.screen = this.screenForPhase();
             this.state.nightPaused = false;
-            if (run.phase === "night") {
+            if (run.phase === "prep" && run.routeId === "R02" && run.day === 7 && !run.activeEventId) {
+              this.state.carriagePanel = "power";
+            } else if (run.phase === "night") {
               this.state.activeCarriageId = "defense";
               this.startNightTimer();
               if (this.state.settings.sound) this.audio.cue("warning");
@@ -214,6 +236,40 @@ export class NightTrainApp {
           }
         }
         break;
+      case "thermal-select":
+        if (run?.story.whiteFrost && value && /^H[1-6]$/.test(value)) {
+          const result = this.runService.applyThermalCommand(run, `thermal:select:${value}` as ThermalCommand);
+          if (result.accepted) await this.persist();
+        }
+        break;
+      case "thermal-target":
+        if (run?.story.whiteFrost && value && ["BERTH", "DEICER", "LOOP"].includes(value)) {
+          const result = this.runService.applyThermalCommand(run, `thermal:target:${value}` as ThermalCommand);
+          if (result.accepted) await this.persist();
+        }
+        break;
+      case "thermal-move":
+        if (run?.story.whiteFrost && value) {
+          const [tokenId, zone] = value.split(":");
+          if (/^H[1-6]$/.test(tokenId ?? "") && ["BERTH", "DEICER", "LOOP"].includes(zone ?? "")) {
+            const result = this.runService.applyThermalCommand(run, `thermal:move:${tokenId}:${zone}` as ThermalCommand);
+            if (result.accepted) await this.persist();
+          }
+        }
+        break;
+      case "thermal-reset":
+      case "thermal-commit":
+        if (run?.story.whiteFrost) {
+          const result = this.runService.applyThermalCommand(run, `thermal:${action === "thermal-reset" ? "reset" : "commit"}` as ThermalCommand);
+          if (result.accepted) {
+            if (action === "thermal-commit" && run.phase === "travel" && run.activeEventId) {
+              this.state.carriagePanel = "scene";
+              this.state.screen = this.screenForPhase();
+            }
+            await this.persist();
+          }
+        }
+        break;
       case "arm-threat-tool":
         // GameView owns the transient cutter selection/drag state.
         break;
@@ -243,7 +299,12 @@ export class NightTrainApp {
           const closing = this.state.carriagePanel === "power" && !this.state.decorating;
           this.state.decorating = false;
           this.state.carriagePanel = closing ? "scene" : "power";
-          run.lastMessage = closing ? "配電工具已收起，繼續查看車廂。" : "配電工具已打開；再次點擊「配電」可收起。";
+          const frostTool = run.routeId === "R02";
+          run.lastMessage = closing
+            ? `${frostTool ? "熱力分流板" : "配電工具"}已收起，繼續查看車廂。`
+            : frostTool
+              ? "熱力分流板已打開；六枚單元可拖曳，也可先點單元再點區域。"
+              : "配電工具已打開；再次點擊「配電」可收起。";
         }
         break;
       case "meal":
@@ -485,6 +546,7 @@ export class NightTrainApp {
   private screenForPhase(): ScreenId {
     const run = this.state.run;
     if (!run) return "menu";
+    if (run.activeEventId && "forced" in (this.runService.getEvent(run) ?? {})) return "event";
     if (run.phase === "route") return "route";
     if (run.phase === "travel" && run.activeEventId) return "event";
     if (run.phase === "aftermath" || run.phase === "ending") return "result";

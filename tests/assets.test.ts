@@ -50,6 +50,16 @@ describe("shipping art", () => {
     }
   });
 
+  it("ships only the approved R02 GPT plates and wires both into the runtime renderer", () => {
+    const frostAssets = ["carriage-frostline-gpt-v1.png", "threat-blizzard-gpt-v1.png"];
+    for (const asset of frostAssets) {
+      expect(existsSync(resolve(workspace, "public/assets/art/story", asset))).toBe(true);
+      expect(renderer).toContain(asset);
+    }
+    const promptRecord = readFileSync(resolve(workspace, "docs/WHITE_FROST_ASSET_PROMPTS.md"), "utf8");
+    for (const asset of frostAssets) expect(promptRecord).toContain(asset);
+  });
+
   it("commits the audited mobile gameplay previews to the open-source project", () => {
     const previews = ["09-repaired-carriage.png", "10-route-preview.png", "11-module-preview.png", "12-decor-placement.png", "13-decor-in-play.png", "14-sleep-carriage.png", "15-defense-carriage.png", "16-workshop-carriage.png", "17-greenhouse-farming.png", "18-kitchen-carriage.png", "19-slot-placement.png", "20-compact-observation.png", "21-collapsible-power.png", "22-swipe-guidance.png", "23-action-feedback.png", "24-route-risk-waves.png", "28-story-t004-fog-vine.png", "29-story-t005-echo-passenger.png", "30-story-t006-silent-crowd.png"];
     for (const preview of previews) {
@@ -102,9 +112,9 @@ describe("shipping art", () => {
     }
   });
 
-  it("bumps the offline cache so installed games receive the gray-fog story", () => {
+  it("bumps the offline cache so installed games receive the white-frost story", () => {
     const serviceWorker = readFileSync(resolve(workspace, "public/sw.js"), "utf8");
-    expect(serviceWorker).toContain('night-train-v0.9.0-threat-interactions-r2');
+    expect(serviceWorker).toContain('night-train-v1.0.0-white-frost-r1');
   });
 
   it("wires every rendered button action to the application controller", () => {
@@ -113,12 +123,12 @@ describe("shipping art", () => {
     const buttonTags = view.match(/<button\b[^>]*>/gs) ?? [];
     const actions = [
       "new-game", "continue", "menu", "hub", "settings", "carriage", "pause", "route", "modules", "modules-preview",
-      "tech", "event-preview", "select-route", "confirm-route", "event-choice", "counter", "next-day", "select-module",
+      "tech", "event-preview", "select-route", "confirm-route", "emergency-route", "event-choice", "counter", "next-day", "select-module",
       "select-module-category", "power", "meal", "toggle-module", "toggle-power", "select-ration", "build-module", "select-tech",
       "select-tech-branch", "unlock-tech", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
       "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "place-decoration", "reset-decor", "finish-decor",
       "select-carriage", "select-crop", "plant-crop", "water-crops", "harvest-crop", "workshop-scrap", "cook-meal",
-      "arm-threat-tool", "threat-interact",
+      "arm-threat-tool", "threat-interact", "thermal-select", "thermal-target", "thermal-reset", "thermal-commit",
     ];
 
     expect(buttonTags.length).toBeGreaterThan(20);

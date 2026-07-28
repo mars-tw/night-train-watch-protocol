@@ -8,12 +8,12 @@ await mkdir(outputDirectory, { recursive: true });
 
 const expectedActions = [
   "new-game", "continue", "menu", "hub", "settings", "carriage", "pause", "route", "modules", "modules-preview",
-  "tech", "event-preview", "select-route", "confirm-route", "event-choice", "counter", "next-day", "select-module",
+  "tech", "event-preview", "select-route", "confirm-route", "emergency-route", "event-choice", "counter", "next-day", "select-module",
   "select-module-category", "power", "meal", "toggle-module", "toggle-power", "select-ration", "build-module", "select-tech",
   "select-tech-branch", "unlock-tech", "comfort", "repair-hull", "cycle-text", "toggle-motion", "toggle-countdown",
   "toggle-speed", "toggle-sound", "decorate", "select-decoration", "move-decoration", "place-decoration", "reset-decor", "finish-decor",
   "select-carriage", "select-crop", "plant-crop", "water-crops", "harvest-crop", "workshop-scrap", "cook-meal",
-  "swipe-carriage",
+  "swipe-carriage", "arm-threat-tool", "threat-interact", "thermal-select", "thermal-target", "thermal-reset", "thermal-commit",
 ];
 const clickedActions = new Set();
 const assertions = [];
@@ -155,7 +155,7 @@ try {
   await clickAction("menu");
   await page.waitForSelector(".screen--menu");
 
-  await clickAction("new-game");
+  await clickAction("new-game", "R01");
   await page.waitForSelector(".screen--carriage.is-prep");
   assert((await page.locator(".app-header").textContent())?.includes("5 AP"), "new game starts with five action points");
   assert(await page.locator('.screen--carriage[data-carriage="greenhouse"]').count() === 1, "new game opens the distinct greenhouse carriage");
@@ -406,7 +406,7 @@ try {
   const compactContext = await browser.newContext({ viewport: { width: 360, height: 640 }, locale: "zh-TW" });
   const compactPage = await compactContext.newPage();
   await compactPage.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await compactPage.locator('[data-action="new-game"]:not([disabled])').first().click();
+  await compactPage.locator('[data-action="new-game"][data-value="R01"]:not([disabled])').click();
   await compactPage.waitForSelector(".screen--carriage.is-observation-mode");
   // Measure the settled layout, not the 520ms panel-rise entrance transform.
   await compactPage.waitForTimeout(650);

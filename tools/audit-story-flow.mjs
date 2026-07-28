@@ -511,7 +511,7 @@ async function runBranch(browser, branch) {
 
   try {
     await resetBrowserState(page);
-    await clickAction(page, "new-game");
+    await clickAction(page, "new-game", "R01");
     await clickAction(page, "power");
     await clickAction(page, "toggle-power", "M002");
     await clickAction(page, "toggle-power", "M003");
