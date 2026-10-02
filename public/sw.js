@@ -35,6 +35,11 @@ self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     if (request.mode === "navigate") {
+      const pathname = new URL(request.url).pathname;
+      if (pathname !== new URL(SCOPE).pathname && pathname !== new URL(localUrl("index.html")).pathname) {
+        // Standalone documents such as the trailer are not the game's app shell.
+        return fetch(request);
+      }
       const shell = await cache.match(localUrl("index.html"));
       return shell ?? fetch(request);
     }

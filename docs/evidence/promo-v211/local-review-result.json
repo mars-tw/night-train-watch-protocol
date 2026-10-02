@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "authority": "Local LM Studio qwen3.8-27b; strict JSON verdict schema; no tool delegation",
+  "scope": "Ordered visual frame inspection, supplemented by full-file decode and audio measurements",
+  "results": [
+    {
+      "kind": "landscape",
+      "endpoint": "local LM Studio documented OpenAI-compatible endpoint",
+      "model": "qwen3.8-27b",
+      "usage": {
+        "prompt_tokens": 2208,
+        "completion_tokens": 136,
+        "total_tokens": 2344,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "delegationEnabled": false,
+      "image": "landscape-contact-sheet.jpg",
+      "judgment": {
+        "verdict": "PASS",
+        "evidence": "1. 第一排左側畫面顯示遊戲車廂內部，主角（紅髮角色）正躺在床上休息，旁邊有床鋪與燈具，文字「夜行列車 守夜協定」及「移動的小家」清晰可讀。2. 第二排右側畫面顯示地圖介面，標題為「路線規劃」，下方有「選擇下一站」的說明文字，地圖上的路徑節點與按鈕（確認出發）均正常顯示，無破圖或錯字現象。",
+        "issues": []
+      },
+      "contentScope": "ordered contact-sheet visual inspection; full decode and audio measured separately"
+    },
+    {
+      "kind": "portrait",
+      "endpoint": "local LM Studio documented OpenAI-compatible endpoint",
+      "model": "qwen3.8-27b",
+      "usage": {
+        "prompt_tokens": 1088,
+        "completion_tokens": 162,
+        "total_tokens": 1250,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "delegationEnabled": false,
+      "image": "portrait-contact-sheet.jpg",
+      "judgment": {
+        "verdict": "PASS",
+        "evidence": "1. 左上角畫面顯示遊戲主介面，頂部標題「夜行列車：守夜協定」與角色狀態欄清晰可見；中央繪有紅髮女性角色臥於床鋪上的插畫，周圍佈置了書桌、檯燈等物件，整體構圖完整且無破圖現象。2. 左下角畫面展示了任務日誌介面，標題「56項任務」及下方詳細的任務描述（如「先看她是否安睡」、「替今晚留好燈與餐」）字體清晰、排版整齊，繁體中文顯示正常，未見錯字或文字遮擋問題。",
+        "issues": []
+      },
+      "contentScope": "ordered contact-sheet visual inspection; full decode and audio measured separately"
+    }
+  ],
+  "dispatcherAnomaly": "Earlier dispatcher attempts delegated unrequested image/text work; generated artifacts were excluded. Those attempts were not used as final acceptance."
+}

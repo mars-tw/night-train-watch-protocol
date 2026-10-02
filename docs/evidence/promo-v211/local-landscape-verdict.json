@@ -1,0 +1,21 @@
+{
+  "kind": "landscape",
+  "endpoint": "local LM Studio documented OpenAI-compatible endpoint",
+  "model": "qwen3.8-27b",
+  "usage": {
+    "prompt_tokens": 2208,
+    "completion_tokens": 136,
+    "total_tokens": 2344,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "delegationEnabled": false,
+  "image": "landscape-contact-sheet.jpg",
+  "judgment": {
+    "verdict": "PASS",
+    "evidence": "1. 第一排左側畫面顯示遊戲車廂內部，主角（紅髮角色）正躺在床上休息，旁邊有床鋪與燈具，文字「夜行列車 守夜協定」及「移動的小家」清晰可讀。2. 第二排右側畫面顯示地圖介面，標題為「路線規劃」，下方有「選擇下一站」的說明文字，地圖上的路徑節點與按鈕（確認出發）均正常顯示，無破圖或錯字現象。",
+    "issues": []
+  },
+  "contentScope": "ordered contact-sheet visual inspection; full decode and audio measured separately"
+}

@@ -1,0 +1,51 @@
+{
+  "title": "夜行列車 v2.1.1 A-07 主床乾淨 Hero",
+  "generatedAt": "2026-10-02T16:57:22.826Z",
+  "baseUrl": "http://127.0.0.1:4177",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "constraints": {
+    "freshIsolatedContext": true,
+    "normalUiActionsOnly": true,
+    "saveOrResourceInjection": false,
+    "phaseOrCheckpointInjection": false,
+    "modalOrDrawerDuringHero": false,
+    "playbackSpeed": "normal; no time manipulation"
+  },
+  "actions": [
+    {
+      "at": 1.197,
+      "action": "new-game",
+      "value": "R01"
+    },
+    {
+      "at": 2.227,
+      "action": "select-carriage",
+      "value": "sleep"
+    }
+  ],
+  "status": "passed",
+  "ui": {
+    "modalCount": 0,
+    "drawerCount": 0,
+    "activeCarriage": "sleep",
+    "screenClass": "screen screen--carriage is-prep is-observation-mode contact-stage-idle",
+    "imageCount": 1,
+    "decodedImageCount": 1
+  },
+  "reportClockOffsetSeconds": 0.108,
+  "shot": {
+    "label": "A-07 主床無遮擋真實動畫",
+    "reportStart": 4.244,
+    "reportEnd": 12.255,
+    "rawStart": 4.136,
+    "rawEnd": 12.147,
+    "duration": 8.011
+  },
+  "video": {
+    "path": "./output/playwright/promo-v211/hero/promo-v211-a07-hero-1790960255070.webm",
+    "audio": "none (Playwright recordVideo is video-only; no game audio is claimed)"
+  }
+}
