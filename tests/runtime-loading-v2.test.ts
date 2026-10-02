@@ -325,6 +325,26 @@ describe("v2 lossless runtime loading", () => {
     expect(queue.snapshot().status.get("queued-b")).toBe("loaded");
   });
 
+  it("retries a failed asset after leaving and returning without looping in the same scene", async () => {
+    let fail = true;
+    const attempts: number[] = [];
+    const queue = new BoundedLoadQueue<string>(async (_key, attempt) => {
+      attempts.push(attempt);
+      if (fail) throw new Error("temporary offline");
+    }, { concurrency: 1, maxAttempts: 3 });
+    queue.setPriority(["room"]);
+    await queue.whenIdle();
+    queue.setPriority(["room"]);
+    await queue.whenIdle();
+    expect(attempts).toEqual([1, 2, 3]);
+    queue.setPriority([]);
+    fail = false;
+    queue.setPriority(["room"]);
+    await queue.whenIdle();
+    expect(attempts).toEqual([1, 2, 3, 1]);
+    expect(queue.snapshot().status.get("room")).toBe("loaded");
+  });
+
   it("does not eagerly instantiate legacy or all v2 art and retries the identical cacheable URL", () => {
     const sources = renderer.slice(
       renderer.indexOf("const ART_SOURCES"),

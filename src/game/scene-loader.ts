@@ -35,6 +35,14 @@ export class BoundedLoadQueue<Key extends string> {
   public setPriority(keys: readonly Key[]): void {
     const priority = [...new Set(keys)];
     const prioritySet = new Set(priority);
+    // A failed asset gets a fresh bounded attempt cycle only after it leaves
+    // the desired scene. Repeated renders of the same scene never retry forever.
+    for (const key of this.desired) {
+      if (!prioritySet.has(key) && this.status.get(key) === "failed") {
+        this.status.delete(key);
+        this.attempts.delete(key);
+      }
+    }
     this.desired = prioritySet;
     for (const key of this.queue) {
       if (!prioritySet.has(key) && this.status.get(key) === "queued") {
@@ -97,6 +105,7 @@ export class BoundedLoadQueue<Key extends string> {
           this.active -= 1;
           if (!this.desired.has(key)) {
             this.status.delete(key);
+            this.attempts.delete(key);
           } else if (attempt < this.maxAttempts) {
             this.status.set(key, "queued");
             this.queue.push(key);

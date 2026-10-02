@@ -16,13 +16,13 @@
 
 | 項目 | 實際結果 | 證據 |
 | --- | --- | --- |
-| TypeScript／單元與整合 | 24檔、296項通過 | `npm run check` |
+| TypeScript／單元與整合 | 24檔、297項通過 | `npm run check` |
 | 手機版面 | 5視口×3字級，179斷言通過；場景最低60.6%，新熱區最低60×48 | [ui-qa.json](evidence/v2/ui-qa.json) |
 | 三線自然七夜 | 559次實際按鍵，三線從fresh context到合法勝利；不注入資源、phase或checkpoint | [journey-qa.json](evidence/v2/journey-qa.json) |
 | 領獎與選配 | 自然claim→reload→選配→新局→標準還原；無重複發獎或數值累積 | UI／Profile測試及截图 |
 | 正式版與離線 | 33項precache無缺件，斷網reload後回復同run與720 Canvas；11斷言通過 | [release-qa.json](evidence/v2/release-qa.json) |
 | 效能 | Windows Chromium三跑中位p95：1366視口16.8ms、390視口16.7ms | release-qa.json；非實體手機 |
-| 載入優化 | 12張無損WebP較PNG減少35.52%；首選單必要美術1.827MiB；完整快取14,520,667 bytes／13.848MiB，較v2.0.0減少74.65% | [compression-report.json](../public/assets/art/v2/compression-report.json)、runtime-loading-v2測試 |
+| 載入優化 | 12張無損WebP較PNG減少35.52%；首選單必要美術1.827MiB；完整快取14,520,811 bytes／13.848MiB，較v2.0.0減少74.65% | [compression-report.json](../public/assets/art/v2/compression-report.json)、runtime-loading-v2測試 |
 | 平衡 | 30seed×3線×3策略=270局，210勝／60失守／0主線停滯 | [balance-report.md](evidence/v2/balance-report.md) |
 | 美術 | Blender5.2實跑12來源，source/runtime SHA、52/100/50格、alpha邊緣與色盤檢查通過；暖色平均0.6786 | [pipeline-report.json](../public/assets/art/v2/pipeline-report.json) |
 | 套件 | 升級Vitest4.1.11與修正間接依賴，npm audit 0漏洞 | [dependency-audit.json](evidence/v2/dependency-audit.json) |

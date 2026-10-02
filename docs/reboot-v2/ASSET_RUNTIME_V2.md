@@ -83,6 +83,7 @@ Renderer 的 runtime URL 全部改用 WebP，manifest 另保留 `pngSource` 供 
 - 威脅 atlas：只有接觸出現或退去 clip 尚未完成時才排入。
 - Queue：最多同時下載／解碼 2 張；同 key 去重；最多 3 次同 URL 重試，失敗前先清空 `src`，不加 query 破壞 HTTP／SW cache。
 - 快速切廂會取消尚未開始且不再需要的 queued key，清除 queued status；日後再次需要可正常重排，不會卡成永久空圖。
+- 同一場景連續失敗三次後停止重試；切走再返回可開始新的三次上限，不需重整頁面。同一場景反覆 render 不會無限重試。
 - 已解碼圖片受 10,000,000 resident-pixel 上限約束，非目前／相鄰／角色／設備／接觸需求的最舊圖片先釋放，避免整趟旅程把全部 atlas 永久留在 GPU。
 
 Chromium 首選單實測的 Resource Timing 只有 `sleep.webp` 與 `a07/atlas.webp` 兩筆 v2 art；完整 request inspector 最多另見相鄰 `defense.webp` 一筆，仍符合不超過 3 個關鍵圖檔，且沒有 equipment 或 threat atlas。兩個必要首畫檔合計 1.827 MiB；即使把該相鄰車廂計入也低於 2.3 MiB。
