@@ -5,7 +5,9 @@ import {
   A07_FRAME_CELLS,
   CARRIAGE_SCENES,
   COSMETIC_VISUALS,
+  EFFECT_ATLAS,
   EQUIPMENT_ATLAS,
+  PROP_ATLAS,
   SCENE_STATE_EQUIPMENT,
   THREAT_ATLASES,
   THREAT_RETREAT_DURATION_MS,
@@ -38,6 +40,8 @@ const ART_SOURCES: Record<ArtKey, string> = {
   "v2-carriage-kitchen": CARRIAGE_SCENES.kitchen.source,
   "a07-atlas": A07_ATLAS.source,
   "equipment-atlas": EQUIPMENT_ATLAS.source,
+  "prop-atlas": PROP_ATLAS.source,
+  "effect-atlas": EFFECT_ATLAS.source,
   "v2-threat-knocker": THREAT_ATLASES.knocker.source,
   "v2-threat-clinger": THREAT_ATLASES.clinger.source,
   "v2-threat-vine": THREAT_ATLASES.vine.source,
@@ -90,7 +94,8 @@ export class SceneRenderer {
     this.context = context;
     this.canvas.width = 720;
     this.canvas.height = 1280;
-    this.context.imageSmoothingEnabled = false;
+    this.context.imageSmoothingEnabled = true;
+    this.context.imageSmoothingQuality = "high";
     this.loadQueue = new BoundedLoadQueue(
       (key, attempt) => this.loadImage(key, attempt),
       {
@@ -260,164 +265,50 @@ export class SceneRenderer {
     }
   }
 
-  private drawWhiteFrostRoute(time: number, reducedMotion: boolean): void {
-    const run = this.state?.run;
-    if (!run?.story.whiteFrost) return;
-    const ctx = this.context;
-    const drift = reducedMotion ? 0 : time * 0.028;
-
-    ctx.save();
-    const coldVeil = ctx.createLinearGradient(0, 0, 720, 1280);
-    coldVeil.addColorStop(0, "rgba(187, 220, 232, 0.18)");
-    coldVeil.addColorStop(0.48, "rgba(105, 154, 174, 0.035)");
-    coldVeil.addColorStop(1, "rgba(6, 20, 29, 0.22)");
-    ctx.fillStyle = coldVeil;
-    ctx.fillRect(0, 0, 720, 1280);
-
-    ctx.strokeStyle = "rgba(220, 244, 249, 0.42)";
-    ctx.lineCap = "round";
-    for (let index = 0; index < 22; index += 1) {
-      const x = (index * 89 + drift * (0.6 + (index % 4) * 0.18)) % 840 - 60;
-      const y = 62 + ((index * 137 + drift * 1.35) % 1020);
-      const length = 8 + (index % 5) * 4;
-      ctx.lineWidth = index % 4 === 0 ? 2 : 1;
+  private drawWhiteFrostRoute(_time: number, _reducedMotion: boolean): void {
+    const whiteFrost = this.state?.run?.story.whiteFrost;
+    if (!whiteFrost) return;
+    const carriageId = this.state?.activeCarriageId ?? "sleep";
+    for (const bounds of CARRIAGE_SCENES[carriageId].weatherWindows) {
+      const ctx = this.context;
+      ctx.save();
       ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - length * 0.55, y + length);
-      ctx.stroke();
+      ctx.roundRect(bounds.x * 720, bounds.y * 1280, bounds.width * 720, bounds.height * 1280, 24);
+      ctx.clip();
+      this.drawAtlasFrameRect("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.frost,
+        bounds.x * 720, bounds.y * 1280, bounds.width * 720, bounds.height * 1280, 0.44);
+      ctx.restore();
     }
-
-    ctx.strokeStyle = "rgba(220, 244, 249, 0.5)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(18, 154);
-    ctx.lineTo(64, 126);
-    ctx.lineTo(92, 166);
-    ctx.moveTo(622, 96);
-    ctx.lineTo(666, 148);
-    ctx.lineTo(706, 112);
-    ctx.stroke();
-
-    const branch = run.story.whiteFrost.branch;
-    const activeCarriage = this.state?.activeCarriageId;
-    const branchCarriage = branch === "CARE" ? "sleep" : branch === "CLEAR" ? "defense" : branch === "SUSTAIN" ? "greenhouse" : undefined;
-    if (branch && activeCarriage === branchCarriage) {
-      const branchColor = branch === "CARE" ? "226,168,93" : branch === "CLEAR" ? "137,183,199" : "126,165,122";
-      const glow = ctx.createRadialGradient(360, 690, 20, 360, 690, 350);
-      glow.addColorStop(0, `rgba(${branchColor}, 0.2)`);
-      glow.addColorStop(1, `rgba(${branchColor}, 0)`);
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 300, 720, 760);
-      ctx.strokeStyle = `rgba(${branchColor}, 0.72)`;
-      ctx.lineWidth = 5;
-      if (branch === "CARE") {
-        ctx.beginPath();
-        ctx.roundRect(330, 532, 292, 278, 38);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(226,168,93,0.18)";
-        ctx.fillRect(352, 742, 238, 18);
-      } else if (branch === "CLEAR") {
-        ctx.strokeRect(505, 426, 118, 174);
-        for (let row = 0; row < 3; row += 1) ctx.strokeRect(524, 448 + row * 47, 80, 28);
-      } else {
-        ctx.beginPath();
-        ctx.arc(151, 658, 88, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(151, 658, 54, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+    const branch = whiteFrost.branch;
+    const branchCarriage = branch === "CARE" ? "sleep" : branch === "CLEAR" ? "defense"
+      : branch === "SUSTAIN" ? "greenhouse" : undefined;
+    if (branch && carriageId === branchCarriage) {
+      const frame = branch === "CARE" ? PROP_ATLAS.frames.firstaid
+        : branch === "CLEAR" ? PROP_ATLAS.frames.toolbox : PROP_ATLAS.frames.heater;
+      this.drawAtlasFrame("prop-atlas", PROP_ATLAS, frame, branch === "SUSTAIN" ? 160 : 550, 620, 220, 0.9);
     }
-    ctx.restore();
   }
 
   private drawGreenTideRoute(time: number, reducedMotion: boolean): void {
     const run = this.state?.run;
     const greenTide = run?.story.greenTide;
     if (!run || !greenTide) return;
-    const ctx = this.context;
     const activeCarriage = this.state?.activeCarriageId;
     const contact = run.activeContact;
     const contamination = Math.max(0, Math.min(100, greenTide.reservoirContamination));
-    const pulse = reducedMotion ? 0.55 : (Math.sin((time / 180) * Math.PI * 2) + 1) * 0.5;
 
-    if (activeCarriage === "greenhouse" && contact?.definitionId !== "T008") {
+    if (activeCarriage === "greenhouse") {
       this.drawGreenCarriageLayer();
+      const still = reducedMotion || this.state?.nightPaused;
+      const leaf = EFFECT_ATLAS.frames.leaf;
+      const frame = leaf.start + (still ? 0 : Math.floor(time * leaf.fps / 1000) % leaf.frames);
+      this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, frame, 190, 580, 360, 0.4);
+      if (contamination > 0 || contact?.definitionId === "T013") this.drawSporeContamination(time, reducedMotion);
     }
-
-    ctx.save();
-    const livingVeil = ctx.createLinearGradient(0, 0, 720, 1280);
-    livingVeil.addColorStop(0, "rgba(126, 165, 122, 0.08)");
-    livingVeil.addColorStop(0.55, `rgba(68, 112, 70, ${0.035 + contamination * 0.0007})`);
-    livingVeil.addColorStop(1, "rgba(9, 14, 18, 0.18)");
-    ctx.fillStyle = livingVeil;
-    ctx.fillRect(0, 0, 720, 1280);
-
-    const rootPath = () => {
-      ctx.beginPath();
-      ctx.moveTo(-12, 722);
-      ctx.bezierCurveTo(108, 690, 136, 572, 244, 606);
-      ctx.bezierCurveTo(344, 638, 380, 770, 492, 710);
-      ctx.bezierCurveTo(586, 660, 628, 548, 742, 588);
-      ctx.moveTo(244, 606);
-      ctx.bezierCurveTo(286, 538, 330, 496, 346, 406);
-      ctx.moveTo(492, 710);
-      ctx.bezierCurveTo(528, 796, 588, 828, 650, 906);
-    };
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "rgba(9, 14, 18, 0.72)";
-    ctx.lineWidth = 13;
-    rootPath();
-    ctx.stroke();
-    ctx.strokeStyle = contamination >= 50 ? "rgba(194, 96, 78, 0.88)" : "rgba(126, 165, 122, 0.9)";
-    ctx.lineWidth = 6;
-    ctx.setLineDash(reducedMotion ? [] : [20, 13]);
-    ctx.lineDashOffset = reducedMotion ? 0 : -(time * 0.055);
-    rootPath();
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    const nodes = [
-      { x: 108, y: 674, symbol: "I" },
-      { x: 244, y: 606, symbol: "F" },
-      { x: 346, y: 406, symbol: "A" },
-      { x: 492, y: 710, symbol: "B" },
-      { x: 650, y: 906, symbol: "D" },
-    ];
-    for (const [index, node] of nodes.entries()) {
-      const taintedNode = contamination > 0 && index % 2 === 1;
-      const radius = 10 + (contact?.definitionId === "T008" ? pulse * 4 : 0);
-      ctx.fillStyle = taintedNode ? "rgba(83, 28, 27, 0.94)" : "rgba(18, 43, 33, 0.94)";
-      ctx.strokeStyle = taintedNode ? "#c2604e" : "#a7cda1";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = "#f5e8d8";
-      ctx.font = "800 13px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(taintedNode ? "×" : node.symbol, node.x, node.y + 0.5);
-    }
-
-    if (contact?.definitionId === "T013") {
-      this.drawSporeContamination(time, reducedMotion);
-    }
-    ctx.restore();
-
-    const branchCarriage = greenTide.branch === "CULTIVATE"
-      ? "greenhouse"
-      : greenTide.branch === "FILTER"
-        ? "workshop"
-        : greenTide.branch === "PURGE"
-          ? "defense"
-          : undefined;
+    const branchCarriage = greenTide.branch === "CULTIVATE" ? "greenhouse"
+      : greenTide.branch === "FILTER" ? "workshop" : greenTide.branch === "PURGE" ? "defense" : undefined;
     if (greenTide.branch && activeCarriage === branchCarriage) {
-      if (!this.drawGreenBranchEquipmentLayer(greenTide.branch)) {
-        this.drawGreenBranchEquipmentFallback(greenTide.branch, greenTide.branchOperationComplete);
-      }
+      this.drawGreenBranchEquipmentLayer(greenTide.branch);
     }
   }
 
@@ -432,70 +323,18 @@ export class SceneRenderer {
     ctx.restore();
   }
 
-  private drawGreenBranchEquipmentLayer(_branch: "CULTIVATE" | "FILTER" | "PURGE"): boolean {
-    // The legacy three-panel plate is intentionally not composited over the new room.
-    // Until matching transparent equipment sprites ship, the state-specific fixture
-    // drawing below keeps the authoritative branch visible in the same space.
-    return false;
-  }
-
-  private drawGreenBranchEquipmentFallback(branch: "CULTIVATE" | "FILTER" | "PURGE", resolved: boolean): void {
-    const ctx = this.context;
-    ctx.save();
-    ctx.strokeStyle = branch === "PURGE" ? "rgba(194, 96, 78, 0.86)" : branch === "FILTER" ? "rgba(137, 183, 199, 0.86)" : "rgba(226, 168, 93, 0.86)";
-    ctx.fillStyle = branch === "PURGE" ? "rgba(74, 27, 25, 0.32)" : "rgba(60, 91, 59, 0.25)";
-    ctx.lineWidth = resolved ? 7 : 4;
-    if (branch === "CULTIVATE") {
-      ctx.beginPath();
-      ctx.arc(154, 628, 92, 0, Math.PI * 2);
-      ctx.arc(154, 628, 57, 0, Math.PI * 2);
-      ctx.fill("evenodd");
-      ctx.stroke();
-      ctx.fillStyle = "rgba(226, 168, 93, 0.22)";
-      ctx.fillRect(48, 362, 252, 28);
-    } else if (branch === "FILTER") {
-      ctx.beginPath();
-      ctx.roundRect(470, 356, 154, 332, 28);
-      ctx.fill();
-      ctx.stroke();
-      for (let row = 0; row < 4; row += 1) ctx.strokeRect(492, 402 + row * 61, 110, 36);
-      ctx.beginPath();
-      ctx.moveTo(470, 520);
-      ctx.bezierCurveTo(382, 506, 420, 720, 330, 724);
-      ctx.stroke();
-    } else {
-      ctx.fillRect(58, 720, 576, 38);
-      ctx.strokeRect(58, 720, 576, 38);
-      for (let column = 0; column < 7; column += 1) {
-        ctx.beginPath();
-        ctx.moveTo(84 + column * 78, 720);
-        ctx.lineTo(112 + column * 78, 758);
-        ctx.stroke();
-      }
-      ctx.strokeRect(520, 314, 112, 286);
-    }
-    ctx.restore();
+  private drawGreenBranchEquipmentLayer(branch: "CULTIVATE" | "FILTER" | "PURGE"): void {
+    const resolved = Boolean(this.state?.run?.story.greenTide?.branchOperationComplete);
+    const frame = branch === "CULTIVATE" ? PROP_ATLAS.frames.seedbox
+      : branch === "FILTER" ? PROP_ATLAS.frames.waterfilter : PROP_ATLAS.frames.toolbox;
+    const anchor = branch === "CULTIVATE" ? { x: 154, y: 628, size: 228 }
+      : branch === "FILTER" ? { x: 548, y: 520, size: 232 } : { x: 560, y: 500, size: 210 };
+    this.drawAtlasFrame("prop-atlas", PROP_ATLAS, frame, anchor.x, anchor.y, anchor.size, resolved ? 1 : 0.86);
   }
 
   private drawSporeContamination(time: number, reducedMotion: boolean): void {
-    const ctx = this.context;
-    ctx.save();
-    for (let index = 0; index < 34; index += 1) {
-      const travel = reducedMotion ? 0 : time * (0.014 + (index % 4) * 0.003);
-      const x = 34 + ((index * 83 + travel) % 670);
-      const y = 236 + ((index * 127 + travel * 0.72) % 652);
-      const radius = 3 + (index % 4);
-      ctx.strokeStyle = index % 3 === 0 ? "rgba(194, 96, 78, 0.72)" : "rgba(151, 181, 124, 0.62)";
-      ctx.lineWidth = index % 5 === 0 ? 2.5 : 1.5;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.moveTo(x - radius - 3, y);
-      ctx.lineTo(x + radius + 3, y);
-      ctx.moveTo(x, y - radius - 3);
-      ctx.lineTo(x, y + radius + 3);
-      ctx.stroke();
-    }
-    ctx.restore();
+    const drift = reducedMotion || this.state?.nightPaused ? 0 : Math.sin(time * 0.00045) * 18;
+    this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.spores, 360 + drift, 570, 610, 0.38);
   }
 
   private drawArt(key: ArtKey): boolean {
@@ -508,7 +347,7 @@ export class SceneRenderer {
     return true;
   }
 
-  private drawFallback(_key: ArtKey, time: number, night = false): void {
+  private drawFallback(_key: ArtKey, _time: number, night = false): void {
     const ctx = this.context;
     const gradient = ctx.createLinearGradient(0, 0, 0, 1280);
     gradient.addColorStop(0, night ? "#16232b" : "#3c3329");
@@ -516,29 +355,6 @@ export class SceneRenderer {
     gradient.addColorStop(1, "#15191c");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 720, 1280);
-    ctx.fillStyle = night ? "#90aeb7" : "#a7c2c8";
-    ctx.fillRect(210, 100, 300, 390);
-    ctx.fillStyle = "#354149";
-    for (let index = 0; index < 8; index += 1) {
-      const y = 160 + index * 48 + Math.sin(time * 0.0005 + index) * 4;
-      ctx.fillRect(236, y, 248, 8);
-    }
-    ctx.fillStyle = "#5e4635";
-    ctx.fillRect(278, 520, 360, 480);
-    ctx.fillStyle = "#d7c4a8";
-    ctx.beginPath();
-    ctx.roundRect(300, 580, 330, 350, 36);
-    ctx.fill();
-    ctx.fillStyle = "#2a2424";
-    ctx.beginPath();
-    ctx.arc(500, 615, 54, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#81522c";
-    ctx.fillRect(54, 560, 190, 360);
-    ctx.fillStyle = "#466b45";
-    for (let row = 0; row < 5; row += 1) {
-      for (let column = 0; column < 3; column += 1) ctx.fillRect(70 + column * 56, 585 + row * 60, 40, 28);
-    }
   }
 
   private motionIsReduced(): boolean {
@@ -571,30 +387,6 @@ export class SceneRenderer {
       width: bounds.width * 720,
       height: bounds.height * 1280,
     }, time, speed * (1 + index * 0.18), night, index * 41));
-
-    const ctx = this.context;
-    const focusWindow = windows[0];
-    if (!focusWindow) return;
-    const focusX = focusWindow.x * 720;
-    const focusY = focusWindow.y * 1280;
-    const focusWidth = focusWindow.width * 720;
-    const focusHeight = focusWindow.height * 1280;
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(focusX, focusY, focusWidth, focusHeight, 24);
-    ctx.clip();
-    for (let index = 0; index < 7; index += 1) {
-      const progress = ((index * 0.19 + time * speed * 0.00012) % 1 + 1) % 1;
-      const y = focusY + focusHeight * (0.45 + progress * 0.5);
-      const halfWidth = 8 + progress * focusWidth * 0.42;
-      ctx.strokeStyle = `rgba(183, 211, 220, ${0.08 + progress * 0.22})`;
-      ctx.lineWidth = 1 + progress * 3;
-      ctx.beginPath();
-      ctx.moveTo(focusX + focusWidth / 2 - halfWidth, y);
-      ctx.lineTo(focusX + focusWidth / 2 + halfWidth, y);
-      ctx.stroke();
-    }
-    ctx.restore();
   }
 
   private drawWindowWeather(
@@ -610,26 +402,12 @@ export class SceneRenderer {
     ctx.roundRect(windowBox.x, windowBox.y, windowBox.width, windowBox.height, 28);
     ctx.clip();
 
-    const fogTravel = speed === 0 ? 0.42 : (time * speed * 0.008) % (windowBox.width + 160);
-    const fog = ctx.createLinearGradient(windowBox.x + fogTravel - 160, 0, windowBox.x + fogTravel + 80, 0);
-    fog.addColorStop(0, "rgba(184, 207, 214, 0)");
-    fog.addColorStop(0.5, `rgba(184, 207, 214, ${night ? 0.1 : 0.16})`);
-    fog.addColorStop(1, "rgba(184, 207, 214, 0)");
-    ctx.fillStyle = fog;
-    ctx.fillRect(windowBox.x, windowBox.y, windowBox.width, windowBox.height);
-
-    for (let index = 0; index < 18; index += 1) {
-      const x = windowBox.x + ((index * 47 + seedOffset * 13) % Math.max(1, windowBox.width));
-      const distance = windowBox.height + 34;
-      const y = windowBox.y + ((index * 83 + seedOffset + time * speed) % distance) - 24;
-      const length = 7 + ((index * 11) % 17);
-      ctx.strokeStyle = `rgba(206, 229, 236, ${0.16 + (index % 4) * 0.055})`;
-      ctx.lineWidth = index % 5 === 0 ? 2 : 1;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - 2, y + length);
-      ctx.stroke();
-    }
+    const paused = speed === 0 || this.state?.nightPaused;
+    const drift = paused ? 0 : ((time * speed * 0.025 + seedOffset) % 24) - 12;
+    this.drawAtlasFrameRect("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.mist,
+      windowBox.x + drift, windowBox.y, windowBox.width, windowBox.height, night ? 0.22 : 0.16);
+    this.drawAtlasFrameRect("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.rain,
+      windowBox.x, windowBox.y + drift * 0.5, windowBox.width, windowBox.height, night ? 0.42 : 0.32);
     ctx.restore();
   }
 
@@ -684,104 +462,33 @@ export class SceneRenderer {
     time: number,
     reducedMotion: boolean,
   ): void {
-    const ctx = this.context;
-    const pulse = reducedMotion ? 0.5 : (Math.sin(time * 0.004) + 1) / 2;
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = 5;
-
+    const still = reducedMotion || this.state?.nightPaused;
+    const animatedFrame = (clip: { start: number; frames: number; fps: number }) =>
+      clip.start + (still ? 0 : Math.floor(time * clip.fps / 1000) % clip.frames);
     if (carriageId === "sleep") {
-      if (visualState === "secure" || visualState === "restored") {
-        const warmth = ctx.createRadialGradient(570, 610, 12, 570, 610, 260);
-        warmth.addColorStop(0, `rgba(242,189,103,${0.12 + pulse * 0.04})`);
-        warmth.addColorStop(1, "rgba(242,189,103,0)");
-        ctx.fillStyle = warmth;
-        ctx.fillRect(310, 330, 410, 560);
-      } else if (visualState === "disturbed") {
-        ctx.strokeStyle = "rgba(189,207,206,0.75)";
-        for (let index = 0; index < 5; index += 1) {
-          ctx.beginPath();
-          ctx.moveTo(552 + index * 28, 430);
-          ctx.lineTo(530 + index * 32, 510 + index * 9);
-          ctx.stroke();
-        }
-      } else {
-        ctx.fillStyle = "rgba(53,66,70,0.16)";
-        ctx.fillRect(382, 438, 332, 388);
-      }
+      const frame = visualState === "secure" || visualState === "restored"
+        ? PROP_ATLAS.frames.blanket : PROP_ATLAS.frames.lantern;
+      const foldedQuilt = visualState === "secure" || visualState === "restored";
+      this.drawAtlasFrame("prop-atlas", PROP_ATLAS, frame,
+        foldedQuilt ? 560 : 108, foldedQuilt ? 994 : 810,
+        foldedQuilt ? 148 : 110, 0.86);
     } else if (carriageId === "defense") {
-      if (visualState === "breached") {
-        ctx.strokeStyle = "rgba(196,106,82,0.9)";
-        ctx.beginPath();
-        ctx.moveTo(514, 304);
-        ctx.lineTo(550, 350);
-        ctx.lineTo(526, 396);
-        ctx.lineTo(572, 445);
-        ctx.stroke();
-      } else {
-        ctx.strokeStyle = visualState === "restored" ? "rgba(114,180,166,0.82)" : "rgba(99,113,109,0.82)";
-        ctx.strokeRect(518, 335, 142, 174);
-        if (visualState === "secure") {
-          for (let row = 0; row < 4; row += 1) ctx.fillRect(532, 352 + row * 34, 114, 10);
-        }
-      }
+      const frame = visualState === "breached" ? PROP_ATLAS.frames.toolbox : PROP_ATLAS.frames.storage;
+      this.drawAtlasFrame("prop-atlas", PROP_ATLAS, frame, 585, 430, 190, 0.74);
     } else if (carriageId === "workshop") {
-      ctx.strokeStyle = visualState === "overloaded" ? "rgba(196,106,82,0.9)" : "rgba(114,180,166,0.78)";
-      for (let index = 0; index < (visualState === "active" ? 4 : 2); index += 1) {
-        ctx.beginPath();
-        ctx.arc(550, 480, 28 + index * 18, -0.9, 0.9);
-        ctx.stroke();
-      }
-      if (visualState === "overloaded") {
-        ctx.beginPath();
-        ctx.moveTo(276, 492);
-        ctx.lineTo(294, 458);
-        ctx.lineTo(310, 502);
-        ctx.lineTo(330, 468);
-        ctx.stroke();
-      }
+      const frame = visualState === "overloaded" ? PROP_ATLAS.frames.battery : PROP_ATLAS.frames.radio;
+      this.drawAtlasFrame("prop-atlas", PROP_ATLAS, frame, 550, 480, 190, 0.76);
     } else if (carriageId === "greenhouse") {
       if (visualState === "contaminated") {
-        ctx.strokeStyle = "rgba(196,106,82,0.78)";
-        for (let index = 0; index < 18; index += 1) {
-          const x = 40 + (index * 83) % 260;
-          const y = 430 + (index * 61) % 390;
-          ctx.beginPath();
-          ctx.arc(x, y, 4 + index % 4, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      } else if (visualState === "productive") {
-        ctx.fillStyle = "rgba(170,193,138,0.42)";
-        for (let index = 0; index < 12; index += 1) {
-          ctx.beginPath();
-          ctx.ellipse(68 + (index % 4) * 54, 448 + Math.floor(index / 4) * 88, 18, 8, -0.45, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.spores, 210, 610, 360, 0.3);
+      } else if (visualState === "productive" || visualState === "restored") {
+        this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, animatedFrame(EFFECT_ATLAS.frames.leaf), 190, 575, 330, 0.48);
       }
-    } else {
-      if (visualState === "prepared" || visualState === "restored") {
-        ctx.strokeStyle = "rgba(239,226,196,0.55)";
-        for (let index = 0; index < 4; index += 1) {
-          ctx.beginPath();
-          ctx.moveTo(170 + index * 28, 462);
-          ctx.bezierCurveTo(154 + index * 28, 438, 192 + index * 28, 420, 174 + index * 28, 394);
-          ctx.stroke();
-        }
-      } else if (visualState === "spoiled") {
-        ctx.strokeStyle = "rgba(196,106,82,0.88)";
-        ctx.beginPath();
-        ctx.moveTo(472, 460);
-        ctx.lineTo(596, 570);
-        ctx.moveTo(596, 460);
-        ctx.lineTo(472, 570);
-        ctx.stroke();
-      } else {
-        ctx.strokeStyle = "rgba(99,113,109,0.55)";
-        ctx.strokeRect(42, 128, 188, 152);
-      }
+    } else if (visualState === "prepared" || visualState === "restored") {
+      this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, animatedFrame(EFFECT_ATLAS.frames.steam), 205, 430, 230, 0.52);
+    } else if (visualState === "spoiled") {
+      this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, EFFECT_ATLAS.frames.mist, 520, 510, 290, 0.28);
     }
-    ctx.restore();
   }
 
   private drawFacilityLayers(visuals: readonly FacilityVisual[]): void {
@@ -804,66 +511,14 @@ export class SceneRenderer {
 
   private drawCosmeticDetail(visual: CosmeticVisual, x: number, y: number, size: number): void {
     const ctx = this.context;
+    if (visual.detail !== "lamp") return;
     ctx.save();
     ctx.translate(x, y);
-    ctx.strokeStyle = visual.accent;
-    ctx.fillStyle = `${visual.accent}DD`;
-    ctx.lineWidth = Math.max(2, size * 0.025);
-    if (visual.detail === "note" || visual.detail === "qsl") {
-      ctx.rotate(visual.detail === "note" ? -0.12 : 0.08);
-      ctx.fillRect(-size * 0.32, -size * 0.23, size * 0.64, size * 0.46);
-      ctx.strokeRect(-size * 0.32, -size * 0.23, size * 0.64, size * 0.46);
-      ctx.strokeStyle = "rgba(53,43,42,0.72)";
-      for (let row = 0; row < 3; row += 1) {
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.2, -size * 0.1 + row * size * 0.1);
-        ctx.lineTo(size * 0.2, -size * 0.1 + row * size * 0.1);
-        ctx.stroke();
-      }
-    } else if (visual.detail === "gauge") {
-      ctx.fillStyle = "rgba(53,66,70,0.9)";
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.25, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(size * 0.14, -size * 0.11);
-      ctx.stroke();
-    } else if (visual.detail === "garden-label") {
-      ctx.fillRect(-size * 0.28, size * 0.18, size * 0.56, size * 0.2);
-      ctx.beginPath();
-      ctx.moveTo(0, size * 0.18);
-      ctx.lineTo(0, size * 0.48);
-      ctx.stroke();
-    } else if (visual.detail === "tool-wrap") {
-      ctx.fillStyle = "rgba(112,80,61,0.82)";
-      ctx.roundRect(-size * 0.38, size * 0.08, size * 0.76, size * 0.28, size * 0.06);
-      ctx.fill();
-      for (let column = 0; column < 4; column += 1) ctx.strokeRect(-size * 0.3 + column * size * 0.17, size * 0.1, size * 0.12, size * 0.22);
-    } else if (visual.detail === "stamp") {
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.26, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.17, 0);
-      ctx.lineTo(size * 0.17, 0);
-      ctx.moveTo(0, -size * 0.17);
-      ctx.lineTo(0, size * 0.17);
-      ctx.stroke();
-    } else if (visual.detail === "log-cover") {
-      ctx.fillStyle = "rgba(53,43,42,0.9)";
-      ctx.roundRect(-size * 0.34, -size * 0.28, size * 0.68, size * 0.56, size * 0.04);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeRect(-size * 0.24, -size * 0.12, size * 0.48, size * 0.24);
-    } else if (visual.detail === "lamp") {
-      const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.55);
-      glow.addColorStop(0, "rgba(255,233,173,0.62)");
-      glow.addColorStop(1, "rgba(242,189,103,0)");
-      ctx.fillStyle = glow;
-      ctx.fillRect(-size * 0.55, -size * 0.55, size * 1.1, size * 1.1);
-    }
+    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.55);
+    glow.addColorStop(0, "rgba(255,233,173,0.38)");
+    glow.addColorStop(1, "rgba(242,189,103,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(-size * 0.55, -size * 0.55, size * 1.1, size * 1.1);
     ctx.restore();
   }
 
@@ -905,71 +560,68 @@ export class SceneRenderer {
     return true;
   }
 
+  private drawAtlasFrame(
+    key: ArtKey,
+    atlas: { columns: number; rows: number; frameCount: number },
+    frame: number,
+    centerX: number,
+    centerY: number,
+    size: number,
+    alpha = 1,
+  ): boolean {
+    return this.drawAtlasFrameRect(key, atlas, frame, centerX - size / 2, centerY - size / 2, size, size, alpha);
+  }
+
+  private drawAtlasFrameRect(
+    key: ArtKey,
+    atlas: { columns: number; rows: number; frameCount: number },
+    frame: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    alpha = 1,
+  ): boolean {
+    const image = this.touchImage(key);
+    if (!image || frame < 0 || frame >= atlas.frameCount) return false;
+    const column = frame % atlas.columns;
+    const row = Math.floor(frame / atlas.columns);
+    const sourceX = Math.floor(column * image.naturalWidth / atlas.columns);
+    const sourceRight = Math.floor((column + 1) * image.naturalWidth / atlas.columns);
+    const sourceY = Math.floor(row * image.naturalHeight / atlas.rows);
+    const sourceBottom = Math.floor((row + 1) * image.naturalHeight / atlas.rows);
+    this.context.save();
+    this.context.globalAlpha = alpha;
+    this.context.drawImage(image, sourceX, sourceY, sourceRight - sourceX, sourceBottom - sourceY, x, y, width, height);
+    this.context.restore();
+    return true;
+  }
+
   private drawFacilityVisual(visual: FacilityVisual): void {
-    const ctx = this.context;
     const x = visual.anchor.x * 720;
     const y = visual.anchor.y * 1280;
-    if (this.drawEquipmentFrame(visual.equipmentFrame, x, y, 170)) return;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.strokeStyle = visual.color;
-    ctx.fillStyle = `${visual.color}33`;
-    ctx.lineWidth = 6;
-    if (visual.shape === "coil" || visual.shape === "loop") {
-      ctx.beginPath();
-      ctx.arc(0, 0, 62, 0, Math.PI * 2);
-      ctx.arc(0, 0, 34, 0, Math.PI * 2);
-      ctx.fill("evenodd");
-      ctx.stroke();
-    } else if (visual.shape === "cells" || visual.shape === "trays") {
-      for (let row = 0; row < 2; row += 1) {
-        for (let column = 0; column < 3; column += 1) {
-          ctx.fillRect(-74 + column * 52, -44 + row * 54, 42, 40);
-          ctx.strokeRect(-74 + column * 52, -44 + row * 54, 42, 40);
-        }
-      }
-    } else if (visual.shape === "shutter") {
-      for (let row = 0; row < 5; row += 1) {
-        ctx.fillRect(-72, -76 + row * 32, 144, 16);
-        ctx.strokeRect(-72, -76 + row * 32, 144, 16);
-      }
-    } else if (visual.shape === "frame") {
-      ctx.strokeRect(-76, -92, 152, 184);
-      ctx.strokeRect(-60, -76, 120, 152);
-    } else if (visual.shape === "heater") {
-      ctx.roundRect(-82, -48, 164, 96, 16);
-      ctx.fill();
-      ctx.stroke();
-      for (let column = 0; column < 5; column += 1) ctx.strokeRect(-62 + column * 28, -26, 14, 52);
-    } else {
-      ctx.roundRect(-68, -68, 136, 136, 18);
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-42, 0);
-      ctx.lineTo(42, 0);
-      ctx.moveTo(0, -42);
-      ctx.lineTo(0, 42);
-      ctx.stroke();
-    }
-    ctx.restore();
+    this.drawEquipmentFrame(visual.equipmentFrame, x, y, 170);
   }
 
   private drawCarriageLife(time: number, night: boolean, reducedMotion: boolean): void {
     const ctx = this.context;
-    const flicker = reducedMotion ? 0.5 : (Math.sin(time * 0.019) + Math.sin(time * 0.007) + 2) * 0.25;
+    const still = reducedMotion || this.state?.nightPaused;
+    const flicker = still ? 0.5 : (Math.sin(time * 0.019) + Math.sin(time * 0.007) + 2) * 0.25;
 
     const lampGlow = ctx.createRadialGradient(552, 326, 8, 552, 326, 190);
-    lampGlow.addColorStop(0, `rgba(244, 174, 91, ${night ? 0.17 + flicker * 0.08 : 0.08})`);
+    lampGlow.addColorStop(0, `rgba(244, 174, 91, ${night ? 0.1 + flicker * 0.045 : 0.045})`);
     lampGlow.addColorStop(1, "rgba(244, 174, 91, 0)");
     ctx.fillStyle = lampGlow;
     ctx.fillRect(352, 126, 400, 400);
 
-    for (let index = 0; index < 9; index += 1) {
-      const x = 48 + ((index * 97 + (reducedMotion ? 0 : time * 0.006)) % 620);
-      const y = 180 + ((index * 137 + (reducedMotion ? 0 : time * 0.011)) % 770);
-      ctx.fillStyle = `rgba(226, 194, 137, ${0.035 + (index % 3) * 0.018})`;
-      ctx.fillRect(x, y, index % 3 === 0 ? 2 : 1, index % 3 === 0 ? 2 : 1);
+    const carriageId = this.state?.activeCarriageId;
+    const clip = carriageId === "greenhouse" ? EFFECT_ATLAS.frames.leaf
+      : carriageId === "kitchen" ? EFFECT_ATLAS.frames.flame : undefined;
+    if (clip) {
+      const frame = clip.start + (still ? 0 : Math.floor(time * clip.fps / 1000) % clip.frames);
+      const x = carriageId === "greenhouse" ? 180 : 190;
+      const y = carriageId === "greenhouse" ? 570 : 510;
+      this.drawAtlasFrame("effect-atlas", EFFECT_ATLAS, frame, x, y, 190, 0.32);
     }
   }
 
@@ -977,12 +629,12 @@ export class SceneRenderer {
     const ctx = this.context;
     const pulse = reducedMotion ? 0.5 : (Math.sin(time * 0.002) + 1) * 0.5;
     const glow = ctx.createRadialGradient(120, 500, 10, 120, 500, 420);
-    glow.addColorStop(0, `rgba(226,168,93,${night ? 0.08 : 0.18 + pulse * 0.03})`);
+    glow.addColorStop(0, `rgba(226,168,93,${night ? 0.035 : 0.075 + pulse * 0.015})`);
     glow.addColorStop(1, "rgba(226,168,93,0)");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, 720, 1280);
     if (night) {
-      ctx.fillStyle = "rgba(8,20,29,0.25)";
+      ctx.fillStyle = "rgba(8,20,29,0.11)";
       ctx.fillRect(0, 0, 720, 1280);
     }
   }

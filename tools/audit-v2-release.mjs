@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 
 const base = process.env.GAME_URL ?? "http://127.0.0.1:4312";
 const { version } = JSON.parse(await (await import("node:fs/promises")).readFile("package.json", "utf8"));
-const output = "docs/evidence/v2";
+const output = process.env.EVIDENCE_DIR ?? "docs/evidence/v2";
 await mkdir(`${output}/screenshots`, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const failures = [], assertions = [], frames = [], browserErrors = [];

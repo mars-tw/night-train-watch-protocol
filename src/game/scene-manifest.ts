@@ -28,8 +28,8 @@ export interface CarriageSceneManifest {
 
 export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>> = {
   sleep: {
-    source: "./assets/art/v2/carriages/sleep.webp",
-    pngSource: "./assets/art/v2/carriages/sleep.png",
+    source: "./assets/art/v21/carriages/sleep.webp",
+    pngSource: "./assets/art/v21/processed/carriages/sleep.png",
     states: ["unprepared", "secure", "disturbed", "restored"],
     hotspots: [
       { id: "sleep-bed", label: "主床與 A-07", bounds: { x: 0.55, y: 0.38, width: 0.43, height: 0.44 } },
@@ -42,8 +42,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   defense: {
-    source: "./assets/art/v2/carriages/defense.webp",
-    pngSource: "./assets/art/v2/carriages/defense.png",
+    source: "./assets/art/v21/carriages/defense.webp",
+    pngSource: "./assets/art/v21/processed/carriages/defense.png",
     states: ["unprepared", "secure", "breached", "restored"],
     hotspots: [
       { id: "defense-window", label: "觀察窗", bounds: { x: 0.24, y: 0.16, width: 0.43, height: 0.28 } },
@@ -56,8 +56,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   workshop: {
-    source: "./assets/art/v2/carriages/workshop.webp",
-    pngSource: "./assets/art/v2/carriages/workshop.png",
+    source: "./assets/art/v21/carriages/workshop.webp",
+    pngSource: "./assets/art/v21/processed/carriages/workshop.png",
     states: ["unprepared", "active", "overloaded", "restored"],
     hotspots: [
       { id: "workbench", label: "工作桌", bounds: { x: 0.02, y: 0.36, width: 0.46, height: 0.36 } },
@@ -70,8 +70,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   greenhouse: {
-    source: "./assets/art/v2/carriages/greenhouse.webp",
-    pngSource: "./assets/art/v2/carriages/greenhouse.png",
+    source: "./assets/art/v21/carriages/greenhouse.webp",
+    pngSource: "./assets/art/v21/processed/carriages/greenhouse.png",
     states: ["unprepared", "productive", "contaminated", "restored"],
     hotspots: [
       { id: "greenhouse-a", label: "上植床", bounds: { x: 0.01, y: 0.27, width: 0.39, height: 0.19 } },
@@ -84,8 +84,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   kitchen: {
-    source: "./assets/art/v2/carriages/kitchen.webp",
-    pngSource: "./assets/art/v2/carriages/kitchen.png",
+    source: "./assets/art/v21/carriages/kitchen.webp",
+    pngSource: "./assets/art/v21/processed/carriages/kitchen.png",
     states: ["sparse", "prepared", "spoiled", "restored"],
     hotspots: [
       { id: "kitchen-stove", label: "爐具", bounds: { x: 0.02, y: 0.32, width: 0.4, height: 0.25 } },
@@ -166,6 +166,32 @@ export const EQUIPMENT_ATLAS = {
   columns: 10,
   rows: 5,
   frameCount: 50,
+} as const;
+
+export const PROP_ATLAS = {
+  source: "./assets/art/v21/props/atlas.webp",
+  columns: 4,
+  rows: 4,
+  frameCount: 16,
+  frames: {
+    battery: 0, waterfilter: 1, heater: 2, radio: 3,
+    toolbox: 4, firstaid: 5, lantern: 6, storage: 7,
+    seedbox: 8, teapot: 9, teddybear: 10, blanket: 11,
+    lettuce: 12, tomato: 13, herb: 14, book: 15,
+  },
+} as const;
+
+export const EFFECT_ATLAS = {
+  source: "./assets/art/v21/effects/atlas.webp",
+  columns: 4,
+  rows: 4,
+  frameCount: 16,
+  frames: {
+    rain: 0, frost: 1, mist: 2, spores: 3,
+    steam: { start: 4, frames: 4, fps: 5 },
+    flame: { start: 8, frames: 4, fps: 7 },
+    leaf: { start: 12, frames: 4, fps: 4 },
+  },
 } as const;
 
 export interface CosmeticVisual {
@@ -264,7 +290,9 @@ export type SceneAssetKey =
   | `v2-carriage-${CarriageId}`
   | `v2-threat-${ThreatFamilyId}`
   | "a07-atlas"
-  | "equipment-atlas";
+  | "equipment-atlas"
+  | "prop-atlas"
+  | "effect-atlas";
 
 const CARRIAGE_LOAD_ORDER: readonly CarriageId[] = ["sleep", "defense", "workshop", "greenhouse", "kitchen"];
 
@@ -287,7 +315,7 @@ export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKe
     result.push(`v2-threat-${input.retreatFamily}`);
   }
   if (carriageId === "sleep") result.push("a07-atlas");
-  result.push("equipment-atlas");
+  result.push("prop-atlas", "equipment-atlas", "effect-atlas");
   const index = CARRIAGE_LOAD_ORDER.indexOf(carriageId);
   for (const neighborIndex of [index - 1, index + 1]) {
     const neighbor = CARRIAGE_LOAD_ORDER[neighborIndex];

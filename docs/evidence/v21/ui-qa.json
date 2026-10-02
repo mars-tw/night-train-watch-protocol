@@ -1,0 +1,892 @@
+{
+  "status": "passed",
+  "generatedAt": "2026-10-02T16:09:32.480Z",
+  "baseUrl": "http://127.0.0.1:4177",
+  "metadata": {
+    "scenario": "natural-fresh-r01",
+    "fixtureInjection": false,
+    "storageSetup": "new isolated browser context; settings changed only through visible UI",
+    "authority": "runtime UI and ntwp.v2.current readback",
+    "backgroundVisibility": "document visibilitychange event simulation; no save or game-state injection"
+  },
+  "matrix": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 100,
+      "sceneHeight": 388,
+      "sceneRatio": 0.606,
+      "selectorBottom": 154,
+      "toastTop": 542,
+      "dockBottom": 634,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 120,
+      "sceneHeight": 388,
+      "sceneRatio": 0.606,
+      "selectorBottom": 154,
+      "toastTop": 542,
+      "dockBottom": 634,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 140,
+      "sceneHeight": 388,
+      "sceneRatio": 0.606,
+      "selectorBottom": 154,
+      "toastTop": 542,
+      "dockBottom": 634,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 100,
+      "sceneHeight": 533,
+      "sceneRatio": 0.631,
+      "selectorBottom": 196,
+      "toastTop": 728,
+      "dockBottom": 832,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 120,
+      "sceneHeight": 533,
+      "sceneRatio": 0.631,
+      "selectorBottom": 196,
+      "toastTop": 728,
+      "dockBottom": 832,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 140,
+      "sceneHeight": 533,
+      "sceneRatio": 0.631,
+      "selectorBottom": 196,
+      "toastTop": 728,
+      "dockBottom": 832,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 100,
+      "sceneHeight": 621,
+      "sceneRatio": 0.666,
+      "selectorBottom": 196,
+      "toastTop": 816,
+      "dockBottom": 920,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 120,
+      "sceneHeight": 621,
+      "sceneRatio": 0.666,
+      "selectorBottom": 196,
+      "toastTop": 816,
+      "dockBottom": 920,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 140,
+      "sceneHeight": 621,
+      "sceneRatio": 0.666,
+      "selectorBottom": 196,
+      "toastTop": 816,
+      "dockBottom": 920,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 100,
+      "sceneHeight": 404,
+      "sceneRatio": 0.631,
+      "selectorBottom": 146,
+      "toastTop": 550,
+      "dockBottom": 638,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 120,
+      "sceneHeight": 404,
+      "sceneRatio": 0.631,
+      "selectorBottom": 146,
+      "toastTop": 550,
+      "dockBottom": 638,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 140,
+      "sceneHeight": 404,
+      "sceneRatio": 0.631,
+      "selectorBottom": 146,
+      "toastTop": 550,
+      "dockBottom": 638,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 100,
+      "sceneHeight": 364,
+      "sceneRatio": 0.607,
+      "selectorBottom": 146,
+      "toastTop": 510,
+      "dockBottom": 598,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 120,
+      "sceneHeight": 364,
+      "sceneRatio": 0.607,
+      "selectorBottom": 146,
+      "toastTop": 510,
+      "dockBottom": 598,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 140,
+      "sceneHeight": 364,
+      "sceneRatio": 0.607,
+      "selectorBottom": 146,
+      "toastTop": 510,
+      "dockBottom": 598,
+      "horizontalOverflow": 0,
+      "minimumWidth": 60,
+      "minimumHeight": 48,
+      "blockedCenters": [],
+      "undersized": [],
+      "primaryUndersized": []
+    }
+  ],
+  "naturalFlow": {
+    "actions": [
+      {
+        "label": "fresh R01 started",
+        "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4"
+      },
+      {
+        "label": "two missions pinned"
+      },
+      {
+        "label": "two free observations persisted"
+      },
+      {
+        "label": "lettuce planted through confirm sheet"
+      },
+      {
+        "label": "battery refill committed once"
+      },
+      {
+        "label": "緊急加速緊急加速燃料 4"
+      },
+      {
+        "label": "dawn mission reward saved to profile"
+      },
+      {
+        "label": "A-07 relationship reply committed"
+      },
+      {
+        "label": "A-07 relationship reply",
+        "relationValue": "REL-A07-01:ask-details"
+      },
+      {
+        "label": "quiet-wiring facility branch committed"
+      },
+      {
+        "label": "three-node expedition withdrawn"
+      },
+      {
+        "label": "關閉百葉關閉百葉電量 8"
+      },
+      {
+        "label": "claimed starter blueprint selected for next run"
+      },
+      {
+        "label": "profile returned to standard blueprint"
+      }
+    ],
+    "assertions": [
+      "text scale 100% is selected through settings",
+      "360×640 at 100% keeps at least 60% scene",
+      "360×640 at 100% has no horizontal overflow",
+      "360×640 at 100% keeps the command dock visible",
+      "360×640 at 100% keeps new controls at least 44px",
+      "360×640 at 100% keeps primary controls at least 48px",
+      "360×640 at 100% keeps button centers unobstructed",
+      "360×640 at 100% shows preview and fixed actions",
+      "360×640 at 100% keeps cancel and confirm visible without scrolling",
+      "text scale 120% is selected through settings",
+      "360×640 at 120% keeps at least 60% scene",
+      "360×640 at 120% has no horizontal overflow",
+      "360×640 at 120% keeps the command dock visible",
+      "360×640 at 120% keeps new controls at least 44px",
+      "360×640 at 120% keeps primary controls at least 48px",
+      "360×640 at 120% keeps button centers unobstructed",
+      "360×640 at 120% shows preview and fixed actions",
+      "360×640 at 120% keeps cancel and confirm visible without scrolling",
+      "text scale 140% is selected through settings",
+      "360×640 at 140% keeps at least 60% scene",
+      "360×640 at 140% has no horizontal overflow",
+      "360×640 at 140% keeps the command dock visible",
+      "360×640 at 140% keeps new controls at least 44px",
+      "360×640 at 140% keeps primary controls at least 48px",
+      "360×640 at 140% keeps button centers unobstructed",
+      "360×640 at 140% shows preview and fixed actions",
+      "360×640 at 140% keeps cancel and confirm visible without scrolling",
+      "text scale 100% is selected through settings",
+      "390×844 at 100% keeps at least 60% scene",
+      "390×844 at 100% has no horizontal overflow",
+      "390×844 at 100% keeps the command dock visible",
+      "390×844 at 100% keeps new controls at least 44px",
+      "390×844 at 100% keeps primary controls at least 48px",
+      "390×844 at 100% keeps button centers unobstructed",
+      "390×844 at 100% shows preview and fixed actions",
+      "390×844 at 100% keeps cancel and confirm visible without scrolling",
+      "text scale 120% is selected through settings",
+      "390×844 at 120% keeps at least 60% scene",
+      "390×844 at 120% has no horizontal overflow",
+      "390×844 at 120% keeps the command dock visible",
+      "390×844 at 120% keeps new controls at least 44px",
+      "390×844 at 120% keeps primary controls at least 48px",
+      "390×844 at 120% keeps button centers unobstructed",
+      "390×844 at 120% shows preview and fixed actions",
+      "390×844 at 120% keeps cancel and confirm visible without scrolling",
+      "text scale 140% is selected through settings",
+      "390×844 at 140% keeps at least 60% scene",
+      "390×844 at 140% has no horizontal overflow",
+      "390×844 at 140% keeps the command dock visible",
+      "390×844 at 140% keeps new controls at least 44px",
+      "390×844 at 140% keeps primary controls at least 48px",
+      "390×844 at 140% keeps button centers unobstructed",
+      "390×844 at 140% shows preview and fixed actions",
+      "390×844 at 140% keeps cancel and confirm visible without scrolling",
+      "text scale 100% is selected through settings",
+      "430×932 at 100% keeps at least 60% scene",
+      "430×932 at 100% has no horizontal overflow",
+      "430×932 at 100% keeps the command dock visible",
+      "430×932 at 100% keeps new controls at least 44px",
+      "430×932 at 100% keeps primary controls at least 48px",
+      "430×932 at 100% keeps button centers unobstructed",
+      "430×932 at 100% shows preview and fixed actions",
+      "430×932 at 100% keeps cancel and confirm visible without scrolling",
+      "text scale 120% is selected through settings",
+      "430×932 at 120% keeps at least 60% scene",
+      "430×932 at 120% has no horizontal overflow",
+      "430×932 at 120% keeps the command dock visible",
+      "430×932 at 120% keeps new controls at least 44px",
+      "430×932 at 120% keeps primary controls at least 48px",
+      "430×932 at 120% keeps button centers unobstructed",
+      "430×932 at 120% shows preview and fixed actions",
+      "430×932 at 120% keeps cancel and confirm visible without scrolling",
+      "text scale 140% is selected through settings",
+      "430×932 at 140% keeps at least 60% scene",
+      "430×932 at 140% has no horizontal overflow",
+      "430×932 at 140% keeps the command dock visible",
+      "430×932 at 140% keeps new controls at least 44px",
+      "430×932 at 140% keeps primary controls at least 48px",
+      "430×932 at 140% keeps button centers unobstructed",
+      "430×932 at 140% shows preview and fixed actions",
+      "430×932 at 140% keeps cancel and confirm visible without scrolling",
+      "text scale 100% is selected through settings",
+      "1280×640 at 100% keeps at least 60% scene",
+      "1280×640 at 100% has no horizontal overflow",
+      "1280×640 at 100% keeps the command dock visible",
+      "1280×640 at 100% keeps new controls at least 44px",
+      "1280×640 at 100% keeps primary controls at least 48px",
+      "1280×640 at 100% keeps button centers unobstructed",
+      "1280×640 at 100% shows preview and fixed actions",
+      "1280×640 at 100% keeps cancel and confirm visible without scrolling",
+      "text scale 120% is selected through settings",
+      "1280×640 at 120% keeps at least 60% scene",
+      "1280×640 at 120% has no horizontal overflow",
+      "1280×640 at 120% keeps the command dock visible",
+      "1280×640 at 120% keeps new controls at least 44px",
+      "1280×640 at 120% keeps primary controls at least 48px",
+      "1280×640 at 120% keeps button centers unobstructed",
+      "1280×640 at 120% shows preview and fixed actions",
+      "1280×640 at 120% keeps cancel and confirm visible without scrolling",
+      "text scale 140% is selected through settings",
+      "1280×640 at 140% keeps at least 60% scene",
+      "1280×640 at 140% has no horizontal overflow",
+      "1280×640 at 140% keeps the command dock visible",
+      "1280×640 at 140% keeps new controls at least 44px",
+      "1280×640 at 140% keeps primary controls at least 48px",
+      "1280×640 at 140% keeps button centers unobstructed",
+      "1280×640 at 140% shows preview and fixed actions",
+      "1280×640 at 140% keeps cancel and confirm visible without scrolling",
+      "text scale 100% is selected through settings",
+      "1366×600 at 100% keeps at least 60% scene",
+      "1366×600 at 100% has no horizontal overflow",
+      "1366×600 at 100% keeps the command dock visible",
+      "1366×600 at 100% keeps new controls at least 44px",
+      "1366×600 at 100% keeps primary controls at least 48px",
+      "1366×600 at 100% keeps button centers unobstructed",
+      "1366×600 at 100% shows preview and fixed actions",
+      "1366×600 at 100% keeps cancel and confirm visible without scrolling",
+      "text scale 120% is selected through settings",
+      "1366×600 at 120% keeps at least 60% scene",
+      "1366×600 at 120% has no horizontal overflow",
+      "1366×600 at 120% keeps the command dock visible",
+      "1366×600 at 120% keeps new controls at least 44px",
+      "1366×600 at 120% keeps primary controls at least 48px",
+      "1366×600 at 120% keeps button centers unobstructed",
+      "1366×600 at 120% shows preview and fixed actions",
+      "1366×600 at 120% keeps cancel and confirm visible without scrolling",
+      "text scale 140% is selected through settings",
+      "1366×600 at 140% keeps at least 60% scene",
+      "1366×600 at 140% has no horizontal overflow",
+      "1366×600 at 140% keeps the command dock visible",
+      "1366×600 at 140% keeps new controls at least 44px",
+      "1366×600 at 140% keeps primary controls at least 48px",
+      "1366×600 at 140% keeps button centers unobstructed",
+      "1366×600 at 140% shows preview and fixed actions",
+      "1366×600 at 140% keeps cancel and confirm visible without scrolling",
+      "fresh browser context starts without a save fixture",
+      "fresh UI starts a real Day 1 R01 run",
+      "third mission clearly shows the two-pin cap",
+      "mission journal advances to the next four-item page",
+      "sleep observation, care and relationship hotspots remain directly tappable",
+      "sleep hotspot labels stay outside the A-07 face anchor",
+      "passenger and window inspection consume no AP",
+      "two visible inspection points complete TUT-01",
+      "cancelled medicine preview spends nothing",
+      "power and ration configuration do not spend AP",
+      "visible power and ration controls complete TUT-02",
+      "cancelled crop preview does not charge AP or water",
+      "confirmed crop preview charges exactly once",
+      "confirmed planting completes TUT-03",
+      "refill visibly trades parts for energy",
+      "RN03 preview shows the authoritative 7 fuel cost",
+      "RN01 preview shows authoritative fuel, advantage and cost",
+      "switching route previews does not mutate the save",
+      "RN01 confirmation spends exactly the previewed 4 fuel",
+      "route confirmation completes TUT-04",
+      "background tab reports hidden visibility state",
+      "background visibility freezes the night countdown",
+      "returning from background stays paused until the player resumes",
+      "background pause persists a clear resume message",
+      "Day 1 emits a deduplicated night.resolved quest event",
+      "counter plus dawn completes TUT-05",
+      "natural flow reaches Day 2 preparation",
+      "lettuce planted on Day 1 is mature after one powered night",
+      "reload preserves one reward receipt without duplication",
+      "claimed mission cannot be claimed again after reload",
+      "withdraw preserves found expedition loot and fixed record",
+      "withdrawn expedition cannot be rerolled or restarted that day",
+      "natural flow completes the second night",
+      "all five tutorial missions complete through the natural first-night flow",
+      "selecting a loadout does not change current-run resources",
+      "selected blueprint remains selected after reload",
+      "profile loadout control is reachable at 390×844 and 100% text",
+      "profile loadout control is reachable at 390×844 and 140% text",
+      "loadout starts a distinct new run",
+      "starter blueprint applies its food-for-parts tradeoff once",
+      "new run records the applied starting blueprint",
+      "clearing the next-run blueprint does not retroactively change the active run",
+      "standard selection restores the route's normal new-run budget",
+      "standard new run has no hidden blueprint stack"
+    ],
+    "evidence": {
+      "sleepHotspots": [
+        {
+          "action": "inspect-object",
+          "value": "window-silhouette",
+          "x": "18%",
+          "y": "28%",
+          "width": 86,
+          "height": 58,
+          "centerClear": true
+        },
+        {
+          "action": "inspect-object",
+          "value": "passenger-breathing",
+          "x": "88%",
+          "y": "43%",
+          "width": 70,
+          "height": 58,
+          "centerClear": true
+        },
+        {
+          "action": "open-relationship",
+          "value": "A-07",
+          "x": "88%",
+          "y": "61%",
+          "width": 70,
+          "height": 58,
+          "centerClear": true
+        },
+        {
+          "action": "preview-action",
+          "value": "use-medicine|",
+          "x": "31%",
+          "y": "68%",
+          "width": 98,
+          "height": 58,
+          "centerClear": true
+        },
+        {
+          "action": "preview-action",
+          "value": "comfort|",
+          "x": "72%",
+          "y": "76%",
+          "width": 75,
+          "height": 58,
+          "centerClear": true
+        }
+      ],
+      "backgroundPause": {
+        "beforeText": "接觸 1/1・車頂・攀附者接觸倒數 30 秒",
+        "whileHiddenText": "接觸 1/1・車頂・攀附者接觸倒數 30 秒",
+        "afterText": "接觸 1/1・車頂・攀附者倒數暫停・30",
+        "persistedMessage": "守夜已暫停並保存。回到列車後，請手動繼續。"
+      },
+      "day1QuestEvents": [
+        {
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:passenger-breathing",
+          "operation": "inspect",
+          "targetId": "passenger-breathing",
+          "result": "success",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:passenger-breathing:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "day": 1,
+          "sequence": 1,
+          "type": "action.committed",
+          "dedupKey": "action.committed:D1:inspect:passenger-breathing"
+        },
+        {
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:window-silhouette",
+          "operation": "inspect",
+          "targetId": "window-silhouette",
+          "result": "success",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:window-silhouette:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "day": 1,
+          "sequence": 2,
+          "type": "action.committed",
+          "dedupKey": "action.committed:D1:inspect:window-silhouette"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:3",
+          "operation": "power.configure",
+          "carriageId": "workshop",
+          "targetId": "M003",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:3:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 3,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:3"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:4",
+          "operation": "power.configure",
+          "carriageId": "workshop",
+          "targetId": "M003",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:4:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 4,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:4"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:setRation:5",
+          "operation": "ration.configure",
+          "carriageId": "kitchen",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:setRation:5:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 5,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:setRation:5"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:plantCrop:6",
+          "operation": "crop.plant",
+          "carriageId": "greenhouse",
+          "targetId": "plot-a",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:plantCrop:6:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 6,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:plantCrop:6"
+        },
+        {
+          "transactionId": "v2-1p334r1-1ip0nmj",
+          "settlementId": "v2-1p334r1-1ip0nmj",
+          "operation": "refill-battery",
+          "result": "success",
+          "day": 1,
+          "eventId": "v2-1p334r1-1ip0nmj:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 7,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:v2-1p334r1-1ip0nmj"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:chooseRoute:8",
+          "operation": "route.confirm",
+          "targetId": "RN01",
+          "carriageId": "workshop",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:chooseRoute:8:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 8,
+          "type": "action.committed",
+          "dedupKey": "action.committed:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:chooseRoute:8"
+        },
+        {
+          "day": 1,
+          "milestoneId": "R01.N01",
+          "result": "compromised",
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:main:R01:1",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:main:R01:1:story.milestone",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 9,
+          "type": "story.milestone",
+          "dedupKey": "story.milestone:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:main:R01:1"
+        },
+        {
+          "result": "success",
+          "day": 1,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:counterThreat:10",
+          "operation": "counter.deploy",
+          "carriageId": "defense",
+          "targetId": "T003",
+          "method": "powered",
+          "stableKey": "counter:1:contact-1-1",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:counterThreat:10:action.committed",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 10,
+          "type": "action.committed",
+          "dedupKey": "action.committed:stable:counter:1:contact-1-1"
+        },
+        {
+          "day": 1,
+          "wakeupsDelta": 0,
+          "passengerAlive": true,
+          "hullPositive": true,
+          "reservePositive": true,
+          "lifeSupportPowered": true,
+          "manualCounter": false,
+          "transactionId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:night:1",
+          "eventId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:night:1:night.resolved",
+          "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+          "routeId": "R01",
+          "sequence": 11,
+          "type": "night.resolved",
+          "dedupKey": "night.resolved:tx:run-23fa58f8-8391-465d-9c64-9fcf04666bc4:night:1"
+        }
+      ],
+      "final": {
+        "runId": "run-23fa58f8-8391-465d-9c64-9fcf04666bc4",
+        "day": 2,
+        "phase": "aftermath",
+        "resources": {
+          "energy": 64,
+          "fuel": 28,
+          "food": 1,
+          "water": 1,
+          "parts": 2,
+          "medicine": 1,
+          "data": 4
+        },
+        "tutorials": [
+          {
+            "id": "TUT-01",
+            "lifecycle": "completed",
+            "result": "completed",
+            "progress": [
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:passenger-breathing:action.committed"
+                ]
+              },
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:window-silhouette:action.committed"
+                ]
+              }
+            ],
+            "settledDay": 1,
+            "startedDay": 1
+          },
+          {
+            "id": "TUT-02",
+            "lifecycle": "completed",
+            "result": "completed",
+            "progress": [
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:toggleModule:3:action.committed"
+                ]
+              },
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:setRation:5:action.committed"
+                ]
+              }
+            ],
+            "settledDay": 1,
+            "startedDay": 1
+          },
+          {
+            "id": "TUT-03",
+            "lifecycle": "claimed",
+            "result": "completed",
+            "progress": [
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:plantCrop:6:action.committed"
+                ]
+              }
+            ],
+            "startedDay": 1,
+            "settledDay": 1
+          },
+          {
+            "id": "TUT-04",
+            "lifecycle": "completed",
+            "result": "completed",
+            "progress": [
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:chooseRoute:8:action.committed"
+                ]
+              }
+            ],
+            "settledDay": 1,
+            "startedDay": 1
+          },
+          {
+            "id": "TUT-05",
+            "lifecycle": "completed",
+            "result": "completed",
+            "progress": [
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:D1:counterThreat:10:action.committed"
+                ]
+              },
+              {
+                "count": 1,
+                "matchedEventIds": [
+                  "run-23fa58f8-8391-465d-9c64-9fcf04666bc4:night:1:night.resolved"
+                ]
+              }
+            ],
+            "startedDay": 1,
+            "settledDay": 1
+          }
+        ],
+        "relationshipCount": 1,
+        "facilityChoices": {
+          "core-output": "quiet"
+        },
+        "expeditions": [
+          {
+            "expeditionId": "exp-r01-2-dgeg0m",
+            "siteId": "fog-relay",
+            "routeId": "R01",
+            "day": 2,
+            "status": "withdrawn",
+            "result": "partial",
+            "discoveryId": "signal-origin",
+            "collected": {
+              "data": 2
+            },
+            "settlementId": "v2-i53x48-foqou6",
+            "choices": [
+              "survey",
+              "improvise",
+              "withdraw"
+            ]
+          }
+        ],
+        "profileReceiptCount": 1
+      },
+      "profileLoadout": {
+        "selectedBlueprint": "初階種植盤",
+        "selectedRunResources": {
+          "energy": 75,
+          "fuel": 40,
+          "food": 6,
+          "water": 6,
+          "parts": 7,
+          "medicine": 1,
+          "data": 0
+        },
+        "standardRunResources": {
+          "energy": 75,
+          "fuel": 40,
+          "food": 5,
+          "water": 6,
+          "parts": 8,
+          "medicine": 1,
+          "data": 0
+        },
+        "currentRunUnchanged": true,
+        "reloadPreservedSelection": true,
+        "layout100": {
+          "horizontalOverflow": 0,
+          "buttonWidth": 82,
+          "buttonHeight": 48,
+          "centerClear": true
+        },
+        "layout140": {
+          "horizontalOverflow": 0,
+          "buttonWidth": 82,
+          "buttonHeight": 48,
+          "centerClear": true
+        }
+      }
+    }
+  },
+  "failures": []
+}

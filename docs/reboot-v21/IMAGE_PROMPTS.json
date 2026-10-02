@@ -1,0 +1,30 @@
+{
+  "sourceTool": "OpenAI built-in image generation",
+  "sourceModelIdentifier": null,
+  "mode": "built-in generation followed by built-in refinement and Blender processing",
+  "prompts": [
+    {
+      "asset": "ui/icon-atlas",
+      "intent": "refine existing generated sheet",
+      "prompt": "BACKGROUND EXTRACTION EDIT TARGET. Remove ALL brown backdrop and backdrop gradient behind the 32 icons. Keep all THIRTY TWO beautifully painted objects exactly in their current FOUR COLUMNS and EIGHT ROWS, same cell positions and same object identity, same brass/teal/cream colors. This must be a truly TRANSPARENT game icon sprite sheet. There must be no brown panel, no opaque rectangle, no scenery, no grid, no added labels. Keep painted objects and their actual materials. Transparent empty space throughout every gutter and around each object, clean antialiased alpha edges, NO fringe, NO red/yellow/cyan/magenta extraction spill, NO broad brown shadow. Preserve exactly the complete object silhouettes and make them clean cutout sprites. Do not rearrange or add/remove icons.",
+      "actualOutputDecision": "The tool retained a painted brown background. Runtime deliberately uses opaque warm wood instrument tiles; it is not described as a transparent cutout."
+    },
+    {
+      "asset": "props/atlas",
+      "intent": "refine existing generated sheet",
+      "prompt": "CLEAN ALPHA EDGE EDIT TARGET. Keep these sixteen excellent hand-painted props, their exact identities, true material colors, 4 columns x 4 rows layout and cell placement. Remove the unnatural saturated red, yellow and cyan pixel fringe OUTSIDE each prop silhouette, remove any backdrop/stray matte. Preserve true red tomatoes and red cross INSIDE the actual objects; don't recolor them. Deliver a genuine transparent game sprite atlas with clean anti-aliased edges and generous fully transparent gutters. No black/brown/colored background, no broad opaque glow, no strange colored halo, no text, no additional objects. Preserve realistic painted highlights and fine texture. The alpha border should blend naturally on both cream and dark teal backgrounds.",
+      "postprocess": "Blender clears only alpha <= 2/255. No color key."
+    },
+    {
+      "asset": "effects/atlas",
+      "intent": "refine existing generated sheet",
+      "prompt": "CLEAN TRANSLUCENT EFFECT ATLAS EDIT TARGET. Preserve exact four columns x four rows layout: row1 rain, frost corner, mist, spores; row2 four DISTINCT cream steam frames; row3 four DISTINCT warm orange/gold flame frames; row4 four DISTINCT green leaf flutter frames. Remove ALL unnatural neon red/yellow/cyan/blue fringing and opaque matte boxes surrounding the delicate painted silhouettes. Make clean naturally fading alpha for steam/mist/frost, crisp transparent leaf edges and softly translucent flame edges. True transparent background and gutters, NO colored outline, NO flat backdrop, no thick glow box, no labels or borders. Keep the sequence identities and visible frame-to-frame silhouette changes, keep flame warm and leaves natural olive green. This is compositable game raster artwork, not diagram/SVG. Edge pixels must look good against both cream and dark teal.",
+      "postprocess": "Blender clears only alpha <= 2/255. Four drawn frames per steam/flame/leaf loop."
+    },
+    {
+      "asset": "ui/maps",
+      "intent": "generate",
+      "prompt": "Generate a beautiful hand-painted raster game interface artwork: a wide landscape sheet with TWO EQUAL side-by-side rectangular panels, each separate portrait paper diagram. No typography, no letters, no numbers, no legends, no UI buttons, no SVG/vector look, no pixel grain. Warm cream aged but clean handmade paper with rounded worn edges, subtle watercolor wash, delicate pencil lines and brass/teal accents matching a cozy vintage wooden survival train. LEFT PANEL is a railway route map: quiet pale fog-grey mountains and a forest, a finely painted red railway line traveling from lower-left (13% x,80% y) through center (46% x,50% y) to upper-right (87% x,18% y); a branching curved line connects lower-left to lower-right (87% x,68% y) and center to lower-right. Small painted train-stop circles at these four locations but no words. RIGHT PANEL is a notebook technical progression diagram: beautifully drawn miniature battery near upper-left, radio near upper-right, water-filter device mid-left, warm radiator mid-right, workshop gear center-lower and shelter lantern bottom; thin softly painted pencil connectors between those objects forming branches. The emphasis is charming physical paper, real painted objects and meaningful illustrated connections, not geometric computer lines. Two panels are flat front-facing for game overlay use, equal widths, no outside environment/no other props. Clear lighter center area for readable overlaid labels."
+    }
+  ]
+}

@@ -61,7 +61,7 @@ import {
   COSMETIC_LOADOUTS,
 } from "../game/profile-loadouts";
 import { escapeText, formatSigned } from "./dom";
-import { icons } from "./icons";
+import { iconMarkup, icons } from "./icons";
 import { CARRIAGE_SCENES } from "../game/scene-manifest";
 
 type ActionHandler = (action: string, value?: string) => void;
@@ -394,6 +394,16 @@ function routeLabel(routeId: RunState["routeId"]): string {
   return "灰霧線";
 }
 
+function carriageIcon(carriageId: CarriageId): string {
+  return {
+    defense: icons.defense,
+    sleep: icons.sleep,
+    workshop: icons.workshop,
+    greenhouse: icons.greenhouse,
+    kitchen: icons.kitchen,
+  }[carriageId];
+}
+
 function storyChoiceReason(
   run: RunState,
   eventId: string,
@@ -691,7 +701,7 @@ function button(
     .filter(Boolean)
     .join(" ");
   return `<button class="${classes}" type="button" data-action="${action}" ${options.value ? `data-value="${escapeText(options.value)}"` : ""} ${options.disabled ? "disabled" : ""}>
-    <span class="action-button__icon" aria-hidden="true">${escapeText(options.icon ?? "◇")}</span>
+    <span class="action-button__icon" aria-hidden="true">${iconMarkup(options.icon ?? icons.hub, label)}</span>
     <span class="action-button__copy"><strong>${escapeText(label)}</strong>${options.detail ? `<small>${escapeText(options.detail)}</small>` : ""}</span>
     <span class="action-button__chevron" aria-hidden="true">›</span>
   </button>`;
@@ -705,12 +715,12 @@ function compactHeader(
 ): string {
   return `<header class="app-header">
     <div class="app-header__title">
-      ${backAction ? `<button class="icon-button" data-action="${backAction}" aria-label="返回">${icons.back}</button>` : `<span class="day-mark">第 ${run.day} 日</span>`}
+      ${backAction ? `<button class="icon-button" data-action="${backAction}" aria-label="返回">${iconMarkup(icons.back)}</button>` : `<span class="day-mark">第 ${run.day} 日</span>`}
       <div><strong>${escapeText(title)}</strong><small>${escapeText(subtitle)}</small></div>
     </div>
     <div class="resource-bar" aria-label="核心資源">
-      <span><b>${icons.power}</b><i><em style="--meter:${run.resources.energy}%"></em></i><strong>${run.resources.energy}/100</strong></span>
-      <span><b>${icons.fuel}</b><i><em style="--meter:${Math.round((run.resources.fuel / 60) * 100)}%"></em></i><strong>${run.resources.fuel}/60</strong></span>
+      <span><b>${iconMarkup(icons.power)}</b><i><em style="--meter:${run.resources.energy}%"></em></i><strong>${run.resources.energy}/100</strong></span>
+      <span><b>${iconMarkup(icons.fuel)}</b><i><em style="--meter:${Math.round((run.resources.fuel / 60) * 100)}%"></em></i><strong>${run.resources.fuel}/60</strong></span>
     </div>
   </header>`;
 }
@@ -738,9 +748,9 @@ function menuScreen(state: AppState, hasSave: boolean): string {
     <nav class="menu-actions" aria-label="主選單">
       ${hasSave ? button("continue", "繼續守夜", { primary: true, icon: icons.play, detail: "載入本機保存的路線與操作進度" }) : ""}
       <div class="route-launch-grid" aria-label="選擇七夜故事路線">
-        ${button("new-game", "R01・灰霧線", { value: "R01", primary: !hasSave, icon: "霧", detail: "新手入口・訊號辨識・感染與封鎖", className: "route-launch-card" })}
-        ${button("new-game", frostUnlocked ? "R02・白霜線" : "R02・白霜線（預覽）", { value: "R02", icon: "霜", detail: frostUnlocked ? "已正式解鎖・熱力分流與暴風雪" : "可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖", className: "route-launch-card route-launch-card--frost" })}
-        ${button("new-game", greenUnlocked ? "R03・綠潮線" : "R03・綠潮線（預覽）", { value: "R03", icon: "芽", detail: greenUnlocked ? "已正式解鎖・封閉循環與檢疫" : "可玩預覽・完成 5 項教學與任一七夜後正式解鎖", className: "route-launch-card route-launch-card--green" })}
+        ${button("new-game", "R01・灰霧線", { value: "R01", primary: !hasSave, icon: icons.scan, detail: "新手入口・訊號辨識・感染與封鎖", className: "route-launch-card" })}
+        ${button("new-game", frostUnlocked ? "R02・白霜線" : "R02・白霜線（預覽）", { value: "R02", icon: icons.temperature, detail: frostUnlocked ? "已正式解鎖・熱力分流與暴風雪" : "可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖", className: "route-launch-card route-launch-card--frost" })}
+        ${button("new-game", greenUnlocked ? "R03・綠潮線" : "R03・綠潮線（預覽）", { value: "R03", icon: icons.greenhouse, detail: greenUnlocked ? "已正式解鎖・封閉循環與檢疫" : "可玩預覽・完成 5 項教學與任一七夜後正式解鎖", className: "route-launch-card route-launch-card--green" })}
       </div>
       ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}
       ${button("settings", "設定與無障礙", { icon: icons.settings })}
@@ -764,12 +774,12 @@ function hubScreen(state: AppState): string {
     <div class="hub-grid">
       ${button("tech", "科技樹", { icon: icons.tech, detail: "新規則與藍圖", className: "hub-card is-selected" })}
       ${button("route", "路線選擇", { icon: icons.route, detail: run.routeId === "R03" ? "綠潮線・循環檢疫" : run.routeId === "R02" ? "白霜線・熱力分流" : "灰霧線", className: "hub-card" })}
-      ${button("event-preview", "事件圖鑑", { icon: "記", detail: "已發現 3/8", className: "hub-card" })}
+      ${button("event-preview", "事件圖鑑", { icon: icons.journal, detail: "已發現 3/8", className: "hub-card" })}
       ${button("modules-preview", "起始藍圖", { icon: icons.build, detail: "查看模組，不消耗資源", className: "hub-card" })}
-      ${button("missions", "任務日誌", { icon: "簿", detail: `${run.quests.trackedMissionIds.length}/2 項正在追蹤`, className: "hub-card hub-card--journal" })}
-      ${button("profile", "旅程檔案", { icon: "票", detail: `${state.profile.journal.length} 則故事紀錄`, className: "hub-card" })}
+      ${button("missions", "任務日誌", { icon: icons.quest, detail: `${run.quests.trackedMissionIds.length}/2 項正在追蹤`, className: "hub-card hub-card--journal" })}
+      ${button("profile", "旅程檔案", { icon: icons.journal, detail: `${state.profile.journal.length} 則故事紀錄`, className: "hub-card" })}
     </div>
-    <nav class="bottom-nav">${["中心", "任務", "路線", "檔案"].map((label, index) => `<button data-action="${["hub", "missions", "route", "profile"][index]}" class="${index === 0 ? "is-selected" : ""}" ${index === 0 ? 'disabled aria-current="page"' : ""}><span>${[icons.hub, "簿", icons.route, "票"][index]}</span>${label}</button>`).join("")}</nav>
+    <nav class="bottom-nav">${["中心", "任務", "路線", "檔案"].map((label, index) => `<button data-action="${["hub", "missions", "route", "profile"][index]}" class="${index === 0 ? "is-selected" : ""}" ${index === 0 ? 'disabled aria-current="page"' : ""}><span>${iconMarkup([icons.hub, icons.quest, icons.route, icons.journal][index] ?? icons.hub, label)}</span>${label}</button>`).join("")}</nav>
   </section>`;
 }
 
@@ -1042,9 +1052,9 @@ function objectPreviewModal(state: AppState): string {
 
 function environmentPanel(run: RunState): string {
   return `<aside class="status-panel status-panel--environment panel">
-    <div><b>${icons.temperature}</b><span>溫度</span><strong>${run.environment.temperature}°C</strong></div>
-    <div><b>${icons.noise}</b><span>噪音</span><strong>${run.environment.noise}</strong></div>
-    <div><b>${icons.hull}</b><span>車體</span><strong>${run.environment.hull}%</strong></div>
+    <div><b>${iconMarkup(icons.temperature)}</b><span>溫度</span><strong>${run.environment.temperature}°C</strong></div>
+    <div><b>${iconMarkup(icons.noise)}</b><span>噪音</span><strong>${run.environment.noise}</strong></div>
+    <div><b>${iconMarkup(icons.hull)}</b><span>車體</span><strong>${run.environment.hull}%</strong></div>
   </aside>`;
 }
 
@@ -1176,7 +1186,7 @@ function decorationTray(state: AppState, run: RunState): string {
 }
 
 function carriageSelector(state: AppState): string {
-  return `<nav class="carriage-selector panel" aria-label="切換五種車廂">${CARRIAGES.map((carriage) => `<button class="${state.activeCarriageId === carriage.id ? "is-selected" : ""}" data-action="select-carriage" data-value="${carriage.id}" aria-pressed="${state.activeCarriageId === carriage.id}"><span>${carriage.short}</span><small>${carriage.name.replace("車廂", "")}</small></button>`).join("")}</nav>`;
+  return `<nav class="carriage-selector panel" aria-label="切換五種車廂">${CARRIAGES.map((carriage) => `<button class="${state.activeCarriageId === carriage.id ? "is-selected" : ""}" data-action="select-carriage" data-value="${carriage.id}" aria-pressed="${state.activeCarriageId === carriage.id}"><span>${iconMarkup(carriageIcon(carriage.id), carriage.short)}</span><small>${carriage.name.replace("車廂", "")}</small></button>`).join("")}</nav>`;
 }
 
 const GREENHOUSE_PLOT_HOTSPOTS = {
@@ -1250,10 +1260,10 @@ function carriageHotspots(state: AppState, run: RunState): string {
     getRepairHullAmount(run),
   );
   const hotspot = {
-    sleep: `<button data-action="inspect-object" data-value="window-silhouette" style="--x:18%;--y:28%" aria-label="查看冷窗外的輪廓，不消耗 AP"><b>窗</b><span>查看</span><small>不扣 AP</small></button><button data-action="inspect-object" data-value="passenger-breathing" style="--x:88%;--y:43%" aria-label="查看 A-07 的呼吸與睡姿，不消耗 AP"><b>看</b><span>查看</span><small>不扣 AP</small></button><button data-action="open-relationship" data-value="A-07" style="--x:88%;--y:61%" aria-label="回應 A-07" ${a07Ready ? "" : "disabled"}><b>話</b><span>${a07Ready ? "回應" : "已回應"}</span><small>${a07Ready ? "聽她說" : "今天完成"}</small></button><button data-action="preview-action" data-value="use-medicine|" style="--x:31%;--y:68%" aria-label="使用醫療盒照護 A-07" ${run.resources.medicine < 1 || run.actionPoints < 1 || (run.survivor.health >= 100 && run.survivor.infection <= 0) ? "disabled" : ""}><b>醫</b><span>用藥</span><small>1 AP・藥 1</small></button><button data-action="preview-action" data-value="comfort|" style="--x:72%;--y:76%" aria-label="安撫 A-07，消耗 1 AP" ${run.flags.includes(`comforted-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b>撫</b><span>${run.flags.includes(`comforted-${run.day}`) ? "已安撫" : "安撫"}</span><small>1 AP</small></button>`,
-    defense: `<button data-action="toggle-module" data-value="M001" style="--x:82%;--y:36%" aria-label="切換防護百葉"><b>百</b><span>百葉</span><small>ON / OFF</small></button><button data-action="preview-action" data-value="repair-hull|" style="--x:19%;--y:56%" aria-label="維修車體，消耗 2 AP 與 2 零件，車體增加 ${repairAmount}" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}><b>修</b><span>${run.environment.hull >= 100 ? "車體完整" : "維修"}</span><small>${run.environment.hull >= 100 ? "無需維修" : `2 AP・零 2・體 +${repairAmount}`}</small></button>`,
-    workshop: `<button data-action="inspect-object" data-value="workshop-radio" style="--x:78%;--y:28%" aria-label="查看短波收音機，不消耗 AP"><b>聽</b><span>無線電</span><small>不扣 AP</small></button><button data-action="open-relationship" data-value="xu" style="--x:67%;--y:47%" aria-label="回應老許" ${xuReady ? "" : "disabled"}><b>許</b><span>${xuReady ? "回應" : "已通聯"}</span><small>${xuReady ? "打開頻道" : "今天完成"}</small></button><button data-action="open-refill" data-value="workshop" style="--x:42%;--y:45%" aria-label="打開工坊補電操作"><b>補</b><span>補電</span><small>先看成本</small></button><button data-action="preview-action" data-value="workshop-scrap|" style="--x:20%;--y:68%" aria-label="整理回收零件，消耗 1 AP" ${run.flags.includes(`workshop-scrap-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b>整</b><span>${run.flags.includes(`workshop-scrap-${run.day}`) ? "已整理" : "回收"}</span><small>1 AP</small></button>`,
-    kitchen: `<button data-action="open-refill" data-value="kitchen" style="--x:72%;--y:36%" aria-label="打開廚房與儲藏補給操作"><b>補</b><span>補給</span><small>濾水／配給</small></button><button data-action="preview-action" data-value="cook-meal|" style="--x:20%;--y:62%" aria-label="烹煮熱食，消耗 1 AP、食物 1、飲水 1、電量 2" ${run.flags.includes(`hot-meal-${run.day}`) || run.actionPoints < 1 || run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2 ? "disabled" : ""}><b>煮</b><span>${run.flags.includes(`hot-meal-${run.day}`) ? "已烹飪" : "熱食"}</span><small>1 AP・食水電</small></button>`,
+    sleep: `<button data-action="inspect-object" data-value="window-silhouette" style="--x:18%;--y:28%" aria-label="查看冷窗外的輪廓，不消耗 AP"><b aria-hidden="true">${iconMarkup(icons.scan, "冷窗")}</b><span>查看</span><small>不扣 AP</small></button><button data-action="inspect-object" data-value="passenger-breathing" style="--x:88%;--y:43%" aria-label="查看 A-07 的呼吸與睡姿，不消耗 AP"><b aria-hidden="true">${iconMarkup(icons.sleep, "睡姿")}</b><span>查看</span><small>不扣 AP</small></button><button data-action="open-relationship" data-value="A-07" style="--x:88%;--y:61%" aria-label="回應 A-07" ${a07Ready ? "" : "disabled"}><b aria-hidden="true">${iconMarkup(icons.journal, "對話")}</b><span>${a07Ready ? "回應" : "已回應"}</span><small>${a07Ready ? "聽她說" : "今天完成"}</small></button><button data-action="preview-action" data-value="use-medicine|" style="--x:31%;--y:68%" aria-label="使用醫療盒照護 A-07" ${run.resources.medicine < 1 || run.actionPoints < 1 || (run.survivor.health >= 100 && run.survivor.infection <= 0) ? "disabled" : ""}><b aria-hidden="true">${iconMarkup(icons.medicine)}</b><span>用藥</span><small>1 AP・藥 1</small></button><button data-action="preview-action" data-value="comfort|" style="--x:72%;--y:76%" aria-label="安撫 A-07，消耗 1 AP" ${run.flags.includes(`comforted-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b aria-hidden="true">${iconMarkup(icons.comfort)}</b><span>${run.flags.includes(`comforted-${run.day}`) ? "已安撫" : "安撫"}</span><small>1 AP</small></button>`,
+    defense: `<button data-action="toggle-module" data-value="M001" style="--x:82%;--y:36%" aria-label="切換防護百葉"><b aria-hidden="true">${iconMarkup(icons.shield)}</b><span>百葉</span><small>ON / OFF</small></button><button data-action="preview-action" data-value="repair-hull|" style="--x:19%;--y:56%" aria-label="維修車體，消耗 2 AP 與 2 零件，車體增加 ${repairAmount}" ${run.environment.hull >= 100 || run.actionPoints < 2 || run.resources.parts < 2 ? "disabled" : ""}><b aria-hidden="true">${iconMarkup(icons.repair)}</b><span>${run.environment.hull >= 100 ? "車體完整" : "維修"}</span><small>${run.environment.hull >= 100 ? "無需維修" : `2 AP・零 2・體 +${repairAmount}`}</small></button>`,
+    workshop: `<button data-action="inspect-object" data-value="workshop-radio" style="--x:78%;--y:28%" aria-label="查看短波收音機，不消耗 AP"><b aria-hidden="true">${iconMarkup(icons.scan, "無線電")}</b><span>無線電</span><small>不扣 AP</small></button><button data-action="open-relationship" data-value="xu" style="--x:67%;--y:47%" aria-label="回應老許" ${xuReady ? "" : "disabled"}><b aria-hidden="true">${iconMarkup(icons.journal, "通聯")}</b><span>${xuReady ? "回應" : "已通聯"}</span><small>${xuReady ? "打開頻道" : "今天完成"}</small></button><button data-action="open-refill" data-value="workshop" style="--x:42%;--y:45%" aria-label="打開工坊補電操作"><b aria-hidden="true">${iconMarkup(icons.power)}</b><span>補電</span><small>先看成本</small></button><button data-action="preview-action" data-value="workshop-scrap|" style="--x:20%;--y:68%" aria-label="整理回收零件，消耗 1 AP" ${run.flags.includes(`workshop-scrap-${run.day}`) || run.actionPoints < 1 ? "disabled" : ""}><b aria-hidden="true">${iconMarkup(icons.repair, "回收")}</b><span>${run.flags.includes(`workshop-scrap-${run.day}`) ? "已整理" : "回收"}</span><small>1 AP</small></button>`,
+    kitchen: `<button data-action="open-refill" data-value="kitchen" style="--x:72%;--y:36%" aria-label="打開廚房與儲藏補給操作"><b aria-hidden="true">${iconMarkup(icons.water, "補給")}</b><span>補給</span><small>濾水／配給</small></button><button data-action="preview-action" data-value="cook-meal|" style="--x:20%;--y:62%" aria-label="烹煮熱食，消耗 1 AP、食物 1、飲水 1、電量 2" ${run.flags.includes(`hot-meal-${run.day}`) || run.actionPoints < 1 || run.resources.food < 1 || run.resources.water < 1 || run.resources.energy < 2 ? "disabled" : ""}><b aria-hidden="true">${iconMarkup(icons.meal)}</b><span>${run.flags.includes(`hot-meal-${run.day}`) ? "已烹飪" : "熱食"}</span><small>1 AP・食水電</small></button>`,
   }[state.activeCarriageId];
   return `<div class="scene-hotspots" aria-label="${CARRIAGES.find((carriage) => carriage.id === state.activeCarriageId)?.name}設備熱區">${hotspot}</div>`;
 }
@@ -1768,7 +1778,7 @@ function frostBranchOverlay(
           ? "水培保溫環已接入 LOOP"
           : "點「熱力」調整 H1–H6";
   return `<div class="frost-route-overlay ${activeBranch ? `is-${activeBranch.toLowerCase()}` : ""}" data-frost-branch="${activeBranch ?? "UNSET"}" aria-label="${escapeText(label)}">
-    <span class="frost-route-overlay__equipment" aria-hidden="true">${activeBranch === "CARE" ? "暖" : activeBranch === "CLEAR" ? "軌" : activeBranch === "SUSTAIN" ? "環" : "霜"}</span>
+    <span class="frost-route-overlay__equipment" aria-hidden="true">${iconMarkup(activeBranch === "CARE" ? icons.comfort : activeBranch === "CLEAR" ? icons.route : activeBranch === "SUSTAIN" ? icons.greenhouse : icons.temperature, label)}</span>
     <p><strong>${escapeText(label)}</strong><small>${escapeText(detail)}</small></p>
   </div>`;
 }
@@ -1805,7 +1815,7 @@ function greenBranchOverlay(
   return `<div class="green-route-overlay ${activeBranch ? `is-${activeBranch.toLowerCase()}` : ""} ${greenTide.branchOperationComplete ? "is-resolved" : ""}" data-green-branch="${activeBranch ?? greenTide.branch ?? "UNSET"}" data-reservoir-contamination="${greenTide.reservoirContamination}" aria-label="綠潮線循環狀態">
     <div class="living-root-rail ${contaminationTone}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b></b></div>
     <div class="green-branch-equipment">
-      <span aria-hidden="true">${equipment.icon}</span>
+      <span aria-hidden="true">${iconMarkup(equipment.icon, equipment.title)}</span>
       <p><strong>${escapeText(equipment.title)}</strong><small>${escapeText(equipment.detail)}</small></p>
     </div>
     <div class="green-route-vitals" role="status"><span>槽 A <b>${plotA === 0 ? "淨" : `污 ${plotA}`}</b></span><span>槽 B <b>${plotB === 0 ? "淨" : `污 ${plotB}`}</b></span><span>水庫 <b>${greenTide.reservoirContamination}</b></span></div>
@@ -1925,7 +1935,7 @@ function carriageScreen(state: AppState): string {
     !night && (state.decorating || state.carriagePanel !== "scene");
   return `<section class="screen screen--carriage ${night ? "is-night" : "is-prep"} ${drawerOpen ? "has-drawer" : "is-observation-mode"} contact-stage-${contact?.stage ?? "idle"}" data-screen="SCR-CV-${night ? "B" : "A"}" data-carriage="${state.activeCarriageId}" data-panel="${state.decorating ? "decor" : state.carriagePanel}" data-route-id="${run.routeId}" data-green-route="${greenRoute}" data-threat-id="${threat?.id ?? contact?.definitionId ?? ""}">
     ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `${routeLabel(run.routeId)}・22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${greenRoute ? "綠潮線・循環檢疫" : frostRoute ? "白霜線" : activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
-    ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : state.nightPaused ? icons.play : "Ⅱ"}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
+    ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : iconMarkup(state.nightPaused ? icons.play : icons.pause)}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
     ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
     ${!night ? trackedQuestRibbon(state) : ""}
     ${!night && !run.flags.includes("carriage-nav-seen") ? `<p class="carriage-swipe-hint" aria-hidden="true"><b>←</b> 滑動車廂 <b>→</b></p>` : ""}
@@ -1974,12 +1984,12 @@ function carriageScreen(state: AppState): string {
                 action.id === "roof-release"
                   ? `${effectiveCost || "零件 1"}・噪音 +4・壓力 +2`
                   : effectiveCost || action.cost;
-              return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${action.icon}</b><span>${action.label}</span><small>${readiness.available ? visibleCost : readiness.reason}</small></button>`;
+              return `<button data-action="counter" data-value="${action.id}" ${readiness.available ? "" : "disabled"}><b>${iconMarkup(action.icon, action.label)}</b><span>${action.label}</span><small>${readiness.available ? visibleCost : readiness.reason}</small></button>`;
             })
             .join("")}</div></div>`
         : `${state.decorating ? decorationTray(state, run) : prepPanel}
     <nav class="carriage-dock panel">
-      <button data-action="modules"><span>${icons.build}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${greenRoute ? "◎" : frostRoute ? "◈" : icons.power}</span><b>${greenRoute ? "循環" : frostRoute ? "熱力" : "配電"}</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${icons.meal}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>◇</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${icons.route}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
+      <button data-action="modules"><span>${iconMarkup(icons.build)}</span><b>建造</b></button><button class="${state.carriagePanel === "power" && !state.decorating ? "is-selected" : ""}" data-action="power" aria-expanded="${state.carriagePanel === "power" && !state.decorating}"><span>${iconMarkup(greenRoute ? icons.greenhouse : frostRoute ? icons.temperature : icons.power)}</span><b>${greenRoute ? "循環" : frostRoute ? "熱力" : "配電"}</b></button><button class="${state.carriagePanel === "meal" && !state.decorating ? "is-selected" : ""}" data-action="meal" aria-expanded="${state.carriagePanel === "meal" && !state.decorating}"><span>${iconMarkup(icons.meal)}</span><b>配餐</b></button><button class="${state.decorating ? "is-selected" : ""}" data-action="decorate" aria-expanded="${state.decorating}"><span>${iconMarkup(icons.comfort, "佈置")}</span><b>佈置</b></button><button class="is-primary" data-action="route"><span>${iconMarkup(icons.route)}</span><b>出發</b><small>${run.actionPoints} AP</small></button>
     </nav>`
     }
     <div class="toast-message" role="status"><span class="toast-copy">${escapeText(run.lastMessage)}</span>${actionFeedback(state)}</div>
@@ -2052,8 +2062,8 @@ function routeScreen(state: AppState): string {
   return `<section class="screen screen--route ${emergencyAvailable ? "has-emergency-route" : ""} ${expeditionActive ? "has-expedition" : ""}" data-screen="SCR-RM-${run.techOwned.includes("I1") ? "B" : "A"}">
     ${compactHeader(run, state.routePreview ? "路線圖鑑" : "路線規劃", state.routePreview ? `局外預覽・${routeLabel(run.routeId)}` : `${routeLabel(run.routeId)}・${run.routeId === "R03" ? "封閉循環區段" : run.routeId === "R02" ? "凍結區段" : "第 1 區段"}`, state.routePreview ? "hub" : "carriage")}
     <div class="route-map panel">
-      <svg viewBox="0 0 336 400" role="img" aria-label="路線節點圖"><path d="M42 320 C90 270 98 220 156 198 S252 156 292 70"/><path d="M42 320 C130 340 228 326 292 270"/><path d="M156 198 C200 206 232 240 292 270"/></svg>
-      ${ROUTE_NODES.map((node, index) => `<button class="route-node route-node--${node.kind} ${state.selectedRouteId === node.id ? "is-selected" : ""}" style="--x:${[12, 46, 83][index]}%;--y:${[78, 47, 18][index]}%" data-action="select-route" data-value="${node.id}"><span>${node.kind === "danger" ? "!" : node.kind === "supply" ? "+" : "◇"}</span><small>${node.name}</small></button>`).join("")}
+      <div class="map-art map-art--route" role="img" aria-label="紙本路線節點圖"><span>路線圖</span></div>
+      ${ROUTE_NODES.map((node, index) => `<button class="route-node route-node--${node.kind} ${state.selectedRouteId === node.id ? "is-selected" : ""}" style="--x:${[12, 46, 83][index]}%;--y:${[78, 47, 18][index]}%" data-action="select-route" data-value="${node.id}"><span>${iconMarkup(node.kind === "danger" ? icons.danger : node.kind === "supply" ? icons.build : icons.route, node.name)}</span><small>${node.name}</small></button>`).join("")}
       <div class="route-legend"><span>◆ 補給</span><span>◇ 故事</span><span>! 危險</span></div>
     </div>
     ${selected && selectedTradeoff ? `<article class="route-summary panel"><div><strong>${selected.name}</strong><span>${selectedTradeoff.contactDelta > 0 ? `接觸 +${selectedTradeoff.contactDelta}` : selectedTradeoff.contactDelta < 0 ? `接觸 ${selectedTradeoff.contactDelta}` : "接觸數不變"}${selectedTradeoff.tutorialSafetyApplied ? "・新手保護" : ""}</span></div><p>距離 ${selected.distance} km　｜　燃料 −${selectedFuelCost}${frostPenalty > 0 ? `（積冰 +${frostPenalty}）` : ""}</p><p class="route-tradeoff"><b>優勢</b>${escapeText(selectedTradeoff.advantage)}</p><p class="route-tradeoff is-cost"><b>代價</b>${escapeText(selectedTradeoff.cost)}</p>${button("confirm-route", state.routePreview ? "局外預覽" : expeditionActive ? "先完成或撤回探索" : run.resources.fuel < selectedFuelCost ? "燃料不足" : "確認路線", { value: selected.id, primary: !state.routePreview && !expeditionActive && run.resources.fuel >= selectedFuelCost, icon: icons.route, detail: state.routePreview ? "回到遊戲整備後才能出發" : undefined, disabled: state.routePreview || expeditionActive || run.resources.fuel < selectedFuelCost })}</article>` : ""}
@@ -2146,7 +2156,7 @@ function modulesScreen(state: AppState): string {
   return `<section class="screen screen--modules" data-screen="SCR-MD-A">
     ${compactHeader(run, state.modulePreview ? "列車起始藍圖" : "建造與模組", state.modulePreview ? "局外預覽・不會消耗資源" : `整備・${run.actionPoints} AP・${run.resources.parts} 零件`, state.modulePreview ? "hub" : "carriage")}
     <div class="bottom-sheet panel"><span class="drag-handle"></span><div class="category-tabs">${["全部", "防禦", "生產", "生活"].map((category) => `<button class="${state.moduleCategory === category ? "is-selected" : ""}" data-action="select-module-category" data-value="${category}">${category}</button>`).join("")}</div>
-      <div class="module-grid">${visibleModules.map((module) => `<button class="module-card ${module.id === selected?.id ? "is-selected" : ""}" data-action="select-module" data-value="${module.id}"><span>${module.slot === "window" ? icons.shield : module.slot === "floor" ? "暖" : module.slot === "wall" ? "芽" : "器"}</span><strong>${module.name}</strong><small>${module.slot}・零件 ${getModuleBuildPartsCost(run, module.id)}</small></button>`).join("")}</div>
+      <div class="module-grid">${visibleModules.map((module) => `<button class="module-card ${module.id === selected?.id ? "is-selected" : ""}" data-action="select-module" data-value="${module.id}"><span>${iconMarkup(module.slot === "window" ? icons.shield : module.slot === "floor" ? icons.temperature : module.slot === "wall" ? icons.greenhouse : icons.workshop, module.name)}</span><strong>${module.name}</strong><small>${module.slot}・零件 ${getModuleBuildPartsCost(run, module.id)}</small></button>`).join("")}</div>
       ${selected ? `<article class="selected-module"><div><strong>${selected.name}</strong><small>${selected.description}</small></div><p>耗電 ${selected.activeCost}　｜　優先級 P${selected.priority}　｜　零件 ${selectedPartsCost}・2 AP</p>${button("preview-action", state.modulePreview ? "局外預覽" : run.modules.some((module) => module.definitionId === selected.id) ? "已安裝" : run.resources.parts < selectedPartsCost ? "零件不足" : run.actionPoints < 2 ? "AP 不足" : "查看建造成本", { value: previewIntent("build-module", selected.id), primary: !state.modulePreview && !run.modules.some((module) => module.definitionId === selected.id) && run.resources.parts >= selectedPartsCost && run.actionPoints >= 2, icon: icons.build, detail: state.modulePreview ? "回到遊戲整備後才能建造" : "確認前不扣 AP 或零件", disabled: state.modulePreview || run.resources.parts < selectedPartsCost || run.actionPoints < 2 || run.modules.some((module) => module.definitionId === selected.id) })}</article>` : ""}
       ${state.modulePreview ? "" : facilityUpgradePanel(run)}
     </div>
@@ -2175,7 +2185,7 @@ function techScreen(state: AppState): string {
         return `<button class="${state.techBranch === branch ? "is-selected" : ""}" data-action="select-tech-branch" data-value="${branch}" ${available ? "" : "disabled"}>${branch}</button>`;
       })
       .join("")}</div>
-    <div class="tech-tree panel"><svg viewBox="0 0 336 360"><path d="M42 64 L84 146 L168 222 L244 302"/><path d="M294 64 L252 146 L168 222"/><path d="M84 146 L252 146"/></svg>
+    <div class="tech-tree panel"><div class="map-art map-art--tech" role="img" aria-label="列車技術藍圖"><span>技術藍圖</span></div>
       ${TECH_NODES.map((node, index) => {
         const positions = [
           [15, 14],
@@ -2267,7 +2277,7 @@ function resultScreen(state: AppState): string {
 
 function settingsScreen(state: AppState): string {
   const { settings } = state;
-  return `<section class="screen screen--settings"><header class="simple-header"><button class="icon-button" data-action="menu">${icons.back}</button><h1>設定與無障礙</h1></header><div class="settings-list panel">
+  return `<section class="screen screen--settings"><header class="simple-header"><button class="icon-button" data-action="menu" aria-label="返回">${iconMarkup(icons.back)}</button><h1>設定與無障礙</h1></header><div class="settings-list panel">
     <button data-action="cycle-text"><span><strong>文字大小</strong><small>所有流程支援 100／120／140%</small></span><b>${settings.textScale}%</b></button>
     <button data-action="toggle-motion"><span><strong>減少動態</strong><small>以靜態輪廓取代警報閃爍</small></span><b>${settings.reducedMotion ? "ON" : "OFF"}</b></button>
     <button data-action="toggle-countdown"><span><strong>事件無倒數</strong><small>緊急事件改為完全暫停</small></span><b>${settings.noCountdown ? "ON" : "OFF"}</b></button>
