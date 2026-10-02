@@ -19,8 +19,8 @@
   "assets": [
     {
       "assetId": "v2.carriage.sleep",
-      "source": "assets\\art\\v2\\source\\carriage-sleep-source.png",
-      "runtime": "assets\\art\\v2\\carriages\\sleep.png",
+      "source": "assets/art/v2/source/carriage-sleep-source.png",
+      "runtime": "assets/art/v2/carriages/sleep.png",
       "sourceSha256": "4dff5c6f37d547256c37caeb4e8105d7f2e21a1b519c1b07ff2eba04d17b70a2",
       "runtimeSha256": "e12957bb3969ce9a2d55036dc603d2afecb7383b2138dbe486ea9f9d7743f4d4",
       "sourceSize": [
@@ -65,8 +65,8 @@
     },
     {
       "assetId": "v2.carriage.defense",
-      "source": "assets\\art\\v2\\source\\carriage-defense-source.png",
-      "runtime": "assets\\art\\v2\\carriages\\defense.png",
+      "source": "assets/art/v2/source/carriage-defense-source.png",
+      "runtime": "assets/art/v2/carriages/defense.png",
       "sourceSha256": "c7dabeef38c08b89819a1c4e5dce6379055f812deae194db075529ed9b65e148",
       "runtimeSha256": "0ef6662e72b74f3d08ce058a15a7a44b13d2270be90314352bee8be7ea4fb542",
       "sourceSize": [
@@ -111,8 +111,8 @@
     },
     {
       "assetId": "v2.carriage.workshop",
-      "source": "assets\\art\\v2\\source\\carriage-workshop-source.png",
-      "runtime": "assets\\art\\v2\\carriages\\workshop.png",
+      "source": "assets/art/v2/source/carriage-workshop-source.png",
+      "runtime": "assets/art/v2/carriages/workshop.png",
       "sourceSha256": "7d2dd940f852314ee31c6d29bb2757737f32a8b7bbf94cb18fe65a5ea7bd8695",
       "runtimeSha256": "a881c3ef228c0e89f0f51f946cfcd9e896462b9dff947e8c4da4d12e7cd9c27d",
       "sourceSize": [
@@ -157,8 +157,8 @@
     },
     {
       "assetId": "v2.carriage.greenhouse",
-      "source": "assets\\art\\v2\\source\\carriage-greenhouse-source.png",
-      "runtime": "assets\\art\\v2\\carriages\\greenhouse.png",
+      "source": "assets/art/v2/source/carriage-greenhouse-source.png",
+      "runtime": "assets/art/v2/carriages/greenhouse.png",
       "sourceSha256": "3966d3a2b3b94785899b39b7e0b77c546f94adec9e8edf3231d3c88eb37dac8a",
       "runtimeSha256": "1a8ee8ff532dc817f622f528ebacc5ff05e40679030b2239421a02bf3acb8ef0",
       "sourceSize": [
@@ -191,7 +191,7 @@
         "#AA8D66"
       ],
       "sampledOpaquePixels": 25680,
-      "luminanceRange": 1.0,
+      "luminanceRange": 1,
       "warmColorRatio": 0.6508,
       "targetPaletteCoverage": 0.8582,
       "recognition64": {
@@ -203,8 +203,8 @@
     },
     {
       "assetId": "v2.carriage.kitchen",
-      "source": "assets\\art\\v2\\source\\carriage-kitchen-source.png",
-      "runtime": "assets\\art\\v2\\carriages\\kitchen.png",
+      "source": "assets/art/v2/source/carriage-kitchen-source.png",
+      "runtime": "assets/art/v2/carriages/kitchen.png",
       "sourceSha256": "bbbec6b6eb87f502de1387f428b0a998539ab020b375831e51b0dc4805c9c9e9",
       "runtimeSha256": "4a105775a36b70ce6077ec02c2a14c861c905447cd0f676f1d40a0fdf6fc88ed",
       "sourceSize": [
@@ -249,8 +249,8 @@
     },
     {
       "assetId": "v2.character.a07.atlas",
-      "source": "assets\\art\\v2\\source\\a07-atlas-source.png",
-      "runtime": "assets\\art\\v2\\characters\\a07\\atlas.png",
+      "source": "assets/art/v2/source/a07-atlas-source.png",
+      "runtime": "assets/art/v2/characters/a07/atlas.png",
       "sourceSha256": "6250b1396c977df66f906115db6ef6662f2bf4449652584476205240b5a6bc7b",
       "runtimeSha256": "9128b5439709dcac87029255c1ecb193179d542ecc5cdd879fa95d7781001467",
       "sourceSize": [
@@ -1137,8 +1137,8 @@
     },
     {
       "assetId": "v2.threat.knocker",
-      "source": "assets\\art\\v2\\source\\v2-threat-knocker-source.png",
-      "runtime": "assets\\art\\v2\\threats\\knocker\\atlas.png",
+      "source": "assets/art/v2/source/v2-threat-knocker-source.png",
+      "runtime": "assets/art/v2/threats/knocker/atlas.png",
       "sourceSha256": "3c239e07bb10a35937ed78eee6396a7549776ec760cc543f8053b39a2adfdaa9",
       "runtimeSha256": "4c97ebe1df032ab299b085b21435aab56630f34ba2e4ab8d12512e4140774128",
       "sourceSize": [
@@ -1511,8 +1511,8 @@
     },
     {
       "assetId": "v2.threat.clinger",
-      "source": "assets\\art\\v2\\source\\v2-threat-clinger-source.png",
-      "runtime": "assets\\art\\v2\\threats\\clinger\\atlas.png",
+      "source": "assets/art/v2/source/v2-threat-clinger-source.png",
+      "runtime": "assets/art/v2/threats/clinger/atlas.png",
       "sourceSha256": "1521d503a013a41cb2ed9782352a73e4511277aa101324dd682021efc11f7e93",
       "runtimeSha256": "9b627d5757f74157dda28239915a07d305fc7419380eb0492418adb0ebed1afe",
       "sourceSize": [
@@ -1885,8 +1885,8 @@
     },
     {
       "assetId": "v2.threat.vine",
-      "source": "assets\\art\\v2\\source\\v2-threat-vine-source.png",
-      "runtime": "assets\\art\\v2\\threats\\vine\\atlas.png",
+      "source": "assets/art/v2/source/v2-threat-vine-source.png",
+      "runtime": "assets/art/v2/threats/vine/atlas.png",
       "sourceSha256": "9d218d32e66775b0b61e3a02b27e1741dfe52cc7e10a10e454d3f3ef6fb01d63",
       "runtimeSha256": "7b52666676ce1b144890b8ebbc9af8dc232954c6cba885a7868f7948433306e2",
       "sourceSize": [
@@ -2259,8 +2259,8 @@
     },
     {
       "assetId": "v2.threat.echo",
-      "source": "assets\\art\\v2\\source\\v2-threat-echo-source.png",
-      "runtime": "assets\\art\\v2\\threats\\echo\\atlas.png",
+      "source": "assets/art/v2/source/v2-threat-echo-source.png",
+      "runtime": "assets/art/v2/threats/echo/atlas.png",
       "sourceSha256": "3372f59d220601ab2240ee7a06bf9eba3dde47438d7bf46ea11ae3d1f01801ae",
       "runtimeSha256": "ee62ecdc61516a6ba78854aa4c10fa4cd97198a4107563a3a8d9b16cfd42dcc4",
       "sourceSize": [
@@ -2633,8 +2633,8 @@
     },
     {
       "assetId": "v2.threat.crowd",
-      "source": "assets\\art\\v2\\source\\v2-threat-crowd-source.png",
-      "runtime": "assets\\art\\v2\\threats\\crowd\\atlas.png",
+      "source": "assets/art/v2/source/v2-threat-crowd-source.png",
+      "runtime": "assets/art/v2/threats/crowd/atlas.png",
       "sourceSha256": "f147eb5ca3c556437352991d606fa87f5b4c0eff4f8960df630cfddf4fae023f",
       "runtimeSha256": "8771b7ea5b7f06395282d87eee302099cc91f3c2edb1a37fab64692fcf00a6df",
       "sourceSize": [
@@ -3007,8 +3007,8 @@
     },
     {
       "assetId": "v2.equipment.atlas",
-      "source": "assets\\art\\v2\\source\\v2-equipment-atlas-source.png",
-      "runtime": "assets\\art\\v2\\equipment\\atlas.png",
+      "source": "assets/art/v2/source/v2-equipment-atlas-source.png",
+      "runtime": "assets/art/v2/equipment/atlas.png",
       "sourceSha256": "62667153c9669f972ffd7ae488c4ab496392afcf99494234be10cee04c6385e1",
       "runtimeSha256": "db98c715529989bf660c628d1755f1c295bcde02334c82bfe87e73780a0de30e",
       "sourceSize": [

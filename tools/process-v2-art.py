@@ -258,8 +258,8 @@ def process_carriage(name: str, source_path: Path, output_dir: Path) -> dict[str
     bpy.data.images.remove(image)
     return {
         "assetId": f"v2.carriage.{name}",
-        "source": str(source_copy.relative_to(output_dir.parent.parent.parent)),
-        "runtime": str(output_path.relative_to(output_dir.parent.parent.parent)),
+        "source": source_copy.relative_to(output_dir.parent.parent.parent).as_posix(),
+        "runtime": output_path.relative_to(output_dir.parent.parent.parent).as_posix(),
         "sourceSha256": sha256_file(source_copy),
         "runtimeSha256": sha256_file(output_path),
         "sourceSize": [source_width, source_height],
@@ -347,8 +347,8 @@ def process_atlas(source_path: Path, output_dir: Path) -> dict[str, object]:
     bpy.data.images.remove(image)
     return {
         "assetId": "v2.character.a07.atlas",
-        "source": str(source_copy.relative_to(output_dir.parent.parent.parent)),
-        "runtime": str(output_path.relative_to(output_dir.parent.parent.parent)),
+        "source": source_copy.relative_to(output_dir.parent.parent.parent).as_posix(),
+        "runtime": output_path.relative_to(output_dir.parent.parent.parent).as_posix(),
         "sourceSha256": sha256_file(source_copy),
         "runtimeSha256": sha256_file(output_path),
         "sourceSize": [width, height],
@@ -451,8 +451,8 @@ def process_regular_grid(
     bpy.data.images.remove(image)
     return {
         "assetId": asset_id,
-        "source": str(source_copy.relative_to(output_dir.parent.parent.parent)),
-        "runtime": str(output_path.relative_to(output_dir.parent.parent.parent)),
+        "source": source_copy.relative_to(output_dir.parent.parent.parent).as_posix(),
+        "runtime": output_path.relative_to(output_dir.parent.parent.parent).as_posix(),
         "sourceSha256": sha256_file(source_copy),
         "runtimeSha256": sha256_file(output_path),
         "sourceSize": [width, height],

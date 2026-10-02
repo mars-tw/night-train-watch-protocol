@@ -136,6 +136,8 @@ describe("v2 art runtime contract", () => {
     expect(report.assets).toHaveLength(12);
     expect(report.assets.every((asset) => asset.recognition64.pass)).toBe(true);
     for (const asset of report.assets) {
+      expect(asset.source).not.toContain("\\");
+      expect(asset.runtime).not.toContain("\\");
       expect(sha256(resolve(workspace, "public", asset.source))).toBe(asset.sourceSha256);
       expect(sha256(resolve(workspace, "public", asset.runtime))).toBe(asset.runtimeSha256);
     }
