@@ -13,6 +13,25 @@ const sceneManifest = readFileSync(
 );
 
 describe("reboot v2 mobile UI contract", () => {
+  it("orders R01 first and labels locked R02/R03 as playable previews", () => {
+    const menu = view.slice(
+      view.indexOf("function menuScreen"),
+      view.indexOf("function hubScreen"),
+    );
+    const r01 = menu.indexOf('button("new-game", "R01・灰霧線"');
+    const r02 = menu.indexOf('button("new-game", frostUnlocked');
+    const r03 = menu.indexOf('button("new-game", greenUnlocked');
+    expect(r01).toBeGreaterThan(0);
+    expect(r01).toBeLessThan(r02);
+    expect(r02).toBeLessThan(r03);
+    expect(menu).toContain('state.profile.routeUnlocks.includes("R02")');
+    expect(menu).toContain('state.profile.routeUnlocks.includes("R03")');
+    expect(menu).toContain("R02・白霜線（預覽）");
+    expect(menu).toContain("存活三夜後結束旅程／完成任一七夜即正式解鎖");
+    expect(menu).toContain("R03・綠潮線（預覽）");
+    expect(menu).not.toContain("disabled:");
+  });
+
   it("ships mission and profile views backed by real run/profile state", () => {
     expect(view).toContain("listRunQuests(run, state.profile)");
     expect(view).toContain('data-screen="SCR-MSN-');

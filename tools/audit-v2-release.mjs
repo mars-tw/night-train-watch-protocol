@@ -2,6 +2,7 @@ import { chromium } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 
 const base = process.env.GAME_URL ?? "http://127.0.0.1:4312";
+const { version } = JSON.parse(await (await import("node:fs/promises")).readFile("package.json", "utf8"));
 const output = "docs/evidence/v2";
 await mkdir(`${output}/screenshots`, { recursive: true });
 const browser = await chromium.launch({ headless: true });
@@ -74,7 +75,7 @@ try {
     } catch {}
   }
 } finally {await browser.close();}
-const report={version:"2.0.0",status:failures.length?"FAIL":"PASS",assertions:assertions.length,checks:assertions,failures,browserErrors,frames,physicalPhonePerformance:"Not measured; mobile-size results use the same desktop host"};
+const report={version,status:failures.length?"FAIL":"PASS",assertions:assertions.length,checks:assertions,failures,browserErrors,frames,physicalPhonePerformance:"Not measured; mobile-size results use the same desktop host"};
 await writeFile(`${output}/release-qa.json`,JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(failures.length)process.exitCode=1;

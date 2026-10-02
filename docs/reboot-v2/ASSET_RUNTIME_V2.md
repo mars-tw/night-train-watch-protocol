@@ -67,3 +67,22 @@ Renderer 不再把 `threat-fog-vine-gpt-v1.png` 等整幅故事插圖蓋在新�
 `pipeline-report.json` 的 64px pass 是色彩與明暗可分辨性機器檢查，不等於真人辨識測試。角色外觀、熱區位置和設備組合仍需以 360×640、390×844、430×932 實際畫面覆核。
 
 本輪已用 Playwright 在 390×844 實際查看主選單 A-07 睡姿、臥室睡姿、四個無人物車廂與敲窗者 contact；人物／威脅都來自不同 atlas cell，瀏覽器 console 為 0 error。五張威脅 source contact sheet 也逐張目視，均可看到接近、伸手／接觸及退去方向的多種姿勢。其他視口與五家族完整時間序列仍由最終 QA 批次補錄，不以單張截圖取代動畫驗收。
+
+## 2.0.1 無損載入優化
+
+12 張 processed PNG、原始 source、Blender 檔與 `pipeline-report.json` 全部保留不變。`tools/compress-v2-runtime.py` 使用 Pillow 12.2.0，以 `lossless=True`、`quality=100`、`method=6`、`exact=True` 另外產生同路徑同 stem 的 WebP。每張都重新開檔驗證尺寸、完整 alpha，以及所有 alpha 大於 0 的 RGB；透明像素的隱藏 RGB 可由 codec 歸零。PNG／WebP 檔案 hash、RGBA readback hash、bytes 與比率記在 `compression-report.json`。
+
+實測結果：12 張 PNG 合計 **18.610 MiB**，lossless WebP 合計 **11.999 MiB**，減少 **6.611 MiB（35.52%）**。這是 method 6 在本批圖上的真實下限，沒有宣稱整批低於 6 MiB。首選單只要求 `carriages/sleep.webp` 與 `characters/a07/atlas.webp`，合計 **1,915,444 bytes／1.827 MiB**，低於首畫 6 MiB 目標。
+
+色彩 metadata 也納入驗證。12 張 PNG 都沒有 ICC profile，均帶 `gAMA=0.45455`、`sRGB intent=3`；WebP 沒有獨立 gamma chunk，瀏覽器按預設 sRGB 解碼。壓縮器會在來源真的含 ICC 時原樣寫入並回讀核對。Pillow 回讀的尺寸、alpha 與所有 alpha>0 的 raw RGB 全部逐位元相等。Chromium 同源 Canvas 再驗：五張全不透明背景的 raw RGBA 完全相同；七張透明 atlas 的 alpha 與 alpha=255 RGB 完全相同。半透明 unpremultiply mismatch count 依序為 A-07 687,256、設備 636,380、敲窗者 448,859、攀附者 400,883、霧藤 567,624、回聲乘客 606,590、群影 592,275，raw max delta 64；這些全在半透明抗鋸齒像素，低 alpha 會把 1 個 premultiplied rounding unit 放大，不是主體色漂。把兩格式分別畫到黑色、奶油 `#efe2c4`、霧青灰 `#9ab6b7` 三種不透明底後，所有 12 張的實際合成 max channel delta 都不超過 **1/255**。因此本批稱為儲存資料 lossless、顯示結果在瀏覽器 decoder rounding 1 階內一致，不宣稱半透明 unpremultiplied Canvas 數值完全相同。
+
+Renderer 的 runtime URL 全部改用 WebP，manifest 另保留 `pngSource` 供 hash 與像素驗收。建構時不再一次建立 12 個 `Image`，也不載入 legacy `carriage-menu.png`／`carriage-night.png`；兩者只留在 provenance export。載入規則如下：
+
+- 主選單：臥室背景＋A-07，共 2 個 v2 圖檔。
+- 遊戲：目前車廂優先；需要時加入當前威脅、設備、相鄰車廂與 A-07。
+- 威脅 atlas：只有接觸出現或退去 clip 尚未完成時才排入。
+- Queue：最多同時下載／解碼 2 張；同 key 去重；最多 3 次同 URL 重試，失敗前先清空 `src`，不加 query 破壞 HTTP／SW cache。
+- 快速切廂會取消尚未開始且不再需要的 queued key，清除 queued status；日後再次需要可正常重排，不會卡成永久空圖。
+- 已解碼圖片受 10,000,000 resident-pixel 上限約束，非目前／相鄰／角色／設備／接觸需求的最舊圖片先釋放，避免整趟旅程把全部 atlas 永久留在 GPU。
+
+Chromium 首選單實測的 Resource Timing 只有 `sleep.webp` 與 `a07/atlas.webp` 兩筆 v2 art；完整 request inspector 最多另見相鄰 `defense.webp` 一筆，仍符合不超過 3 個關鍵圖檔，且沒有 equipment 或 threat atlas。兩個必要首畫檔合計 1.827 MiB；即使把該相鄰車廂計入也低於 2.3 MiB。

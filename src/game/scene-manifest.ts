@@ -1,4 +1,4 @@
-import type { CarriageId, ContactStage, RunState, ThreatContact } from "./types";
+import type { CarriageId, ContactStage, RunState, ScreenId, ThreatContact } from "./types";
 
 export type SceneVisualState =
   | "unprepared" | "secure" | "disturbed" | "restored"
@@ -20,6 +20,7 @@ export interface SceneHotspot {
 
 export interface CarriageSceneManifest {
   source: string;
+  pngSource: string;
   states: readonly SceneVisualState[];
   hotspots: readonly SceneHotspot[];
   weatherWindows: readonly NormalizedBounds[];
@@ -27,7 +28,8 @@ export interface CarriageSceneManifest {
 
 export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>> = {
   sleep: {
-    source: "./assets/art/v2/carriages/sleep.png",
+    source: "./assets/art/v2/carriages/sleep.webp",
+    pngSource: "./assets/art/v2/carriages/sleep.png",
     states: ["unprepared", "secure", "disturbed", "restored"],
     hotspots: [
       { id: "sleep-bed", label: "主床與 A-07", bounds: { x: 0.55, y: 0.38, width: 0.43, height: 0.44 } },
@@ -40,7 +42,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   defense: {
-    source: "./assets/art/v2/carriages/defense.png",
+    source: "./assets/art/v2/carriages/defense.webp",
+    pngSource: "./assets/art/v2/carriages/defense.png",
     states: ["unprepared", "secure", "breached", "restored"],
     hotspots: [
       { id: "defense-window", label: "觀察窗", bounds: { x: 0.24, y: 0.16, width: 0.43, height: 0.28 } },
@@ -53,7 +56,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   workshop: {
-    source: "./assets/art/v2/carriages/workshop.png",
+    source: "./assets/art/v2/carriages/workshop.webp",
+    pngSource: "./assets/art/v2/carriages/workshop.png",
     states: ["unprepared", "active", "overloaded", "restored"],
     hotspots: [
       { id: "workbench", label: "工作桌", bounds: { x: 0.02, y: 0.36, width: 0.46, height: 0.36 } },
@@ -66,7 +70,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   greenhouse: {
-    source: "./assets/art/v2/carriages/greenhouse.png",
+    source: "./assets/art/v2/carriages/greenhouse.webp",
+    pngSource: "./assets/art/v2/carriages/greenhouse.png",
     states: ["unprepared", "productive", "contaminated", "restored"],
     hotspots: [
       { id: "greenhouse-a", label: "上植床", bounds: { x: 0.01, y: 0.27, width: 0.39, height: 0.19 } },
@@ -79,7 +84,8 @@ export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>
     ],
   },
   kitchen: {
-    source: "./assets/art/v2/carriages/kitchen.png",
+    source: "./assets/art/v2/carriages/kitchen.webp",
+    pngSource: "./assets/art/v2/carriages/kitchen.png",
     states: ["sparse", "prepared", "spoiled", "restored"],
     hotspots: [
       { id: "kitchen-stove", label: "爐具", bounds: { x: 0.02, y: 0.32, width: 0.4, height: 0.25 } },
@@ -107,7 +113,8 @@ export interface A07ClipManifest {
 }
 
 export const A07_ATLAS = {
-  source: "./assets/art/v2/characters/a07/atlas.png",
+  source: "./assets/art/v2/characters/a07/atlas.webp",
+  pngSource: "./assets/art/v2/characters/a07/atlas.png",
   width: 1340,
   height: 1174,
   columns: 8,
@@ -152,7 +159,8 @@ export const FACILITY_VISUALS: readonly FacilityVisual[] = [
 ];
 
 export const EQUIPMENT_ATLAS = {
-  source: "./assets/art/v2/equipment/atlas.png",
+  source: "./assets/art/v2/equipment/atlas.webp",
+  pngSource: "./assets/art/v2/equipment/atlas.png",
   width: 1774,
   height: 887,
   columns: 10,
@@ -224,6 +232,7 @@ export type ThreatFamilyId = "knocker" | "clinger" | "vine" | "echo" | "crowd";
 
 export interface ThreatAtlasManifest {
   source: string;
+  pngSource: string;
   width: number;
   height: number;
   columns: 4;
@@ -244,12 +253,49 @@ const THREAT_CLIPS = {
 } as const;
 
 export const THREAT_ATLASES: Readonly<Record<ThreatFamilyId, ThreatAtlasManifest>> = {
-  knocker: { source: "./assets/art/v2/threats/knocker/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.43, y: 0.18, width: 0.56, height: 0.315 }, clips: THREAT_CLIPS },
-  clinger: { source: "./assets/art/v2/threats/clinger/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.14, y: 0.02, width: 0.72, height: 0.405 }, clips: THREAT_CLIPS },
-  vine: { source: "./assets/art/v2/threats/vine/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.12, y: 0.28, width: 0.64, height: 0.36 }, clips: THREAT_CLIPS },
-  echo: { source: "./assets/art/v2/threats/echo/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.39, y: 0.16, width: 0.58, height: 0.326 }, clips: THREAT_CLIPS },
-  crowd: { source: "./assets/art/v2/threats/crowd/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.08, y: 0.19, width: 0.84, height: 0.472 }, clips: THREAT_CLIPS },
+  knocker: { source: "./assets/art/v2/threats/knocker/atlas.webp", pngSource: "./assets/art/v2/threats/knocker/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.43, y: 0.18, width: 0.56, height: 0.315 }, clips: THREAT_CLIPS },
+  clinger: { source: "./assets/art/v2/threats/clinger/atlas.webp", pngSource: "./assets/art/v2/threats/clinger/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.14, y: 0.02, width: 0.72, height: 0.405 }, clips: THREAT_CLIPS },
+  vine: { source: "./assets/art/v2/threats/vine/atlas.webp", pngSource: "./assets/art/v2/threats/vine/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.12, y: 0.28, width: 0.64, height: 0.36 }, clips: THREAT_CLIPS },
+  echo: { source: "./assets/art/v2/threats/echo/atlas.webp", pngSource: "./assets/art/v2/threats/echo/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.39, y: 0.16, width: 0.58, height: 0.326 }, clips: THREAT_CLIPS },
+  crowd: { source: "./assets/art/v2/threats/crowd/atlas.webp", pngSource: "./assets/art/v2/threats/crowd/atlas.png", width: 1122, height: 1402, columns: 4, rows: 5, frameCount: 20, destination: { x: 0.08, y: 0.19, width: 0.84, height: 0.472 }, clips: THREAT_CLIPS },
 };
+
+export type SceneAssetKey =
+  | `v2-carriage-${CarriageId}`
+  | `v2-threat-${ThreatFamilyId}`
+  | "a07-atlas"
+  | "equipment-atlas";
+
+const CARRIAGE_LOAD_ORDER: readonly CarriageId[] = ["sleep", "defense", "workshop", "greenhouse", "kitchen"];
+
+export interface SceneAssetPriorityInput {
+  screen: ScreenId;
+  activeCarriageId: CarriageId;
+  activeThreatDefinitionId?: string;
+  retreatFamily?: ThreatFamilyId;
+}
+
+export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKey[] {
+  if (input.screen === "menu") return ["v2-carriage-sleep", "a07-atlas"];
+  const carriageId = input.screen === "result" ? "sleep" : input.activeCarriageId;
+  const result: SceneAssetKey[] = [`v2-carriage-${carriageId}`];
+  const activeFamily = input.activeThreatDefinitionId
+    ? threatFamilyForId(input.activeThreatDefinitionId)
+    : undefined;
+  if (activeFamily) result.push(`v2-threat-${activeFamily}`);
+  if (input.retreatFamily && input.retreatFamily !== activeFamily) {
+    result.push(`v2-threat-${input.retreatFamily}`);
+  }
+  if (carriageId === "sleep") result.push("a07-atlas");
+  result.push("equipment-atlas");
+  const index = CARRIAGE_LOAD_ORDER.indexOf(carriageId);
+  for (const neighborIndex of [index - 1, index + 1]) {
+    const neighbor = CARRIAGE_LOAD_ORDER[neighborIndex];
+    if (neighbor) result.push(`v2-carriage-${neighbor}`);
+  }
+  if (!result.includes("a07-atlas")) result.push("a07-atlas");
+  return [...new Set(result)];
+}
 
 export function threatFamilyForId(definitionId: string): ThreatFamilyId | undefined {
   if (definitionId === "T002") return "knocker";

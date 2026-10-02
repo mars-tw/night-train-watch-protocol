@@ -727,6 +727,7 @@ function statusPill(state: AppState): string {
 }
 
 function menuScreen(state: AppState, hasSave: boolean): string {
+  const frostUnlocked = state.profile.routeUnlocks.includes("R02");
   const greenUnlocked = state.profile.routeUnlocks.includes("R03");
   return `<section class="screen screen--menu" data-screen="SCR-MM-${hasSave ? "A" : "B"}">
     <div class="brand-lockup" aria-label="夜行列車：守夜協定">
@@ -737,8 +738,8 @@ function menuScreen(state: AppState, hasSave: boolean): string {
     <nav class="menu-actions" aria-label="主選單">
       ${hasSave ? button("continue", "繼續守夜", { primary: true, icon: icons.play, detail: "載入本機保存的路線與操作進度" }) : ""}
       <div class="route-launch-grid" aria-label="選擇七夜故事路線">
-        ${button("new-game", "R02・白霜線", { value: "R02", primary: !hasSave, icon: "霜", detail: "熱力分流・暴風雪・照護抉擇", className: "route-launch-card route-launch-card--frost" })}
-        ${button("new-game", "R01・灰霧線", { value: "R01", icon: "霧", detail: "訊號辨識・感染與封鎖", className: "route-launch-card" })}
+        ${button("new-game", "R01・灰霧線", { value: "R01", primary: !hasSave, icon: "霧", detail: "新手入口・訊號辨識・感染與封鎖", className: "route-launch-card" })}
+        ${button("new-game", frostUnlocked ? "R02・白霜線" : "R02・白霜線（預覽）", { value: "R02", icon: "霜", detail: frostUnlocked ? "已正式解鎖・熱力分流與暴風雪" : "可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖", className: "route-launch-card route-launch-card--frost" })}
         ${button("new-game", greenUnlocked ? "R03・綠潮線" : "R03・綠潮線（預覽）", { value: "R03", icon: "芽", detail: greenUnlocked ? "已正式解鎖・封閉循環與檢疫" : "可玩預覽・完成 5 項教學與任一七夜後正式解鎖", className: "route-launch-card route-launch-card--green" })}
       </div>
       ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}

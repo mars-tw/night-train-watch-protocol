@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "status": "PASS",
   "assertions": 11,
   "checks": [
@@ -25,7 +25,7 @@
       },
       "trials": [
         {
-          "p95": 16.700000000000273,
+          "p95": 16.799999999999727,
           "samples": 160
         },
         {
@@ -48,7 +48,7 @@
       },
       "trials": [
         {
-          "p95": 16.799999999999955,
+          "p95": 16.700000000000273,
           "samples": 160
         },
         {
@@ -60,7 +60,7 @@
           "samples": 160
         }
       ],
-      "medianP95ms": 16.799999999999272,
+      "medianP95ms": 16.700000000000728,
       "passed": true,
       "deviceEvidence": "Windows desktop Chromium at requested viewport; not physical phone"
     }
