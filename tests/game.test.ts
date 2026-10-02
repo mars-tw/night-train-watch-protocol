@@ -91,6 +91,12 @@ describe("authoritative run service", () => {
     const threat = service.getThreat(run.activeContact)!;
     const counter = threat.id === "T003" ? "emergency-boost" : "close-shutter";
     expect(service.counterThreat(run, counter)).toBe(true);
+    // Fast line adds a second contact after the teaching nights; dawn evidence
+    // must still wait until every contact has been resolved.
+    expect(run.phase).toBe("night");
+    expect(run.activeEventId).toBeUndefined();
+    const finalThreat = service.getThreat(run.activeContact)!;
+    expect(service.counterThreat(run, finalThreat.id === "T003" ? "emergency-boost" : "close-shutter")).toBe(true);
     expect(run.phase).toBe("travel");
     expect(run.activeEventId).toBe("EV046");
   });
@@ -119,7 +125,7 @@ describe("authoritative run service", () => {
     expect(run.modules.some((module) => module.definitionId === target.id)).toBe(true);
   });
 
-  it("runs the visible two-night sow, water, grow, and harvest loop", () => {
+  it("grows fast lettuce after one powered and watered night, then harvests once", () => {
     const run = createRun("crop-loop");
     const service = new RunService();
     const before = { ap: run.actionPoints, food: run.resources.food, water: run.resources.water };
@@ -131,16 +137,16 @@ describe("authoritative run service", () => {
 
     run.phase = "aftermath";
     service.continueAftermath(run);
-    expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 2 });
-    expect(service.waterCrops(run)).toBe(true);
-    run.phase = "aftermath";
-    service.continueAftermath(run);
     expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 3 });
+    expect(service.waterCrops(run)).toBe(false);
 
     expect(service.harvestCrop(run, "plot-a")).toBe(true);
     expect(run.resources.food).toBe(before.food + 2);
     expect(run.crops[0]).toMatchObject({ stage: 0, dryDays: 0 });
     expect(run.crops[0]?.cropId).toBeUndefined();
+    const afterHarvest = { food: run.resources.food, ap: run.actionPoints };
+    expect(service.harvestCrop(run, "plot-a")).toBe(false);
+    expect({ food: run.resources.food, ap: run.actionPoints }).toEqual(afterHarvest);
   });
 
   it("allows prep sowing when the rack is scheduled after a previously shed night", () => {

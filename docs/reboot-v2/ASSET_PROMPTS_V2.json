@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-02",
+  "generationMode": "built-in",
+  "modelEvidence": "The tool exposes image_url and output_hint, not a verifiable model identifier. Do not label the model as verified.",
+  "sourceReferencePolicy": "User advertisement photographs were used only for visual direction, not copied into the game.",
+  "entries": [
+    {
+      "asset": "sleep",
+      "prompt": "Use case: stylized-concept. Create a production-ready ORIGINAL 9:16 portrait background for a mobile survival game, NOT a mockup. Scene: a tiny inhabited bedroom inside an old moving train, fixed single-point perspective from the doorway, vanishing point near upper-center. Enchanting hand-painted pixel illustration with crisp 2-4px pixel clusters, controlled 3-step hue-shift shadows, cozy clear readable surfaces, no photorealistic noisy texture. Warm honey wood shelves at left, a small brass desk lamp and notebook on a front-left low desk, glass jars, a short-wave radio, personal paper notes without legible text. At right-middle is the game's ONLY narrow bed, plain beige fitted sheet, pillows at the back, NO person and NO bulky blanket on the bed yet (animated character/blanket will be overlaid by the game). Bed head near x65%, y44%, bed body extends to x88%,y79%; sleep-area should have empty clean space for the overlay. A folded UNUSED old bed-frame bracket mounted on left wall, not a second bed. A rear door with rectangular window from x38-64%,y17-38% shows blue-gray misty railroad, rain and a very distant ambiguous shadow. A side window right, small plant and string of warm bulbs, layered foreground/middle/background. Rich cream blanket tones in a folded throw on a left chair only. Palette: wood #A9774F, shadows #70503D, cream #D6C4A3, lamp #F2BD67, gray green iron #63716D, fog #7D9297. Fill entire frame with actual game environment. Keep key furniture readable in center 80% vertical area; no overlay UI, NO borders, no collage, no words, no logos, no advertising, no watermark, no people. Beautiful believable lived-in warmth against cold danger outside.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-5db837f9-88d4-4ad3-82e2-b65e1019fc1b.png",
+      "generated": true
+    },
+    {
+      "asset": "kitchen",
+      "prompt": "Use case: stylized-concept. Production ORIGINAL 9:16 portrait full-frame train interior background for a mobile survival management game. Fixed single point perspective seen from doorway, vanishing point rear door upper center. Beautiful hand-painted PIXEL illustration with crisp chunky pixel clusters and restrained 3-step shadows, warm wooden lived-in train cabin versus blue-gray rainy danger outside. Palette wood #A9774F shadow #70503D cream #D6C4A3 lamp #F2BD67 iron green #63716D mist #7D9297. Match cozy train bedroom visual quality, rich but clear layered foreground-middle-background, NOT photographic noise, readable larger objects. Rear window centered around x40-63%,y16-37%, side window right. Warm practical lamps and personal mugs, notes without legible writing. NO people, NO bed, NO sleeper, no advertising or UI, no borders, no text, no logos, no watermark. Important usable equipment within middle 80% height. Full room not collage. A tiny fixed train kitchen and pantry. Left window counter has kettle, ceramic mug, small safe stove and steaming lidded pan (steam separate game effect so only a tiny faint wisp), wooden shelves of transparent ingredient jars, rice, preserved tomatoes, cans with blank labels. Left foreground open worktop and cutting board. Right counter holds plates, hot food tray, small fridge beneath, electric meter. Honey lamps and bulb string, folded cream throw on small front chair, terracotta herb pot. Charming domestic abundance, narrow central aisle, rear green train door with cold rainy window, clear functional appliances. No military equipment, no hospital feel.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-a02dc5a4-40a5-40c1-a706-5aececd5eb44.png",
+      "generated": true
+    },
+    {
+      "asset": "greenhouse",
+      "prompt": "Use case: stylized-concept. Production ORIGINAL 9:16 portrait full-frame train interior background for a mobile survival management game. Fixed single point perspective seen from doorway, vanishing point rear door upper center. Beautiful hand-painted PIXEL illustration with crisp chunky pixel clusters and restrained 3-step shadows, warm wooden lived-in train cabin versus blue-gray rainy danger outside. Palette wood #A9774F shadow #70503D cream #D6C4A3 lamp #F2BD67 iron green #63716D mist #7D9297. Match cozy train bedroom visual quality, rich but clear layered foreground-middle-background, NOT photographic noise, readable larger objects. Rear window centered around x40-63%,y16-37%, side window right. Warm practical lamps and personal mugs, notes without legible writing. NO people, NO bed, NO sleeper, no advertising or UI, no borders, no text, no logos, no watermark. Important usable equipment within middle 80% height. Full room not collage. A tiny mobile greenhouse living carriage. Two EMPTY trough-like hydroponic planting beds on LEFT at y40% and y63%, ready for separately animated crops, no tomatoes already drawn into those troughs. Surrounding hanging ivy and non-crop plants on upper shelves, clear glass water tank, compact filter unit, water pipes, little grow lamp, watering can. Right foreground wicker chair with cushion and folded throw, a small wood trolley, seed jars with blank labels. Natural pale window light mixed with warm lamps, abundant greens but readable planting beds. Cozy living atmosphere, no sleeper and no bed.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-5ea47cb1-ad9a-4ce0-8fdb-b27c1a6292c7.png",
+      "generated": true
+    },
+    {
+      "asset": "workshop",
+      "prompt": "Use case: stylized-concept. Production ORIGINAL 9:16 portrait full-frame train interior background for a mobile survival management game. Fixed single point perspective seen from doorway, vanishing point rear door upper center. Beautiful hand-painted PIXEL illustration with crisp chunky pixel clusters and restrained 3-step shadows, warm wooden lived-in train cabin versus blue-gray rainy danger outside. Palette wood #A9774F shadow #70503D cream #D6C4A3 lamp #F2BD67 iron green #63716D mist #7D9297. Match cozy train bedroom visual quality, rich but clear layered foreground-middle-background, NOT photographic noise, readable larger objects. Rear window centered around x40-63%,y16-37%, side window right. Warm practical lamps and personal mugs, notes without legible writing. NO people, NO bed, NO sleeper, no advertising or UI, no borders, no text, no logos, no watermark. Important usable equipment within middle 80% height. Full room not collage. A cozy wood-lined repair workshop and radio intelligence carriage. Left-middle low workbench with parts trays, soldering tools and visible safe battery pack, lamp and mug; right-middle clear shortwave radio on a separate shelf at x68%,y39%, a schematic clipboard on wall with drawings and no writing; tools and wire coils stored overhead. Foreground checked small cloth, open notebook, toolbox, few polished bronze gears. Narrow aisle and rear steel door, two distinct work surfaces. Warm, cared for, personal and reassuring. No hospital bed and no gun arsenal.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-b3df69fe-b84b-4f4a-99c9-27213fcea297.png",
+      "generated": true
+    },
+    {
+      "asset": "defense",
+      "prompt": "Use case: stylized-concept. Production ORIGINAL 9:16 portrait full-frame train interior background for a mobile survival management game. Fixed single point perspective seen from doorway, vanishing point rear door upper center. Beautiful hand-painted PIXEL illustration with crisp chunky pixel clusters and restrained 3-step shadows, warm wooden lived-in train cabin versus blue-gray rainy danger outside. Palette wood #A9774F shadow #70503D cream #D6C4A3 lamp #F2BD67 iron green #63716D mist #7D9297. Match cozy train bedroom visual quality, rich but clear layered foreground-middle-background, NOT photographic noise, readable larger objects. Rear window centered around x40-63%,y16-37%, side window right. Warm practical lamps and personal mugs, notes without legible writing. NO people, NO bed, NO sleeper, no advertising or UI, no borders, no text, no logos, no watermark. Important usable equipment within middle 80% height. Full room not collage. A cozy reinforced observation and tool-storage train carriage, dark sage green iron walls partially lined in warm wood. Rear reinforced door and inspection window, steel latch, three hanging manual safety tools and rope at left; right side window with retractable wood shutters and amber motion meter. Front-left organized tool shelf and emergency battery, lantern. Small padded bench at right with folded cream blanket, one mug and original bear plush for personal warmth, no sleeper or bed. Visible window bars and protective patched plates but preserve a readable blue-gray outside window with distant anonymous humanoid shadows. Safe interior and danger outside, no gore, no weapon glamour.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-4b49bdda-49fa-4c85-b28c-ad7198896e3e.png",
+      "generated": true
+    },
+    {
+      "asset": "a07",
+      "prompt": "Use case: stylized-concept. Produce ONE ORIGINAL production animation SPRITE SHEET with transparent alpha background, exact regular 8 columns by 7 rows of equal SQUARE cells, total 56 cells, no gutters, no drawn grid, no labels, no text. Requested canvas aspect 8:7 (1792x1568 if possible). ALL cells show the SAME adult 22-year-old woman A-07 with warm brown short bob haircut, uneven bangs, warm skin, gray TEAL long sleeve pajamas with a small ochre collar tab, lying or seated on the SAME narrow mattress direction. Hand-painted PIXEL ART crisp thick clusters, warm muted shadows, face clearly eyes/eyebrows/nose, original identity. Each cell is an isolated cutout including ONLY woman, one cream pillow, and a thick textured cream wool blanket covering body from shoulders to feet; NO bedframe, walls, background, letters, checkerboard, shadow rectangle. Consistent slightly elevated train-bed perspective, head at upper-left of cell and blanket body slopes down toward lower-right, all within 90% cell bounds, fixed pivot, fixed scale. Real anatomy changes on adjacent frames, NOT translations of one static picture. Row1 eight sequential sleeping BREATH frames: chest/blanket lift subtly, cheek and lips relax; Row2 eight TURNING frames: head rolls, shoulder and hand change, blanket folds redistribute; Row3 eight LISTEN frames: eyelids and eyebrows respond, head slightly lifts, hand comes to pillow; Row4 eight STARTLED frames: eyes open, shoulder and elbows lift, hand grips blanket, then eases; Row5 eight SIT UP frames: torso rises above blanket, both hands shift to support on mattress, blanket falls to lap; Row6 first six DRINK TEA frames: seated reaches mug, lifts mug to lips, drinks, lowers, sets aside, relaxes; last two cells of row6 fully transparent. Row7 first six RETURN TO SLEEP frames: seated lowers torso, elbow folds under head, blanket pulled up, eyes close and body settles; last two cells fully transparent. Color identity #573637 hair, #D99B7B skin, #5F8996 pajamas, #E5B866 collar, #D6C4A3 blanket, #A08A75 blanket shadow. Empty background must be truly transparent, not white or gray. Exact evenly sized cell composition and 7 distinct real-motion sequences is essential. Clean production atlas, no artistic panel borders.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-39aca6a0-3974-4ac3-a74f-c99bca226abf.png",
+      "generated": true
+    },
+    {
+      "asset": "knocker",
+      "prompt": "Use case: stylized-concept. ORIGINAL game-ready animation SPRITE ATLAS on genuinely transparent background. Exactly FOUR columns by FIVE rows, equal square cells, 20 sequential DISTINCT anatomical poses, no borders, no grid, no text, no labels, no checkerboard. Aspect4:5, preferably1024x1280. All cells same consistent original creature proportions/pivot/scale, occupying central80% cell with no contact between cells. Hand painted pixel illustration, crisp 3-4px pixel clusters and hue-shift shadows, match cozy honey-wood train versus gray blue fog. Frightening but no blood or gore. Sequence cells row-major: first6 APPROACH true step/limb changes; next8 ANTICIPATION then CONTACT then RECOVERY with clear shoulder/elbow/head/body changes; last6 RETREAT/DEFEATED lowering limbs and turning away, no duplicated static translated image. True alpha background with no colored matte fringe. No room, no windowframe, no scenery. Subject ONE weary infected humanoid in ragged gray-green coat, warm-gray face with tired hollow eyes, no skull mask. Seen three-quarter front chest and knees. Approaches viewer from outside train glass, raises RIGHT hand slowly, elbow bends, open hand strikes invisible glass, retracts, head tilts and leans, then retreats. Hand contact is clearly different pose; gray coat edge and face enough light contrast against blue glass. Palette slate #63716D gray-skin #B2A68B shadow #4E5353 faint amber edge. Character alone centered eachcell.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-82a833b8-bfbb-45b9-b84b-ad6688b30392.png",
+      "generated": true
+    },
+    {
+      "asset": "clinger",
+      "prompt": "Use case: stylized-concept. ORIGINAL game-ready animation SPRITE ATLAS on genuinely transparent background. Exactly FOUR columns by FIVE rows, equal square cells, 20 sequential DISTINCT anatomical poses, no borders, no grid, no text, no labels, no checkerboard. Aspect4:5, preferably1024x1280. All cells same consistent original creature proportions/pivot/scale, occupying central80% cell with no contact between cells. Hand painted pixel illustration, crisp 3-4px pixel clusters and hue-shift shadows, match cozy honey-wood train versus gray blue fog. Frightening but no blood or gore. Sequence cells row-major: first6 APPROACH true step/limb changes; next8 ANTICIPATION then CONTACT then RECOVERY with clear shoulder/elbow/head/body changes; last6 RETREAT/DEFEATED lowering limbs and turning away, no duplicated static translated image. True alpha background with no colored matte fringe. No room, no windowframe, no scenery. Subject ONE lean infected climber clinging to invisible roof edge, patched teal-gray worker jacket and mustard straps, dusty olive pants. All four limbs visible, poses show alternating left/right grip, bent knees changing, elbows reach and pull, center of mass shifts, then strikes roof with arm and recovers, slips and releases grip to retreat. Shoulder, feet and knees genuinely move each frame, consistent anatomy. Three-quarter front view. Readable hands/face, no blood, not a heroic fighter.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-ad73a401-fb2c-4ce7-a9e1-125343cb79f1.png",
+      "generated": true
+    },
+    {
+      "asset": "vine",
+      "prompt": "Use case: stylized-concept. ORIGINAL game-ready animation SPRITE ATLAS on genuinely transparent background. Exactly FOUR columns by FIVE rows, equal square cells, 20 sequential DISTINCT anatomical poses, no borders, no grid, no text, no labels, no checkerboard. Aspect4:5, preferably1024x1280. All cells same consistent original creature proportions/pivot/scale, occupying central80% cell with no contact between cells. Hand painted pixel illustration, crisp 3-4px pixel clusters and hue-shift shadows, match cozy honey-wood train versus gray blue fog. Frightening but no blood or gore. Sequence cells row-major: first6 APPROACH true step/limb changes; next8 ANTICIPATION then CONTACT then RECOVERY with clear shoulder/elbow/head/body changes; last6 RETREAT/DEFEATED lowering limbs and turning away, no duplicated static translated image. True alpha background with no colored matte fringe. No room, no windowframe, no scenery. Subject ONE tangled strange plant creature with 3 principal green-gray vines, amber-brown bulb at center, sharp leaves, subtle pale luminous spores. Different cells truly bend branch nodes and coil leaf tendrils, advance/coil/swipe/recover then cut tips retract. Keep central base fixed, large readable topology changes, no humanoid, no pot, no background, no scattered UI symbols. Moss greens #719365/#3D5C47, dry amber highlights.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-e4b91c98-496a-4150-97e4-53a2775b4e77.png",
+      "generated": true
+    },
+    {
+      "asset": "echo",
+      "prompt": "Use case: stylized-concept. ORIGINAL game-ready animation SPRITE ATLAS on genuinely transparent background. Exactly FOUR columns by FIVE rows, equal square cells, 20 sequential DISTINCT anatomical poses, no borders, no grid, no text, no labels, no checkerboard. Aspect4:5, preferably1024x1280. All cells same consistent original creature proportions/pivot/scale, occupying central80% cell with no contact between cells. Hand painted pixel illustration, crisp 3-4px pixel clusters and hue-shift shadows, match cozy honey-wood train versus gray blue fog. Frightening but no blood or gore. Sequence cells row-major: first6 APPROACH true step/limb changes; next8 ANTICIPATION then CONTACT then RECOVERY with clear shoulder/elbow/head/body changes; last6 RETREAT/DEFEATED lowering limbs and turning away, no duplicated static translated image. True alpha background with no colored matte fringe. No room, no windowframe, no scenery. Subject ONE spectral adult passenger in an old gray-blue commuter coat, warm pale face, faded amber scarf, subtle translucent edge. Approaches outside invisible train window, listens with tilted head, lifts open palm, points to ear, speaks with visible changing lips and brows, folds arms and retreats. Mystery apparition, consistent original human face, calm eerie nonviolent; no cloak monster, no skull, no blood. Half-body with coat tails readable in same fixedpivot.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-1f514afe-8440-4deb-9ffc-aa043c112e23.png",
+      "generated": true
+    },
+    {
+      "asset": "crowd",
+      "prompt": "Use case: stylized-concept. ORIGINAL game-ready animation SPRITE ATLAS on genuinely transparent background. Exactly FOUR columns by FIVE rows, equal square cells, 20 sequential DISTINCT anatomical poses, no borders, no grid, no text, no labels, no checkerboard. Aspect4:5, preferably1024x1280. All cells same consistent original creature proportions/pivot/scale, occupying central80% cell with no contact between cells. Hand painted pixel illustration, crisp 3-4px pixel clusters and hue-shift shadows, match cozy honey-wood train versus gray blue fog. Frightening but no blood or gore. Sequence cells row-major: first6 APPROACH true step/limb changes; next8 ANTICIPATION then CONTACT then RECOVERY with clear shoulder/elbow/head/body changes; last6 RETREAT/DEFEATED lowering limbs and turning away, no duplicated static translated image. True alpha background with no colored matte fringe. No room, no windowframe, no scenery. Subject a consistent GROUP of THREE shadowed infected commuters, palegray readable faces and muted bluegreen coats, standing close with differing heights. True step poses approach, shoulder and head turn among figures, hands rise and lower on invisible train glass, bodies lean then recede with arms dropped. All3 distinct bodies have posturechanges, stable scale/group pivot, no scene. Eerie silhouettes with light rims, not pure-black blocks. No blood or skulls.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-156011b4-324c-4a50-80f1-f1d6b92b8041.png",
+      "generated": true
+    },
+    {
+      "asset": "equipment",
+      "prompt": "Use case: stylized-concept. Create ONE game equipment SPRITE SHEET, actual transparent alpha, EXACT regular TEN columns x FIVE rows of equal square cells, aspect2:1, requested2000x1000. No margins/gutters/borders/grid/labels/text/watermark/checkerboard. 25 ORIGINAL cozy post-apocalypse train objects each shown in TWO meaningfully different states in adjacent cells (OFF/FAULT at odd column then ON/RESTORED at even column). Same pivot/scale for pair, isolated centered objects within80% cells. Hand-painted pixel illustration, crisp 2-4px clustered edges, honey brass #F2BD67, wood #A9774F, cream #D6C4A3, sage metal #63716D, teal accents; clear threequarter perspective consistent with a train bedroom. All objects separate on transparency, NOT set on a scene. Row1 pairs: brass desk lamp unlit/lit; wood reinforced shutter open/closed; compact radiator off/warm; chunky battery pack low/full; shortwave radio dead/tuned. Row2 pairs: glass water filter dirty/clean; small medicine box closed/open with bandage; latch unlocked/locked (mechanism visibly rotates); tool chest scattered/tidy; hydroponic tray empty/healthy lettuce. Row3 pairs: dwarf tomato plant seedling/mature red fruit; potted herbs seedling/mature; isolation curtain folded/deployed; battery array disconnected/connected; sample station empty/filled glass tubes. Row4 pairs: quilted bedside warmer folded/unfolded; rail deicer unlit/amber hot; greenhouse circulation loop dry/flowing; grafting ring closed/open around stem; three-stage filter tower dirty/clean. Row5 pairs: safe containment rail dormant/amber active (not weapon imagery); wicker basket empty/seed jars; terracotta fern pot wilted/lush; brass circuit board broken/restored; tea mug empty/filled. Each pair uses true object-shape/state change instead of simple recolor. No people, no gore, no tiny writing, no guns. Preserve clean alpha edges, no red/yellow matte fringe.",
+      "tool": "OpenAI built-in imagegen",
+      "requestedModel": "gpt-image-2",
+      "verifiedModelIdentifier": null,
+      "sourceFile": "exec-a1ed8ccf-5f12-433a-ab73-02c806487070.png",
+      "generated": true
+    }
+  ]
+}

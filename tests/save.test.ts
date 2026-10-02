@@ -10,7 +10,7 @@ describe("story save migration", () => {
     const migrated = parseRun(JSON.stringify(legacy));
 
     expect(migrated).not.toBeNull();
-    expect(migrated?.schemaVersion).toBe(5);
+    expect(migrated?.schemaVersion).toBe(6);
     expect(migrated?.routeId).toBe("R01");
     expect(migrated?.seed).toBe("legacy-v2");
     expect(migrated?.resources).toEqual(legacy.resources);
@@ -24,13 +24,13 @@ describe("story save migration", () => {
     });
   });
 
-  it.each([1, 2, 3, 4, 5])("accepts supported schema %i and normalizes it to schema 5", (schemaVersion) => {
+  it.each([1, 2, 3, 4, 5, 6])("accepts supported schema %i and normalizes it to schema 6", (schemaVersion) => {
     const routeId = schemaVersion === 5 ? "R03" : "R02";
     const raw = createRun(`supported-schema-${schemaVersion}`, routeId) as unknown as Record<string, unknown>;
     raw.schemaVersion = schemaVersion;
 
     const restored = parseRun(JSON.stringify(raw));
-    expect(restored).toMatchObject({ schemaVersion: 5, routeId });
+    expect(restored).toMatchObject({ schemaVersion: 6, routeId });
     expect(restored?.story.whiteFrost === null).toBe(routeId !== "R02");
     expect(restored?.story.greenTide === null).toBe(routeId !== "R03");
   });
@@ -60,7 +60,7 @@ describe("story save migration", () => {
     const restored = parseRun(JSON.stringify(run));
 
     expect(restored).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R01",
       day: 7,
       phase: "travel",
@@ -111,7 +111,7 @@ describe("story save migration", () => {
 
     const restored = parseRun(JSON.stringify(r01));
     expect(restored).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R01",
       story: {
         version: 3,
@@ -128,7 +128,7 @@ describe("story save migration", () => {
 
     const restored = parseRun(JSON.stringify(legacy));
     expect(restored).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R01",
       story: {
         version: 3,

@@ -1,4 +1,7 @@
-export type ScreenId = "menu" | "hub" | "carriage" | "route" | "event" | "modules" | "tech" | "result" | "settings";
+import type { QuestState } from "./quests/types";
+import type { VoyageState } from "./voyage/types";
+
+export type ScreenId = "menu" | "hub" | "carriage" | "route" | "event" | "modules" | "tech" | "missions" | "result" | "settings";
 export type Phase = "dawn" | "prep" | "route" | "travel" | "night" | "aftermath" | "ending";
 export type ContactStage = "approach" | "warning" | "attack" | "breach" | "resolve";
 export type RationMode = "full" | "standard" | "strict";
@@ -158,6 +161,7 @@ export interface CropPlot {
   stage: 0 | 1 | 2 | 3;
   plantedDay?: number;
   wateredDay?: number;
+  poweredGrowthNights?: number;
   dryDays: number;
 }
 
@@ -488,8 +492,24 @@ export interface SettingsState {
   sound: boolean;
 }
 
+export interface ProfileState {
+  schemaVersion: 1;
+  profileId: string;
+  createdAt: number;
+  updatedAt: number;
+  routeUnlocks: StoryRouteId[];
+  blueprints: string[];
+  decorations: string[];
+  journal: string[];
+  milestones: string[];
+  rewardReceipts: string[];
+  selectedBlueprintId?: string;
+  selectedCosmeticId?: string;
+}
+
 export interface RunState {
-  schemaVersion: 5;
+  schemaVersion: 6;
+  runId: string;
   seed: string;
   day: number;
   maxDays: number;
@@ -512,6 +532,8 @@ export interface RunState {
   techOwned: string[];
   flags: string[];
   ledger: LedgerEntry[];
+  quests: QuestState;
+  voyage?: VoyageState;
   lastMessage?: string;
   ended: boolean;
 }
@@ -519,6 +541,7 @@ export interface RunState {
 export interface AppState {
   screen: ScreenId;
   run: RunState | null;
+  profile: ProfileState;
   settings: SettingsState;
   selectedTechId: string;
   selectedModuleId: string;
@@ -535,6 +558,9 @@ export interface AppState {
   actionFeedback: Array<{ label: string; delta: number; tone: FeedbackTone }>;
   moduleCategory: ModuleCategory;
   techBranch: TechBranch;
+  questFilter?: string;
+  objectPreview?: { action: string; value?: string; title: string; costs: string } | null;
+  journalPage?: number;
   saveStatus: "none" | "saved" | "saving" | "recovered" | "error";
 }
 

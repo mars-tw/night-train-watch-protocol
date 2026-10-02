@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "date": "2026-10-02",
+  "checkedArtifact": "v2 design documents, not runtime",
+  "checks": 887,
+  "missions": 56,
+  "categories": {
+    "main": 21,
+    "tutorial": 5,
+    "relationship": 10,
+    "facility": 8,
+    "exploration": 6,
+    "challenge": 6
+  },
+  "implementationTasks": 30,
+  "prerequisiteCycles": [],
+  "errors": []
+}

@@ -1,5 +1,10 @@
 # Shipping Asset Manifest
 
+## v2.0 新增資產（2026-10-02）
+
+五張原創車廂、A-07 52格、五威脅家族100格、設備50格，實際來源共12張。Blender 5.2後處理、來源/runtime SHA與透明邊緣、色彩驗收詳見 [ASSET_RUNTIME_V2](reboot-v2/ASSET_RUNTIME_V2.md)及`public/assets/art/v2/pipeline-report.json`。生成使用內建imagegen，實際model identifier未由工具揭露，保持null；不把requestedModel當verifiedModel。原圖與.blend源保留，新renderer依scene-manifest載入。
+
+
 All files below are used by the game runtime. Generation occurred on 2026-07-20, 2026-07-21, 2026-07-24, 2026-07-26 and 2026-07-28 using Codex built-in GPT image generation mode. On 2026-07-24, defense, workshop, greenhouse and kitchen received v2 production backgrounds that remove the shared sleeping berth and make each carriage structurally distinct. On 2026-07-26, T004–T006 received dedicated 9:16 interaction scenes whose crop, signal, leaf and meter zones align with the native controls. On 2026-07-28, R02 received one White Frost carriage plate and one geometry-matched T009 Blizzard plate; both preserve separate BERTH, DEICER and LOOP overlay zones. R03 then received a Green Tide carriage plate, a three-part branch equipment sheet and a geometry-matched T008 plate; all three are visibly composited into the playable runtime. Chroma-key sprites were locally converted to alpha PNG with the installed `remove_chroma_key.py` helper and validated for RGBA mode, transparent corners and non-empty alpha bounds.
 
 | Runtime file                                  | Purpose                            | Production brief                                                                                                                                                                                                          | Validation                                                                                                                                                                                                                 |

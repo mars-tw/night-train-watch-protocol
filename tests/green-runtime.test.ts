@@ -46,7 +46,7 @@ describe("authoritative R03 cycle board", () => {
     const service = new RunService();
 
     expect(first).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R03",
       resources: { water: 8 },
       story: { version: 3, whiteFrost: null },
@@ -412,7 +412,7 @@ describe("R03 threats, branch, and finale", () => {
     ).toHaveLength(1);
   });
 
-  it("rejects a schema 5 save that injects EV078 before the Day 7 lifecycle", () => {
+  it("rejects a schema 6 save that injects EV078 before the Day 7 lifecycle", () => {
     const forged = createRun("green-forged-ending", "R03");
     forged.phase = "travel";
     forged.activeEventId = "EV078";

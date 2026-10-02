@@ -128,14 +128,14 @@ describe("route-aware run creation and migration", () => {
     const secondFrostRun = createRun("frost-route-two", "R02");
 
     expect(defaultRun).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R01",
       resources: { energy: 75, fuel: 40 },
       environment: { temperature: 18 },
       story: { version: 3, whiteFrost: null },
     });
     expect(frostRun).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R02",
       resources: { energy: 78, fuel: 44 },
       environment: { temperature: 12 },
@@ -181,12 +181,13 @@ describe("route-aware run creation and migration", () => {
     const migrated = parseRun(JSON.stringify(original));
     expect(migrated).not.toBeNull();
     expect(migrated).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R01",
       story: { version: 3, whiteFrost: null },
     });
     expect(migrated?.resources).toEqual(fixture.run.resources);
-    expect(migrated?.crops).toEqual(fixture.run.crops);
+    expect(migrated?.crops).toMatchObject(fixture.run.crops);
+    expect(migrated?.crops.map((crop) => crop.poweredGrowthNights)).toEqual([0, 0]);
     expect(migrated?.decorations).toEqual(fixture.run.decorations);
     expect(migrated?.activeContact).toEqual(fixture.run.activeContact);
 

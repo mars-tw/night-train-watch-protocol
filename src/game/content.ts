@@ -187,17 +187,25 @@ export const DECORATIONS: Array<{ id: DecorationId; name: string; asset: string;
 ];
 
 export const CROPS: Array<{ id: CropId; name: string; days: number; yield: number; benefit: string }> = [
-  { id: "lettuce", name: "葉萵苣", days: 2, yield: 2, benefit: "成熟後食物 +2" },
-  { id: "tomato", name: "矮株番茄", days: 2, yield: 3, benefit: "成熟後食物 +3" },
+  { id: "lettuce", name: "葉萵苣", days: 1, yield: 2, benefit: "一夜成熟；食物 +2" },
+  { id: "tomato", name: "矮株番茄", days: 3, yield: 4, benefit: "三夜成熟；食物 +4" },
   { id: "herb", name: "香草組", days: 2, yield: 1, benefit: "食物 +1、壓力 −4" },
 ];
+
+export function cropStageForGrowthNights(cropId: CropId, poweredGrowthNights: number): 1 | 2 | 3 {
+  const crop = CROPS.find((candidate) => candidate.id === cropId);
+  if (!crop) return 1;
+  const nights = Math.max(0, Math.floor(poweredGrowthNights));
+  if (nights >= crop.days) return 3;
+  return Math.min(2, 1 + Math.floor((nights * 2) / crop.days)) as 1 | 2;
+}
 
 export const BALANCE = {
   max: { energy: 100, fuel: 60, food: 8, water: 8, parts: 20, medicine: 5, data: 99 },
   overloadGraceSeconds: 3,
   breakerOfflineSeconds: 5,
   breakerNoise: 10,
-  nightSeconds: 18,
+  nightSeconds: 105,
   sleepComfort: 10,
 } as const;
 
@@ -348,24 +356,24 @@ export const STORY_EVENTS: StoryContentEvent[] = [
     phase: "travel",
     storyPhase: "prep",
     forced: true,
-    title: "空床鋪",
-    body: "臥室多出一張沒有使用紀錄的床，A-07 說它應該保持原樣。",
+    title: "舊床位編號",
+    body: "臥室牆面收折著一組沒有使用紀錄的舊床位支架。它不能睡、也不增加容量；A-07 說編號應該保持原樣。",
     artKey: "story.empty-bunk",
-    nightLine: "A-07 指著一張沒人睡過的床。",
-    payoff: "Day 5 名冊缺頁會回收空床與夢話編號。",
+    nightLine: "A-07 指著牆上舊床位支架的編號。",
+    payoff: "Day 5 名冊缺頁會回收舊支架與夢話編號。",
     choices: [
       {
         id: "keep",
-        label: "保留空床",
+        label: "保留舊支架",
         cost: "無",
-        known: "信任 +1；空床永久保留",
+        known: "信任 +1；舊床位編號永久保留",
         deltas: {},
         survivor: { trust: 1 },
-        result: "你留下床位，A-07 把醫療盒推到床腳。",
+        result: "你留下收折支架，A-07 把醫療盒推到牆邊。",
         risk: "low",
         tags: ["信任", "臥室", "永久場景"],
         visibleCost: "無立即成本",
-        permanentConsequence: "extraBunk=true；臥室保留額外床鋪並在 EV045 提供名冊線索。",
+        permanentConsequence: "extraBunk=true；只保留舊床位支架與編號旗標，不增加床位或乘客容量；EV045 提供名冊線索。",
         consequence: {
           survivorDelta: { trust: 1 },
           setFlags: { extraBunk: true },
@@ -376,15 +384,15 @@ export const STORY_EVENTS: StoryContentEvent[] = [
       },
       {
         id: "dismantle",
-        label: "拆成可用零件",
+        label: "拆除舊支架",
         cost: "無",
-        known: "零件 +2；永久失去空床線索",
+        known: "零件 +2；永久失去支架編號線索",
         deltas: { parts: 2 },
-        result: "床架成了零件，A-07 沒有再提夢裡的編號。",
+        result: "舊支架拆成零件，A-07 沒有再提夢裡的編號。",
         risk: "medium",
         tags: ["零件", "信任", "永久場景"],
         visibleCost: "無立即成本",
-        permanentConsequence: "extraBunk=false；臥室永久移除空床，EV045 少一項可見佐證。",
+        permanentConsequence: "extraBunk=false；臥室永久移除舊支架，EV045 少一項可見佐證；睡眠容量不變。",
         consequence: {
           resourceDelta: { parts: 2 },
           setFlags: { extraBunk: false },
@@ -539,9 +547,9 @@ export const STORY_EVENTS: StoryContentEvent[] = [
     storyPhase: "prep",
     forced: true,
     title: "名冊缺頁",
-    body: "列車名冊缺少一頁，空床編號與 A-07 的夢話相同。",
+    body: "列車名冊缺少一頁，舊床位支架編號與 A-07 的夢話相同。",
     artKey: "story.roster-gap",
-    nightLine: "缺頁留下與空床相同的編號。",
+    nightLine: "缺頁留下與舊床位支架相同的編號。",
     payoff: "核對狀態會改變 A-07 行為與 Day 7 身分建議。",
     choices: [
       {
@@ -551,7 +559,7 @@ export const STORY_EVENTS: StoryContentEvent[] = [
         known: "信任 +1；保留缺頁證據",
         deltas: {},
         survivor: { trust: 1 },
-        result: "名冊與空床線索被釘在同一個核對欄。",
+        result: "名冊與舊支架線索被釘在同一個核對欄。",
         risk: "low",
         tags: ["名冊", "信任", "A-07"],
         visibleCost: "無立即成本",
@@ -699,7 +707,7 @@ export const STORY_EVENTS: StoryContentEvent[] = [
     forced: true,
     requirements: { anyFlags: ["a07IdentityKnown", "manifestCrossChecks:2"] },
     title: "協定作者",
-    body: "作者欄指向 A-07；玩家必須決定是否把證據交還給她。",
+    body: "作者欄的線索仍有缺頁。已核實的資料可以交還 A-07；若證據不足，也能保留疑問並繼續旅程。",
     artKey: "story.protocol-author",
     nightLine: "作者欄裡寫著 A-07 的識別碼。",
     payoff: "authorKnown 會改變 A-07 在 Day 7 的說服門檻。",
@@ -726,7 +734,7 @@ export const STORY_EVENTS: StoryContentEvent[] = [
       },
       {
         id: "hide",
-        label: "暫不告知",
+        label: "暫不告知／保留疑問",
         cost: "感染 −1、信任 −2",
         known: "降低暴露；失去作者說服證據",
         deltas: {},
@@ -2998,7 +3006,7 @@ export const ALL_STORY_EVENTS: StoryContentEvent[] = [
 
 export const THREATS: ThreatDefinition[] = [
   { id: "T002", name: "敲窗者", anchor: "right-window", counterIds: ["close-shutter", "shock-window"], warningSeconds: 10, damage: 14, artKey: "threat.knocker" },
-  { id: "T003", name: "攀附者", anchor: "roof", counterIds: ["emergency-boost", "decoy"], warningSeconds: 12, damage: 18, artKey: "threat.clinger" },
+  { id: "T003", name: "攀附者", anchor: "roof", counterIds: ["emergency-boost", "roof-release", "decoy"], warningSeconds: 12, damage: 18, artKey: "threat.clinger" },
   { id: "T004", name: "霧噬藤", anchor: "door", counterIds: ["drag-cutter"], warningSeconds: 10, damage: 12, artKey: "threat.fog-vine" },
   { id: "T005", name: "回聲乘客", anchor: "right-window", counterIds: ["match-echo"], warningSeconds: 10, damage: 2, artKey: "threat.echo-passenger" },
   { id: "T006", name: "靜默群", anchor: "roof", counterIds: ["trace-leaves", "trace-meter"], warningSeconds: 8, damage: 16, artKey: "threat.silent-crowd" },

@@ -1,6 +1,10 @@
 import { DECORATIONS, DECORATION_SLOTS, MODULES } from "./content";
+import { createProfile } from "./profile";
+import { applyProfileLoadout } from "./profile-loadouts";
+import { createQuestState } from "./quests";
 import { createDefaultStoryState } from "./story";
-import type { AppState, CropPlot, DecorationPlacement, RunState, SettingsState, StoryRouteId } from "./types";
+import { createVoyageState } from "./voyage/engine";
+import type { AppState, CropPlot, DecorationPlacement, ProfileState, RunState, SettingsState, StoryRouteId } from "./types";
 
 export const DEFAULT_SETTINGS: SettingsState = {
   textScale: 100,
@@ -46,10 +50,25 @@ const ROUTE_START_STATE = {
   Pick<RunState, "resources" | "environment" | "lastMessage">
 >;
 
-export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01"): RunState {
+let runCounter = 0;
+
+function createRunId(): string {
+  const randomUUID = globalThis.crypto?.randomUUID?.();
+  if (randomUUID) return `run-${randomUUID}`;
+  runCounter += 1;
+  return `run-${Date.now().toString(36)}-${runCounter.toString(36)}`;
+}
+
+export function createRun(
+  seed = `${Date.now()}`,
+  routeId: StoryRouteId = "R01",
+  profile?: ProfileState,
+): RunState {
   const routeStart = ROUTE_START_STATE[routeId];
-  return {
-    schemaVersion: 5,
+  const runId = createRunId();
+  const run: RunState = {
+    schemaVersion: 6,
+    runId,
     seed,
     day: 1,
     maxDays: 7,
@@ -65,7 +84,7 @@ export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01")
     modules: MODULES.slice(0, 3).map((definition, index) => ({
       id: `MI${index + 1}`,
       definitionId: definition.id,
-      slotId: ["window-right", "floor-a", "wall-a"][index] ?? `slot-${index}`,
+      slotId: ["defense-window", "sleep-floor", "greenhouse-wall"][index] ?? `slot-${index}`,
       active: true,
       powered: true,
       durability: 100,
@@ -77,15 +96,19 @@ export function createRun(seed = `${Date.now()}`, routeId: StoryRouteId = "R01")
     techOwned: [],
     flags: [],
     ledger: [],
+    quests: createQuestState(runId, routeId, 1),
+    voyage: createVoyageState(),
     ended: false,
     lastMessage: routeStart.lastMessage,
   };
+  return applyProfileLoadout(run, profile);
 }
 
 export function createAppState(): AppState {
   return {
     screen: "menu",
     run: null,
+    profile: createProfile(),
     settings: { ...DEFAULT_SETTINGS },
     selectedTechId: "E1",
     selectedModuleId: "M003",

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "date": "2026-10-02",
+  "artifact": "standalone design reader, not game runtime",
+  "browser": "Playwright CLI Chromium on Windows; resized viewports, not physical phone testing",
+  "behaviorAndLayoutAssertions": 34,
+  "viewports": [[320,640],[360,640],[390,844],[1366,600]],
+  "panels": ["玩法方向","畫風參考","七夜內容","56 項任務","開發路線圖","完整規格"],
+  "behaviors": ["56 initial missions","facility filter returns 8","R02 main filter returns 7","empty search returns 0","R03 has seven nights","four documents open","carriage selection changes detail"],
+  "documentChecks": 4,
+  "layoutChecks": 24,
+  "additionalReadback": {"width":390,"horizontalOverflow":false,"missions":56,"allImagesLoaded":true,"parentRelativeLinks":[]},
+  "console": {"errors":0,"warnings":0},
+  "screenshots": ["preview/reboot-overview-desktop.png","preview/reboot-missions-mobile.png","preview/reboot-mission-detail-mobile.png"],
+  "limitations": ["No new game runtime or art was created","No iOS/Android physical device performance test","No natural seven-night v2 playtest"]
+}

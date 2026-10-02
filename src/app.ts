@@ -3,11 +3,33 @@ import {
   CROPS,
   DECORATIONS,
   EVENTS,
+  MODULES,
   STORY_ROUTE_RUNTIME_POLICIES,
   TECH_NODES,
 } from "./game/content";
+import {
+  claimQuestRewards,
+  settleQuestDay,
+  toggleQuestTracking,
+} from "./game/quests";
+import {
+  FACILITY_UPGRADES,
+  REFILL_ACTIONS,
+  RELATIONSHIPS,
+} from "./game/voyage/content";
 import { AudioService } from "./game/audio";
 import { createAppState, createRun } from "./game/model";
+import { recordRunOutcome } from "./game/profile";
+import {
+  prepareProfileLoadoutSelection,
+  type ProfileLoadoutKind,
+} from "./game/profile-loadouts";
+import {
+  deriveGameplayEffects,
+  getModuleBuildPartsCost,
+  getRepairHullAmount,
+} from "./game/module-effects";
+import { getFacilityEffects } from "./game/facility-slots";
 import { SceneRenderer } from "./game/renderer";
 import { SaveService } from "./game/save";
 import { RunService } from "./game/services";
@@ -52,13 +74,27 @@ export class NightTrainApp {
 
   public async start(): Promise<void> {
     this.hasSave = await this.saveService.hasSave();
+    this.state.profile = await this.saveService.loadProfile();
     const savedSettings = this.saveService.loadSettings();
     if (savedSettings) this.state.settings = savedSettings;
     this.renderer.start();
     this.render();
-    window.addEventListener("pagehide", () => void this.persist());
+    window.addEventListener("pagehide", () => {
+      // An in-flight transaction owns its save. A second pagehide write could
+      // otherwise overwrite a freshly claimed profile with the pre-action copy.
+      if (!this.actionInFlight) void this.persist();
+    });
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") void this.persist();
+      if (document.visibilityState === "hidden") {
+        if (this.state.run?.phase === "night") {
+          this.state.nightPaused = true;
+          this.state.run.lastMessage =
+            "守夜已暫停並保存。回到列車後，請手動繼續。";
+        }
+        if (!this.actionInFlight) void this.persist();
+      } else {
+        this.render();
+      }
     });
   }
 
@@ -80,7 +116,7 @@ export class NightTrainApp {
           {
             const routeId: StoryRouteId =
               value === "R02" || value === "R03" ? value : "R01";
-            const createdRun = createRun(undefined, routeId);
+            const createdRun = createRun(undefined, routeId, this.state.profile);
             this.runService.enterStoryPhase(createdRun, "prep");
             this.state.run = createdRun;
             this.state.activeCarriageId =
@@ -95,12 +131,16 @@ export class NightTrainApp {
           this.state.routePreview = false;
           this.state.modulePreview = false;
           this.state.decorating = false;
+          this.state.objectPreview = null;
+          this.state.questFilter = "all";
+          this.state.journalPage = 0;
           this.state.saveStatus = "saving";
           await this.persist();
           break;
         case "continue": {
           const loaded = await this.saveService.load();
           this.state.run = loaded.run;
+          this.state.profile = loaded.profile;
           if (loaded.run) {
             this.runService.ensureThreatInteraction(loaded.run);
             if (loaded.run.phase === "prep")
@@ -113,6 +153,7 @@ export class NightTrainApp {
           this.state.routePreview = false;
           this.state.modulePreview = false;
           this.state.decorating = false;
+          this.state.objectPreview = null;
           this.state.saveStatus = loaded.recovered ? "recovered" : "saved";
           if (loaded.run) {
             this.state.activeCarriageId =
@@ -136,6 +177,7 @@ export class NightTrainApp {
           if (!this.state.run) {
             const loaded = await this.saveService.load();
             this.state.run = loaded.run ?? createRun();
+            this.state.profile = loaded.profile;
           }
           this.state.screen = "hub";
           this.state.eventPreview = false;
@@ -145,6 +187,119 @@ export class NightTrainApp {
           break;
         case "settings":
           this.state.screen = "settings";
+          break;
+        case "missions":
+          if (!this.state.run) {
+            const loaded = await this.saveService.load();
+            this.state.run = loaded.run ?? createRun();
+            this.state.profile = loaded.profile;
+          }
+          this.state.questFilter =
+            this.state.questFilter === "profile"
+              ? "all"
+              : this.state.questFilter || "all";
+          this.state.journalPage = 0;
+          this.state.screen = "missions";
+          break;
+        case "profile":
+          if (!this.state.run) {
+            const loaded = await this.saveService.load();
+            this.state.run = loaded.run ?? createRun();
+            this.state.profile = loaded.profile;
+          }
+          this.state.questFilter = "profile";
+          this.state.journalPage = 0;
+          this.state.screen = "missions";
+          break;
+        case "set-mission-view":
+          this.state.questFilter = value === "profile" ? "profile" : "all";
+          this.state.journalPage = 0;
+          break;
+        case "select-profile-loadout":
+          if (run && value) {
+            const [kindValue, idValue] = value.split("|");
+            if (kindValue === "blueprint" || kindValue === "cosmetic") {
+              const kind = kindValue as ProfileLoadoutKind;
+              const draft = prepareProfileLoadoutSelection(
+                this.state.profile,
+                kind,
+                idValue === "standard" ? undefined : idValue,
+              );
+              if (draft.status === "prepared") {
+                try {
+                  this.state.saveStatus = "saving";
+                  await this.saveService.save(run, draft.profile);
+                  this.state.profile = draft.profile;
+                  this.state.saveStatus = "saved";
+                  this.hasSave = true;
+                } catch {
+                  this.state.saveStatus = "error";
+                }
+              }
+            }
+          }
+          break;
+        case "set-quest-filter":
+          if (
+            value &&
+            [
+              "all",
+              "main",
+              "tutorial",
+              "relationship",
+              "facility",
+              "exploration",
+              "challenge",
+              "completed",
+            ].includes(value)
+          ) {
+            this.state.questFilter = value;
+            this.state.journalPage = 0;
+          }
+          break;
+        case "quest-page":
+          this.state.journalPage = Math.max(
+            0,
+            (this.state.journalPage ?? 0) + (value === "previous" ? -1 : 1),
+          );
+          break;
+        case "toggle-quest-tracking":
+          if (run && value) {
+            const changed = toggleQuestTracking(run, value);
+            run.lastMessage = changed
+              ? run.quests.trackedMissionIds.includes(value)
+                ? "任務已釘在車廂畫面；釘選不扣 AP 或物資。"
+                : "已取消釘選，任務進度仍會保留。"
+              : run.quests.trackedMissionIds.length >= 2
+                ? "一次最多釘選 2 項任務。"
+                : "這項任務目前不能釘選。";
+            if (changed) await this.persist();
+          }
+          break;
+        case "claim-quest-rewards":
+          if (run && value) {
+            const draft = claimQuestRewards(run, this.state.profile, value);
+            if (draft.status === "prepared") {
+              try {
+                this.state.saveStatus = "saving";
+                await this.saveService.save(draft.run, draft.profile);
+                this.state.run = draft.run;
+                this.state.profile = draft.profile;
+                this.state.saveStatus = "saved";
+                this.hasSave = true;
+                this.state.run.lastMessage =
+                  "任務成果已保存到旅程檔案。";
+              } catch {
+                this.state.saveStatus = "error";
+                run.lastMessage =
+                  "保存失敗，這次沒有領取成果；請清出儲存空間後重試。";
+              }
+            } else if (draft.status === "noop") {
+              run.lastMessage = "這項任務成果已經領取。";
+            } else {
+              run.lastMessage = "任務尚未完成，現在不能領取成果。";
+            }
+          }
           break;
         case "carriage":
           if (
@@ -229,6 +384,45 @@ export class NightTrainApp {
               this.state.screen = "event";
             }
             await this.persist();
+          }
+          break;
+        case "start-expedition":
+          if (run && this.runService.startExpedition(run)) await this.persist();
+          break;
+        case "choose-expedition-step":
+          if (
+            run &&
+            value &&
+            this.runService.chooseExpeditionStep(run, value)
+          )
+            await this.persist();
+          break;
+        case "withdraw-expedition":
+          if (run && this.runService.withdrawExpedition(run))
+            await this.persist();
+          break;
+        case "upgrade-facility":
+          if (run && value) {
+            const [facilityId, branchId] = value.split(":");
+            if (
+              facilityId &&
+              branchId &&
+              this.runService.upgradeFacility(run, facilityId, branchId)
+            )
+              await this.persist();
+          }
+          break;
+        case "choose-relationship":
+          if (run && value) {
+            const [characterId, choiceId] = value.split(":");
+            if (
+              characterId &&
+              choiceId &&
+              this.runService.chooseRelationship(run, characterId, choiceId)
+            ) {
+              this.state.objectPreview = null;
+              await this.persist();
+            }
           }
           break;
         case "emergency-route":
@@ -443,6 +637,7 @@ export class NightTrainApp {
           break;
         case "next-day":
           if (run) {
+            settleQuestDay(run);
             this.runService.continueAftermath(run);
             this.state.screen = this.screenForPhase();
             this.state.carriagePanel = "scene";
@@ -452,6 +647,61 @@ export class NightTrainApp {
             this.state.nightPaused = false;
             await this.persist();
           }
+          break;
+        case "preview-action":
+          if (run && value) {
+            const separator = value.indexOf("|");
+            const operation = separator >= 0 ? value.slice(0, separator) : value;
+            const operationValue = separator >= 0 ? value.slice(separator + 1) : undefined;
+            this.state.objectPreview = this.describeObjectAction(
+              run,
+              operation,
+              operationValue || undefined,
+            );
+          }
+          break;
+        case "cancel-object-action":
+          this.state.objectPreview = null;
+          break;
+        case "confirm-object-action":
+          if (run && this.state.objectPreview) {
+            const preview = this.state.objectPreview;
+            this.state.objectPreview = null;
+            await this.executeObjectAction(run, preview.action, preview.value);
+          }
+          break;
+        case "inspect-object":
+          if (run) {
+            this.runService.inspectObject(run, value);
+            await this.persist();
+          }
+          break;
+        case "open-relationship":
+          if (run && (value === "A-07" || value === "xu")) {
+            this.state.objectPreview = {
+              action: "relationship-panel",
+              value,
+              title: value === "A-07" ? "回應 A-07" : "回應老許",
+              costs: "查看與稍後再說都不消耗 AP",
+            };
+          }
+          break;
+        case "open-refill":
+          if (run && (value === "workshop" || value === "kitchen")) {
+            this.state.objectPreview = {
+              action: "refill-panel",
+              value,
+              title: value === "workshop" ? "工坊補電" : "廚房補給",
+              costs: "查看與關閉面板不會扣 AP 或物資",
+            };
+          }
+          break;
+        case "refill-supplies":
+          if (run && value && this.runService.refillSupplies(run, value))
+            await this.persist();
+          break;
+        case "use-medicine":
+          if (run && this.runService.useMedicine(run)) await this.persist();
           break;
         case "select-module":
           if (value) {
@@ -738,6 +988,300 @@ export class NightTrainApp {
     }
   }
 
+  private describeObjectAction(
+    run: RunState,
+    action: string,
+    value?: string,
+  ): NonNullable<AppState["objectPreview"]> {
+    if (action === "build-module") {
+      const module = MODULES.find((candidate) => candidate.id === value);
+      const partsCost = value ? getModuleBuildPartsCost(run, value) : 0;
+      return {
+        action,
+        value,
+        title: module ? `安裝${module.name}` : "安裝列車模組",
+        costs: module
+          ? `2 AP、零件 ${partsCost}；今夜增加 ${module.activeCost} 電力負載`
+          : "2 AP 與模組所需零件",
+      };
+    }
+    if (action === "unlock-tech") {
+      const tech = TECH_NODES.find((candidate) => candidate.id === value);
+      return {
+        action,
+        value,
+        title: tech ? `解鎖${tech.name}` : "解鎖科技",
+        costs: `協定資料 ${tech?.cost ?? 0}`,
+      };
+    }
+    if (action === "plant-crop") {
+      const cropId = value?.split(":")[1];
+      const crop = CROPS.find((candidate) => candidate.id === cropId);
+      return {
+        action,
+        value,
+        title: `播種${crop?.name ?? "作物"}`,
+        costs: "1 AP、飲水 1；今晚需保持種植架供電",
+      };
+    }
+    if (action === "harvest-crop")
+      return {
+        action,
+        value,
+        title: "收成這一槽作物",
+        costs: "1 AP；收成後會清空作物槽",
+      };
+    if (action === "water-crops")
+      {
+        const facility = getFacilityEffects(run.voyage);
+        const waterCost = Math.max(0, 1 - facility.irrigationWaterDiscount);
+        const contaminationRisk = facility.contaminationOnIrrigation > 0
+          ? run.routeId === "R03"
+            ? "；封閉回水會使儲水污染 +6、供水槽污染各 +1"
+            : "；封閉回水會使感染 +2"
+          : "";
+        return {
+        action,
+        value,
+        title: "啟動水培循環",
+        costs: `${waterCost > 0 ? `飲水 ${waterCost}` : "免飲水"}；所有未成熟作物同時灌溉${contaminationRisk}`,
+      };
+      }
+    if (action === "comfort")
+      return {
+        action,
+        value,
+        title: "安撫 A-07",
+        costs: "1 AP；壓力 −8、信任 +2",
+      };
+    if (action === "repair-hull")
+      return {
+        action,
+        value,
+        title: "修補車體破損",
+        costs: `2 AP、零件 2；車體完整度 +${Math.min(100 - run.environment.hull, getRepairHullAmount(run))}`,
+      };
+    if (action === "workshop-scrap")
+      return {
+        action,
+        value,
+        title: "整理工坊回收件",
+        costs: "1 AP；零件 +1、噪音 +4",
+      };
+    if (action === "cook-meal")
+      return {
+        action,
+        value,
+        title: "為 A-07 煮一份熱食",
+        costs: "1 AP、食物 1、飲水 1、電量 2",
+      };
+    if (action === "upgrade-facility") {
+      const [facilityId, upgradeId] = value?.split(":") ?? [];
+      const upgrade = FACILITY_UPGRADES.find(
+        (candidate) =>
+          candidate.facilityId === facilityId &&
+          candidate.upgradeId === upgradeId,
+      );
+      return {
+        action,
+        value,
+        title: upgrade?.title ?? "確認設施改裝方向",
+        costs: upgrade
+          ? `${upgrade.apCost} AP、零件 ${upgrade.partsCost}；完成後關閉同組另一方向`
+          : "採用後會鎖定同組另一條改裝；實際成本只結算一次",
+      };
+    }
+    if (action === "choose-relationship") {
+      const [missionId, choiceId] = value?.split(":") ?? [];
+      const relationship = RELATIONSHIPS.find(
+        (candidate) => candidate.missionId === missionId,
+      );
+      const choice = relationship?.choices.find(
+        (candidate) => candidate.id === choiceId,
+      );
+      const costs = Object.entries(choice?.cost ?? {})
+        .filter(([, amount]) => (amount ?? 0) < 0)
+        .map(([key, amount]) => {
+          const labels: Record<string, string> = {
+            energy: "電量",
+            fuel: "燃料",
+            food: "食物",
+            water: "飲水",
+            parts: "零件",
+            medicine: "藥品",
+          };
+          return `${labels[key] ?? key} ${Math.abs(amount ?? 0)}`;
+        })
+        .join("、");
+      return {
+        action,
+        value,
+        title: choice?.label ?? "確認這次回應",
+        costs: costs || "不消耗 AP 或物資",
+      };
+    }
+    if (action === "start-expedition")
+      return {
+        action,
+        value,
+        title: "派出檢修裝置探索",
+        costs: "1 AP、使用當日停站機會；出發後仍可帶著已找到的物品撤回",
+      };
+    if (action === "refill-supplies") {
+      const refill = REFILL_ACTIONS.find((candidate) => candidate.id === value);
+      const cost = Object.entries(refill?.cost ?? {})
+        .map(([key, amount]) => {
+          const labels: Record<string, string> = {
+            energy: "電量",
+            water: "飲水",
+            parts: "零件",
+          };
+          return `${labels[key] ?? key} ${Math.abs(amount)}`;
+        })
+        .join("、");
+      const gain = Object.entries(refill?.gain ?? {})
+        .map(([key, amount]) => {
+          const labels: Record<string, string> = {
+            energy: "電量",
+            water: "飲水",
+            food: "食物",
+          };
+          return `${labels[key] ?? key} +${amount}`;
+        })
+        .join("、");
+      return {
+        action,
+        value,
+        title: refill?.title ?? "確認補給",
+        costs: refill ? `${refill.apCost} AP、${cost}；${gain}` : "1 AP",
+      };
+    }
+    if (action === "use-medicine")
+      {
+        const moduleEffects = deriveGameplayEffects(run);
+        const facilityEffects = getFacilityEffects(run.voyage);
+        const healthGain = Math.min(
+          100 - run.survivor.health,
+          12 + moduleEffects.medicineHealthBonus + facilityEffects.medicineHealthBonus,
+        );
+        const infectionReduction = Math.min(
+          run.survivor.infection,
+          6 + moduleEffects.medicineInfectionReduction + facilityEffects.medicineInfectionReduction,
+        );
+        return {
+        action,
+        value,
+        title: "使用臥室醫療盒",
+        costs: `1 AP、藥品 1；健康 +${healthGain}、感染 −${infectionReduction}`,
+      };
+      }
+    if (action === "choose-expedition-step")
+      return {
+        action,
+        value,
+        title: value === "deep-dive" ? "承擔風險深入" : "確認探索選擇",
+        costs:
+          value === "deep-dive"
+            ? "可能損傷車體並提高噪音與壓力；固定結果不會因讀檔重抽"
+            : "這一步不額外扣 AP",
+      };
+    return {
+      action,
+      value,
+      title: "確認這次整備",
+      costs: "依畫面列出的 AP 與物資結算一次",
+    };
+  }
+
+  private async executeObjectAction(
+    run: RunState,
+    action: string,
+    value?: string,
+  ): Promise<void> {
+    let accepted = false;
+    switch (action) {
+      case "build-module":
+        accepted = Boolean(value && this.runService.buildModule(run, value));
+        if (accepted) this.state.screen = "carriage";
+        break;
+      case "unlock-tech":
+        accepted = Boolean(value && this.runService.unlockTech(run, value));
+        break;
+      case "plant-crop": {
+        const [plotId, cropId] = value?.split(":") ?? [];
+        accepted = Boolean(
+          plotId &&
+            cropId &&
+            ["plot-a", "plot-b"].includes(plotId) &&
+            CROPS.some((crop) => crop.id === cropId) &&
+            this.runService.plantCrop(
+              run,
+              plotId as CropPlotId,
+              cropId as CropId,
+            ),
+        );
+        break;
+      }
+      case "water-crops":
+        accepted = this.runService.waterCrops(run);
+        break;
+      case "harvest-crop":
+        accepted = Boolean(
+          value &&
+            ["plot-a", "plot-b"].includes(value) &&
+            this.runService.harvestCrop(run, value as CropPlotId),
+        );
+        break;
+      case "workshop-scrap":
+        accepted = this.runService.collectWorkshopScrap(run);
+        break;
+      case "cook-meal":
+        accepted = this.runService.cookHotMeal(run);
+        break;
+      case "comfort":
+        accepted = this.runService.comfortPassenger(run);
+        break;
+      case "repair-hull":
+        accepted = this.runService.repairCarriage(run);
+        break;
+      case "upgrade-facility": {
+        const [facilityId, branchId] = value?.split(":") ?? [];
+        accepted = Boolean(
+          facilityId &&
+            branchId &&
+            this.runService.upgradeFacility(run, facilityId, branchId),
+        );
+        break;
+      }
+      case "start-expedition":
+        accepted = this.runService.startExpedition(run);
+        break;
+      case "choose-expedition-step":
+        accepted = Boolean(
+          value && this.runService.chooseExpeditionStep(run, value),
+        );
+        break;
+      case "choose-relationship": {
+        const [missionId, choiceId] = value?.split(":") ?? [];
+        accepted = Boolean(
+          missionId &&
+            choiceId &&
+            this.runService.chooseRelationship(run, missionId, choiceId),
+        );
+        break;
+      }
+      case "refill-supplies":
+        accepted = Boolean(value && this.runService.refillSupplies(run, value));
+        break;
+      case "use-medicine":
+        accepted = this.runService.useMedicine(run);
+        break;
+      default:
+        run.lastMessage = "這項操作目前無法執行。";
+    }
+    if (accepted) await this.persist();
+  }
+
   private captureActionFeedback(
     run: RunState,
     ledgerStart: number,
@@ -752,24 +1296,24 @@ export class NightTrainApp {
     for (const entry of run.ledger.slice(ledgerStart))
       combined.set(entry.key, (combined.get(entry.key) ?? 0) + entry.delta);
     const labels: Record<string, string> = {
-      energy: "電",
-      fuel: "燃",
-      food: "食",
-      water: "水",
-      parts: "零",
-      medicine: "藥",
-      data: "資",
-      health: "健",
-      stress: "壓",
-      infection: "染",
-      trust: "信",
-      sleep: "眠",
-      wakeups: "醒",
-      temperature: "溫",
-      noise: "噪",
-      visibility: "視",
-      hull: "體",
-      weight: "重",
+      energy: "電量",
+      fuel: "燃料",
+      food: "食物",
+      water: "飲水",
+      parts: "零件",
+      medicine: "藥品",
+      data: "資料",
+      health: "健康",
+      stress: "壓力",
+      infection: "感染",
+      trust: "信任",
+      sleep: "睡眠",
+      wakeups: "驚醒",
+      temperature: "溫度",
+      noise: "噪音",
+      visibility: "能見度",
+      hull: "車體",
+      weight: "負重",
     };
     const reliefKeys = new Set([
       "stress",
@@ -838,7 +1382,11 @@ export class NightTrainApp {
     if (!this.state.run) return;
     try {
       this.state.saveStatus = "saving";
-      await this.saveService.save(this.state.run);
+      const profileDraft = this.state.run.ended
+        ? recordRunOutcome(this.state.profile, this.state.run)
+        : this.state.profile;
+      await this.saveService.save(this.state.run, profileDraft);
+      this.state.profile = profileDraft;
       this.hasSave = true;
       this.state.saveStatus = "saved";
     } catch {

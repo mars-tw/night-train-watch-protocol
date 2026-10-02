@@ -17,7 +17,8 @@ describe("R03 visible runtime contract", () => {
   it("renders a playable third route card with the formal unlock disclosure", () => {
     expect(view).toContain('"R03・綠潮線"');
     expect(view).toContain('value: "R03"');
-    expect(view).toContain("預覽可玩・正式需求科技 8");
+    expect(view).toContain("可玩預覽・完成 5 項教學與任一七夜後正式解鎖");
+    expect(view).toContain('state.profile.routeUnlocks.includes("R03")');
     expect(view).toContain("route-launch-card--green");
   });
 

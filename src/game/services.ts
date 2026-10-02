@@ -2,6 +2,7 @@ import {
   ALL_STORY_EVENTS,
   BALANCE,
   CROPS,
+  cropStageForGrowthNights,
   DAY4_BRANCH_DEFINITIONS,
   DECORATIONS,
   DECORATION_SLOTS,
@@ -23,6 +24,40 @@ import type {
 } from "./content";
 import { createDecorationPlacements } from "./model";
 import { createRng } from "./rng";
+import { emitQuestEvent } from "./quests";
+import {
+  FUNCTIONAL_MODULE_SLOTS,
+  commitFacilityUpgrade,
+  getFacilityEffects,
+  repairFunctionalModuleSlots,
+} from "./facility-slots";
+import {
+  applyRainCollectionEffect,
+  applyRouteCompletionEffects,
+  deriveGameplayEffects,
+  getCounterEnergyCost,
+  getEnergyCapacity,
+  getModuleBuildPartsCost,
+  getRepairHullAmount,
+  resolveIncomingHullDamage,
+} from "./module-effects";
+import {
+  chooseExpeditionStep as chooseVoyageExpeditionStep,
+  commitRefillAction,
+  getRouteTradeoff,
+  recordInspectedId,
+  repairVoyageState,
+  resolveRelationshipChoice,
+  resourceWarnings,
+  startExpedition as startVoyageExpedition,
+  withdrawExpedition as withdrawVoyageExpedition,
+} from "./voyage/engine";
+import type {
+  ExpeditionChoiceId,
+  ExpeditionSiteId,
+  VoyageActionResult,
+} from "./voyage/types";
+import { installV2Observers } from "./v2-observer";
 import {
   applyDay4Route,
   applyFrostBranch,
@@ -83,8 +118,28 @@ export const COUNTER_COSTS: Record<
   "close-shutter": { energy: -8 },
   "shock-window": { energy: -12 },
   "emergency-boost": { fuel: -4 },
+  "roof-release": { parts: -1 },
   decoy: { energy: -6 },
 };
+
+export function getEffectiveCounterCosts(
+  run: RunState,
+  counterId: string,
+): Partial<Record<ResourceKey, number>> {
+  const configured = COUNTER_COSTS[counterId] ?? {};
+  const facilityDiscount = getFacilityEffects(run.voyage).counterEnergyDiscount;
+  return Object.fromEntries(
+    Object.entries(configured).map(([key, delta]) => {
+      if (key !== "energy" || typeof delta !== "number" || delta >= 0)
+        return [key, delta];
+      const discounted = getCounterEnergyCost(
+        run,
+        Math.max(0, -delta - facilityDiscount),
+      );
+      return [key, -discounted];
+    }),
+  );
+}
 
 const THREAT_INTERACTION_COMMANDS = new Set<ThreatInteractionCommand>([
   "cutter:plot-a",
@@ -235,20 +290,220 @@ export function counterReadiness(
     if (!module.active || !module.powered)
       return { available: false, reason: "未供電" };
   }
-  for (const [key, delta] of Object.entries(COUNTER_COSTS[counterId] ?? {})) {
+  for (const [key, delta] of Object.entries(getEffectiveCounterCosts(run, counterId))) {
     if (
       typeof delta === "number" &&
       run.resources[key as ResourceKey] + delta < 0
     )
       return {
         available: false,
-        reason: `${key === "fuel" ? "燃料" : "電量"}不足`,
+        reason: `${key === "fuel" ? "燃料" : key === "parts" ? "零件" : "電量"}不足`,
       };
   }
   return { available: true, reason: "可用" };
 }
 
 export class RunService {
+  public constructor() {
+    installV2Observers(this);
+  }
+
+  private voyageContext(run: RunState): RunState & { flags: string[] } {
+    const storyFlags = Object.entries(run.story.flags)
+      .filter(([, value]) => Boolean(value))
+      .map(([key]) => key);
+    return { ...run, flags: [...new Set([...run.flags, ...storyFlags])] };
+  }
+
+  private commitVoyageResult(
+    run: RunState,
+    action: VoyageActionResult,
+    emitEvent = true,
+  ): boolean {
+    if (!action.ok) {
+      run.lastMessage = action.message;
+      return false;
+    }
+    if (action.apCost < 0 || run.actionPoints < action.apCost) {
+      run.lastMessage = `行動點不足；需要 ${Math.max(0, action.apCost)} AP。`;
+      return false;
+    }
+    for (const [key, delta] of Object.entries(action.resourceDelta)) {
+      if (
+        typeof delta === "number" &&
+        delta < 0 &&
+        run.resources[key as ResourceKey] + delta < 0
+      ) {
+        run.lastMessage = `${key}不足，操作沒有提交。`;
+        return false;
+      }
+    }
+    const source =
+      typeof action.eventPayload?.transactionId === "string"
+        ? action.eventPayload.transactionId
+        : `v2:${run.runId}:${run.day}:${action.eventType ?? "action"}`;
+    run.actionPoints -= action.apCost;
+    for (const [key, delta] of Object.entries(action.resourceDelta)) {
+      if (typeof delta === "number" && delta !== 0)
+        this.applyResource(run, key as ResourceKey, delta, source);
+    }
+    for (const [key, delta] of Object.entries(action.survivorDelta)) {
+      if (typeof delta === "number" && delta !== 0)
+        this.applySurvivor(run, key as SurvivorKey, delta, source);
+    }
+    for (const [key, delta] of Object.entries(action.environmentDelta)) {
+      if (typeof delta === "number" && delta !== 0)
+        this.applyEnvironment(run, key as EnvironmentKey, delta, source);
+    }
+    run.voyage = action.stateDraft;
+    const spentResource = Object.values(action.resourceDelta).some(
+      (delta) => typeof delta === "number" && delta < 0,
+    );
+    const warnings = spentResource ? resourceWarnings(run) : [];
+    run.lastMessage = `${action.message}${warnings.length ? ` 警告：${warnings.join(" ")}` : ""}`;
+    if (emitEvent && action.eventType && action.eventPayload)
+      emitQuestEvent(run, action.eventType, action.eventPayload);
+    return true;
+  }
+
+  public repairModuleSlots(run: RunState): void {
+    const assignments = repairFunctionalModuleSlots(run.modules);
+    for (const assignment of assignments) {
+      if (!assignment.compatible) continue;
+      const module = run.modules.find((candidate) => candidate.id === assignment.moduleId);
+      if (module) module.slotId = assignment.slotId;
+    }
+  }
+
+  private syncModuleVisibility(run: RunState): void {
+    const prefix = "v2-module-visibility:";
+    const previousFlag = run.flags.find((flag) => flag.startsWith(prefix));
+    const previous = previousFlag
+      ? Number(previousFlag.slice(prefix.length)) || 0
+      : 0;
+    const desired = deriveGameplayEffects(run).visibilityDelta;
+    if (desired !== previous)
+      this.applyEnvironment(
+        run,
+        "visibility",
+        desired - previous,
+        "module.visibility",
+      );
+    run.flags = run.flags.filter((flag) => !flag.startsWith(prefix));
+    run.flags.push(`${prefix}${desired}`);
+  }
+
+  public startExpedition(run: RunState, siteId?: string): boolean {
+    const action = startVoyageExpedition(
+      this.voyageContext(run),
+      siteId as ExpeditionSiteId | undefined,
+    );
+    return this.commitVoyageResult(run, action);
+  }
+
+  public chooseExpeditionStep(run: RunState, choiceId: string): boolean {
+    const allowed: readonly ExpeditionChoiceId[] = [
+      "survey",
+      "proper-tool",
+      "improvise",
+      "withdraw",
+      "deep-dive",
+    ];
+    if (!allowed.includes(choiceId as ExpeditionChoiceId)) {
+      run.lastMessage = "未知的探索指令。";
+      return false;
+    }
+    const action = chooseVoyageExpeditionStep(
+      this.voyageContext(run),
+      choiceId as ExpeditionChoiceId,
+    );
+    return this.commitVoyageResult(run, action);
+  }
+
+  public withdrawExpedition(run: RunState): boolean {
+    return this.commitVoyageResult(
+      run,
+      withdrawVoyageExpedition(this.voyageContext(run)),
+    );
+  }
+
+  public upgradeFacility(
+    run: RunState,
+    facilityId: string,
+    branchId: string,
+  ): boolean {
+    const action = commitFacilityUpgrade(
+      this.voyageContext(run),
+      facilityId,
+      branchId,
+    );
+    const branchChoice = action.eventPayload?.branchChoice;
+    const visibilityDelta =
+      branchChoice === "covered" ? -8 : branchChoice === "visible" ? 6 : 0;
+    const adjusted = visibilityDelta
+      ? {
+          ...action,
+          environmentDelta: {
+            ...action.environmentDelta,
+            visibility: (action.environmentDelta.visibility ?? 0) + visibilityDelta,
+          },
+        }
+      : action;
+    return this.commitVoyageResult(run, adjusted);
+  }
+
+  public chooseRelationship(
+    run: RunState,
+    missionOrNpcId: string,
+    choiceId: string,
+  ): boolean {
+    return this.commitVoyageResult(
+      run,
+      resolveRelationshipChoice(
+        this.voyageContext(run),
+        missionOrNpcId,
+        choiceId,
+      ),
+    );
+  }
+
+  public inspectObject(run: RunState, objectId = "sleep-bed"): boolean {
+    const targetId = {
+      "sleep-bed": "passenger-breathing",
+      "passenger-breathing": "passenger-breathing",
+      window: "window-silhouette",
+      "defense-window": "window-silhouette",
+      "window-silhouette": "window-silhouette",
+    }[objectId] ?? objectId;
+    const voyage = repairVoyageState(run.voyage);
+    const inspectionId = `D${run.day}:${targetId}`;
+    if (voyage.inspectedIds.includes(inspectionId)) {
+      run.lastMessage = "今天已檢查過這個位置。";
+      return false;
+    }
+    run.voyage = recordInspectedId(voyage, inspectionId);
+    emitQuestEvent(run, "action.committed", {
+      transactionId: `${run.runId}:${inspectionId}`,
+      operation: "inspect",
+      targetId,
+      result: "success",
+    });
+    run.lastMessage =
+      targetId === "passenger-breathing"
+        ? "A-07 呼吸平穩；觀察已記入守夜日誌。"
+        : targetId === "window-silhouette"
+          ? "窗外影子的方向已記錄；沒有消耗 AP。"
+          : "觀察結果已記入守夜日誌；沒有消耗 AP。";
+    return true;
+  }
+
+  public refillSupplies(run: RunState, actionId: string): boolean {
+    return this.commitVoyageResult(
+      run,
+      commitRefillAction(this.voyageContext(run), actionId),
+    );
+  }
+
   public enterStoryPhase(run: RunState, duePhase: "prep" | "route"): boolean {
     if (
       !STORY_ROUTE_RUNTIME_POLICIES[run.routeId].startsWithPrepStory ||
@@ -313,7 +568,7 @@ export class RunService {
     source: string,
   ): boolean {
     const before = run.resources[key];
-    const maximum = BALANCE.max[key];
+    const maximum = key === "energy" ? getEnergyCapacity(run) : BALANCE.max[key];
     if (delta < 0 && before + delta < 0) return false;
     const after = clamp(before + delta, 0, maximum);
     run.resources[key] = after;
@@ -398,15 +653,17 @@ export class RunService {
     if (this.enterStoryPhase(run, "route")) return;
     const node = ROUTE_NODES.find((candidate) => candidate.id === nodeId);
     if (!node) throw new Error(`Unknown route node: ${nodeId}`);
+    const tradeoff = getRouteTradeoff(node.id, run.day);
+    const routeFuelCost = tradeoff?.fuelCost ?? node.fuelCost;
     const frostFuelPenalty =
       run.routeId === "R02"
         ? (run.story.whiteFrost?.pendingRouteFuelPenalty ?? 0)
         : 0;
-    if (run.resources.fuel < node.fuelCost + frostFuelPenalty) {
+    if (run.resources.fuel < routeFuelCost + frostFuelPenalty) {
       run.lastMessage = "燃料不足，請選擇較近的節點。";
       return;
     }
-    this.applyResource(run, "fuel", -node.fuelCost, `route.${node.id}`);
+    this.applyResource(run, "fuel", -routeFuelCost, `route.${node.id}`);
     if (frostFuelPenalty > 0) {
       this.applyResource(
         run,
@@ -419,7 +676,22 @@ export class RunService {
     }
     run.selectedRouteNodeId = node.id;
     this.activateTravelAfterRoute(run, node);
-    run.lastMessage = `已鎖定 ${node.name}，預計消耗燃料 ${node.fuelCost}。`;
+    if (tradeoff?.nodeId === "RN02") {
+      this.applyResource(run, "parts", 2, `route.${node.id}.supply`);
+      this.applyResource(run, "water", 1, `route.${node.id}.supply`);
+      this.applyEnvironment(run, "noise", 6, `route.${node.id}.stop-noise`);
+    } else if (tradeoff?.nodeId === "RN03") {
+      if (run.resources.data > 0)
+        this.applyResource(run, "data", -1, `route.${node.id}.signal-loss`);
+      this.applySurvivor(run, "sleep", 5, `route.${node.id}.shelter`);
+    }
+    this.commitVoyageResult(
+      run,
+      applyRouteCompletionEffects(this.voyageContext(run), node.id),
+      false,
+    );
+    const warnings = resourceWarnings(run);
+    run.lastMessage = `已鎖定 ${tradeoff?.title ?? node.name}，消耗燃料 ${routeFuelCost}。${tradeoff ? ` ${tradeoff.advantage} 代價：${tradeoff.cost}` : ""}${warnings.length ? ` 警告：${warnings.join(" ")}` : ""}`;
   }
 
   public emergencyRoute(run: RunState): boolean {
@@ -437,7 +709,11 @@ export class RunService {
         ? (run.story.whiteFrost?.pendingRouteFuelPenalty ?? 0)
         : 0;
     const cheapestCost = Math.min(
-      ...ROUTE_NODES.map((node) => node.fuelCost + frostFuelPenalty),
+      ...ROUTE_NODES.map(
+        (node) =>
+          (getRouteTradeoff(node.id, run.day)?.fuelCost ?? node.fuelCost) +
+          frostFuelPenalty,
+      ),
     );
     if (run.resources.fuel >= cheapestCost) {
       run.lastMessage = "仍有可正常抵達的路線，不需要承擔慣性滑行風險。";
@@ -540,6 +816,7 @@ export class RunService {
     }
     if (
       eventRequirements?.anyFlags &&
+      !(eventId === "EV048" && choice.id === "hide") &&
       !eventRequirements.anyFlags.some((requirement) =>
         storyFlagSatisfied(run, requirement),
       )
@@ -1054,6 +1331,11 @@ export class RunService {
   }
 
   public beginNight(run: RunState): void {
+    if (run.phase === "night" && run.activeContact) {
+      run.lastMessage = "守夜已經開始，配電不會重複扣款。";
+      return;
+    }
+    this.repairModuleSlots(run);
     const route = ROUTE_NODES.find(
       (node) => node.id === run.selectedRouteNodeId,
     );
@@ -1065,14 +1347,28 @@ export class RunService {
       run.routeId === "R03" &&
       run.day === 7 &&
       run.story.greenTide?.finaleStage === "contact";
-    const totalWaves = greenFinale
+    const baseWaves = greenFinale
       ? 2
       : frostFinale
         ? 1
         : run.day === 7 && run.routeId === "R01"
           ? 3
           : Math.max(1, route?.threatLevel ?? 1);
+    const routeContactDelta =
+      run.day === 7 || frostFinale || greenFinale
+        ? 0
+        : (getRouteTradeoff(route?.id ?? "", run.day)?.contactDelta ?? 0);
+    const totalWaves = Math.max(1, baseWaves + routeContactDelta);
     const powerReport = this.settleNightPower(run);
+    this.syncModuleVisibility(run);
+    const facilityEffects = getFacilityEffects(run.voyage);
+    if (facilityEffects.nightNoiseDelta)
+      this.applyEnvironment(
+        run,
+        "noise",
+        facilityEffects.nightNoiseDelta,
+        `facility.quiet-wiring.D${run.day}`,
+      );
     if (run.day === 7 && run.routeId === "R01") {
       const matureCrops = run.crops.filter(
         (plot) => plot.cropId && plot.stage >= 3,
@@ -1249,7 +1545,7 @@ export class RunService {
       run.lastMessage = `反制未啟動：${readiness.reason}。`;
       return false;
     }
-    const cost = COUNTER_COSTS[counterId] ?? {};
+    const cost = getEffectiveCounterCosts(run, counterId);
     for (const [key, delta] of Object.entries(cost)) {
       if (typeof delta === "number")
         this.applyResource(
@@ -1260,12 +1556,27 @@ export class RunService {
         );
     }
     const effective = threat.counterIds.includes(counterId);
+    if (counterId === "decoy")
+      this.applyEnvironment(run, "noise", 6, "counter.decoy.noise");
+    if (effective && counterId === "roof-release") {
+      this.applyEnvironment(run, "noise", 4, "counter.roof-release.noise");
+      this.applySurvivor(run, "stress", 2, "counter.roof-release.stress");
+    }
+    if (effective && counterId === "decoy") {
+      contact.stage = "approach";
+      contact.secondsLeft += 4;
+      contact.resolvedBy = undefined;
+      run.lastMessage = `${threat.name}被誘餌廣播引開 4 秒；噪音 +6，接觸仍會返回。`;
+      return true;
+    }
     if (effective) {
       contact.stage = "resolve";
       contact.resolvedBy = counterId;
       return this.advanceNightContactOrFinish(
         run,
-        `${threat.name}已離開接觸範圍。`,
+        counterId === "decoy"
+          ? `${threat.name}被誘餌廣播帶離；後續噪音 +6。`
+          : `${threat.name}已離開接觸範圍。`,
       );
     }
     contact.secondsLeft = Math.max(1, contact.secondsLeft - 2);
@@ -1718,6 +2029,23 @@ export class RunService {
     }
 
     if (command === "cycle:manual-drain") {
+      const drainWaterCost = Math.max(
+        0,
+        1 - getFacilityEffects(run.voyage).manualDrainWaterDiscount,
+      );
+      if (run.resources.water < drainWaterCost) {
+        return this.greenCycleResult(
+          run,
+          "insufficient",
+          false,
+          false,
+          false,
+          "手動排放需要 1 水；隔離培育改裝可免除此成本。",
+          settlementId,
+        );
+      }
+      if (drainWaterCost > 0)
+        this.applyResource(run, "water", -drainWaterCost, settlementId);
       for (const sample of cycle.samples) sample.zone = "DRAIN";
       for (const plot of run.crops)
         plot.stage = Math.max(0, plot.stage - 1) as 0 | 1 | 2 | 3;
@@ -1728,7 +2056,7 @@ export class RunService {
       cycle.revision += 1;
       if (activeT013) activeT013.resolvedBy = "manual-drain";
       const message =
-        "手動排放完成：兩槽成長各 −1、壓力 +5；本日污染循環已隔離。";
+        `手動排放完成：${drainWaterCost ? "水 −1、" : "隔離迴路免水、"}兩槽成長各 −1、壓力 +5；本日污染循環已隔離。`;
       if (activeT013 && run.activeContact) {
         this.resolveThreatInteraction(run, run.activeContact, command, message);
       }
@@ -1980,6 +2308,17 @@ export class RunService {
   public finishNight(run: RunState): void {
     const encounterMessage = run.lastMessage ?? "守夜結束。";
     const rationMessage = this.settleRation(run);
+    const moduleEffects = deriveGameplayEffects(run);
+    const facilityEffects = getFacilityEffects(run.voyage);
+    const heaterOnline = run.modules.some(
+      (module) =>
+        module.definitionId === "M002" && module.active && module.powered,
+    );
+    const weatherRoll = createRng(run.seed, `weather:D${run.day}`)();
+    const weather = weatherRoll < 0.34 ? "rain" : weatherRoll < 0.46 ? "storm" : "dry";
+    const rainAction = applyRainCollectionEffect(this.voyageContext(run), weather);
+    const rainRecovered = rainAction.resourceDelta.water ?? 0;
+    this.commitVoyageResult(run, rainAction, false);
     const comfort =
       run.environment.temperature >= 16 && run.environment.temperature <= 24
         ? BALANCE.sleepComfort
@@ -1988,7 +2327,9 @@ export class RunService {
       run.survivor.sleep -
         8 * run.survivor.wakeups -
         Math.max(0, run.environment.noise - 20) +
-        comfort -
+        comfort +
+        (heaterOnline ? moduleEffects.dawnSleepBonus : 0) +
+        (heaterOnline ? facilityEffects.heatedSleepBonus : 0) -
         (100 - run.environment.hull) * 0.2,
     );
     run.survivor.sleep = Math.round(sleep);
@@ -2010,7 +2351,7 @@ export class RunService {
       run.story.whiteFrost.finaleStage = "clear";
       run.phase = "travel";
       run.activeEventId = "EV064";
-      run.lastMessage = `${encounterMessage} ${rationMessage} 暴風雪已穿越；凍結轉轍等待 CLEAR。`;
+      run.lastMessage = `${encounterMessage} ${rationMessage}${rainRecovered ? ` 雨水回收 +${rainRecovered}。` : ""} 暴風雪已穿越；凍結轉轍等待 CLEAR。`;
     } else if (
       run.routeId === "R03" &&
       run.day === 7 &&
@@ -2019,7 +2360,7 @@ export class RunService {
       run.story.greenTide.finaleStage = "decision";
       run.phase = "travel";
       run.activeEventId = "EV078";
-      run.lastMessage = `${encounterMessage} ${rationMessage} 雙接觸已隔離；四個終局操作等待確認。`;
+      run.lastMessage = `${encounterMessage} ${rationMessage}${rainRecovered ? ` 雨水回收 +${rainRecovered}。` : ""} 雙接觸已隔離；四個終局操作等待確認。`;
     } else if (
       run.routeId === "R01" &&
       run.day === 7 &&
@@ -2028,7 +2369,7 @@ export class RunService {
       run.phase = "travel";
       run.activeEventId = "EV050";
       run.story.finaleStage = "contact";
-      run.lastMessage = `${encounterMessage} ${rationMessage} 三波接觸結束，終點名冊等待查驗。`;
+      run.lastMessage = `${encounterMessage} ${rationMessage}${rainRecovered ? ` 雨水回收 +${rainRecovered}。` : ""} 三波接觸結束，終點名冊等待查驗。`;
     } else {
       const dueStoryEvent = getDueStoryEvents(
         run.story,
@@ -2039,10 +2380,10 @@ export class RunService {
         run.story = consumeStoryEvent(run.story, dueStoryEvent.id);
         run.phase = "travel";
         run.activeEventId = dueStoryEvent.eventId;
-        run.lastMessage = `${encounterMessage} ${rationMessage} 黎明紀錄等待確認。`;
+        run.lastMessage = `${encounterMessage} ${rationMessage}${rainRecovered ? ` 雨水回收 +${rainRecovered}。` : ""} 黎明紀錄等待確認。`;
       } else {
         run.phase = "aftermath";
-        run.lastMessage = `${encounterMessage} ${rationMessage}`;
+        run.lastMessage = `${encounterMessage} ${rationMessage}${rainRecovered ? ` 雨水收集器回收 ${rainRecovered} 水。` : ""}`;
       }
     }
   }
@@ -2114,6 +2455,7 @@ export class RunService {
       (candidate) => candidate.id === definitionId,
     );
     if (!definition) return false;
+    this.repairModuleSlots(run);
     if (run.modules.some((module) => module.definitionId === definitionId)) {
       run.lastMessage = `${definition.name}已安裝，可在配電面板切換。`;
       return false;
@@ -2122,15 +2464,28 @@ export class RunService {
       run.lastMessage = "行動點不足；建造需要 2 AP。";
       return false;
     }
-    if (run.resources.parts < definition.cost) {
-      run.lastMessage = "零件不足，建造預覽已保留。";
+    const partsCost = getModuleBuildPartsCost(run, definitionId);
+    const assignments = repairFunctionalModuleSlots(run.modules);
+    const targetSlot = FUNCTIONAL_MODULE_SLOTS.find(
+      (slot) =>
+        slot.kind === definition.slot &&
+        slot.accepts.includes(definitionId) &&
+        assignments.filter((assignment) => assignment.slotId === slot.id).length <
+          slot.capacity,
+    );
+    if (!targetSlot) {
+      run.lastMessage = `沒有可用的${definition.slot}機能槽；裝飾槽不能代替設備槽。`;
+      return false;
+    }
+    if (run.resources.parts < partsCost) {
+      run.lastMessage = `零件不足；建造需要 ${partsCost} 個零件。`;
       return false;
     }
     if (
       !this.applyResource(
         run,
         "parts",
-        -definition.cost,
+        -partsCost,
         `module.${definitionId}.build`,
       )
     ) {
@@ -2141,17 +2496,18 @@ export class RunService {
     run.modules.push({
       id: crypto.randomUUID(),
       definitionId,
-      slotId: `${definition.slot}-${run.modules.length + 1}`,
+      slotId: targetSlot.id,
       active: true,
       powered: true,
       durability: 100,
       mk: 1,
     });
-    run.lastMessage = `${definition.name}已安裝；消耗 2 AP，今夜負載將增加。`;
+    run.lastMessage = `${definition.name}已安裝到${targetSlot.name}；消耗 2 AP、零件 ${partsCost}，今夜負載將增加。`;
     return true;
   }
 
   public toggleModule(run: RunState, definitionId: string): boolean {
+    this.repairModuleSlots(run);
     const instance = run.modules.find(
       (module) => module.definitionId === definitionId,
     );
@@ -2162,6 +2518,7 @@ export class RunService {
     }
     instance.active = !instance.active;
     instance.powered = instance.active;
+    this.syncModuleVisibility(run);
     run.lastMessage = `${definition.name}已${instance.active ? "排入今夜配電" : "停用並釋放負載"}。`;
     return true;
   }
@@ -2216,6 +2573,7 @@ export class RunService {
     plot.plantedDay = run.day;
     plot.wateredDay = run.day;
     plot.dryDays = 0;
+    plot.poweredGrowthNights = 0;
     run.lastMessage = `${crop.name}已播入${plotId === "plot-a" ? "上層" : "下層"}槽；今夜供電後進入成長期。`;
     return true;
   }
@@ -2236,12 +2594,35 @@ export class RunService {
       run.lastMessage = "兩個作物槽今日水量充足。";
       return false;
     }
-    if (!this.applyResource(run, "water", -1, "crop.rack.water")) {
+    const facilityEffects = getFacilityEffects(run.voyage);
+    const waterCost = Math.max(0, 1 - facilityEffects.irrigationWaterDiscount);
+    if (
+      waterCost > 0 &&
+      !this.applyResource(run, "water", -waterCost, "crop.rack.water")
+    ) {
       run.lastMessage = "飲水不足，水培循環無法啟動。";
       return false;
     }
     for (const plot of growing) plot.wateredDay = run.day;
     const green = run.story.greenTide;
+    let facilityTradeoff = "";
+    if (facilityEffects.contaminationOnIrrigation > 0) {
+      if (green) {
+        green.reservoirContamination = clamp(
+          green.reservoirContamination + 6,
+        );
+        for (const plot of growing) {
+          green.plotContamination[plot.id] = clamp(
+            green.plotContamination[plot.id] +
+              facilityEffects.contaminationOnIrrigation,
+          );
+        }
+        facilityTradeoff = "；封閉回水使儲水污染 +6、供水槽污染各 +1";
+      } else {
+        this.applySurvivor(run, "infection", 2, "facility.closed-return");
+        facilityTradeoff = "；封閉回水使感染 +2";
+      }
+    }
     if (green && green.reservoirContamination >= 40) {
       for (const plot of growing) {
         green.plotContamination[plot.id] = clamp(
@@ -2249,9 +2630,9 @@ export class RunService {
         );
       }
       run.lastMessage =
-        "水培架已灌溉，但高污染儲水使每個供水槽污染 +1；可用循環板改送 FILTER。";
+        `水培架已灌溉${waterCost === 0 ? "（封閉回水免水）" : ""}，但高污染儲水使每個供水槽污染 +1${facilityTradeoff}；可用循環板改送 FILTER。`;
     } else {
-      run.lastMessage = "水培架已灌溉；今晚需保持 3 電量供應才能生長。";
+      run.lastMessage = `水培架已灌溉${waterCost === 0 ? "（封閉回水免水）" : ""}${facilityTradeoff}；今晚需保持 3 電量供應才能生長。`;
     }
     return true;
   }
@@ -2299,6 +2680,7 @@ export class RunService {
     plot.plantedDay = undefined;
     plot.wateredDay = undefined;
     plot.dryDays = 0;
+    plot.poweredGrowthNights = undefined;
     run.lastMessage = `${crop.name}已收成：食物 +${harvestedFood}${crop.id === "herb" ? "、壓力 −4" : ""}${greenReport}。`;
     return true;
   }
@@ -2390,8 +2772,38 @@ export class RunService {
     }
     run.actionPoints -= 2;
     this.applyResource(run, "parts", -2, "prep.repair.parts");
-    this.applyEnvironment(run, "hull", 14, "prep.repair.hull");
-    run.lastMessage = "消耗 2 AP 與 2 零件；車體完整度 +14。";
+    const repairAmount = getRepairHullAmount(run);
+    const before = run.environment.hull;
+    this.applyEnvironment(run, "hull", repairAmount, "prep.repair.hull");
+    run.lastMessage = `消耗 2 AP 與 2 零件；車體完整度 +${run.environment.hull - before}。`;
+    return true;
+  }
+
+  public useMedicine(run: RunState): boolean {
+    if (run.phase !== "prep") {
+      run.lastMessage = "只有整備階段能使用藥品。";
+      return false;
+    }
+    if (run.survivor.health >= 100 && run.survivor.infection <= 0) {
+      run.lastMessage = "目前不需要用藥；藥品已保留。";
+      return false;
+    }
+    if (run.actionPoints < 1 || run.resources.medicine < 1) {
+      run.lastMessage =
+        run.actionPoints < 1 ? "用藥需要 1 AP。" : "藥品不足。";
+      return false;
+    }
+    const moduleEffects = deriveGameplayEffects(run);
+    const facilityEffects = getFacilityEffects(run.voyage);
+    const healthGain = 12 + moduleEffects.medicineHealthBonus + facilityEffects.medicineHealthBonus;
+    const infectionReduction = 6 + moduleEffects.medicineInfectionReduction + facilityEffects.medicineInfectionReduction;
+    const healthBefore = run.survivor.health;
+    const infectionBefore = run.survivor.infection;
+    run.actionPoints -= 1;
+    this.applyResource(run, "medicine", -1, "prep.medicine.use");
+    this.applySurvivor(run, "health", healthGain, "prep.medicine.health");
+    this.applySurvivor(run, "infection", -infectionReduction, "prep.medicine.infection");
+    run.lastMessage = `使用 1 份藥品：健康 +${run.survivor.health - healthBefore}、感染 −${infectionBefore - run.survivor.infection}。`;
     return true;
   }
 
@@ -2407,7 +2819,7 @@ export class RunService {
       return false;
     }
     run.techOwned.push(techId);
-    run.lastMessage = `${node.name}已寫入下一局的科技快照。`;
+    run.lastMessage = `${node.name}已在本局生效。`;
     return true;
   }
 
@@ -2419,6 +2831,20 @@ export class RunService {
 
   public getThreat(contact?: ThreatContact) {
     return THREATS.find((threat) => threat.id === contact?.definitionId);
+  }
+
+  private contactWarningSeconds(
+    run: RunState,
+    threatWarningSeconds: number,
+    totalWaves: number,
+  ): number {
+    const allocated =
+      run.day === 1
+        ? 30
+        : Math.floor(BALANCE.nightSeconds / Math.max(1, totalWaves));
+    const moduleBonus = deriveGameplayEffects(run).warningSecondsBonus;
+    const facilityBonus = getFacilityEffects(run.voyage).warningSecondsBonus;
+    return Math.max(threatWarningSeconds, allocated) + moduleBonus + facilityBonus;
   }
 
   private createNightContact(
@@ -2437,7 +2863,7 @@ export class RunService {
         id: `contact-${run.day}-${wave}`,
         definitionId: threat.id,
         stage: "approach",
-        secondsLeft: threat.warningSeconds,
+        secondsLeft: this.contactWarningSeconds(run, threat.warningSeconds, totalWaves),
         wave,
         totalWaves,
         interaction: this.createThreatInteraction(run, threat.id, wave),
@@ -2453,7 +2879,7 @@ export class RunService {
         id: `contact-${run.day}-${wave}`,
         definitionId: threat.id,
         stage: "approach",
-        secondsLeft: threat.warningSeconds,
+        secondsLeft: this.contactWarningSeconds(run, threat.warningSeconds, totalWaves),
         wave,
         totalWaves,
         interaction: this.createThreatInteraction(run, threat.id, wave),
@@ -2474,7 +2900,7 @@ export class RunService {
         id: `contact-${run.day}-${wave}`,
         definitionId: threat.id,
         stage: "approach",
-        secondsLeft: Math.max(7, threat.warningSeconds),
+        secondsLeft: this.contactWarningSeconds(run, Math.max(7, threat.warningSeconds), totalWaves),
         wave,
         totalWaves,
         interaction: this.createThreatInteraction(run, threat.id, wave),
@@ -2494,9 +2920,10 @@ export class RunService {
       id: `contact-${run.day}-${wave}`,
       definitionId: threat.id,
       stage: "approach",
-      secondsLeft: Math.max(
-        7,
-        threat.warningSeconds - Math.floor((run.day - 1) / 2),
+      secondsLeft: this.contactWarningSeconds(
+        run,
+        Math.max(7, threat.warningSeconds - Math.floor((run.day - 1) / 2)),
+        totalWaves,
       ),
       wave,
       totalWaves,
@@ -3053,23 +3480,39 @@ export class RunService {
     threat: { id: string; name: string; damage: number },
   ): boolean {
     const incomingDamage = threat.damage + (run.day - 1) * 2;
+    const threatDefinition = THREATS.find((candidate) => candidate.id === threat.id);
+    const moduleResolution = resolveIncomingHullDamage(run, {
+      rawDamage: incomingDamage,
+      anchor: threatDefinition?.anchor ?? "roof",
+      beforeAttackStage: true,
+    });
+    const facilityReduction =
+      threatDefinition?.anchor === "left-window" ||
+      threatDefinition?.anchor === "right-window"
+        ? getFacilityEffects(run.voyage).windowDamageReduction
+        : 0;
+    const mitigatedDamage = Math.max(
+      0,
+      moduleResolution.finalDamage - facilityReduction,
+    );
     const cropBuffer =
       run.day === 7
         ? Math.min(
             run.story.finaleHealthBuffer,
-            Math.max(0, incomingDamage - 2),
+            Math.max(0, mitigatedDamage - 2),
           )
         : 0;
     if (cropBuffer > 0) run.story.finaleHealthBuffer -= cropBuffer;
     this.applyEnvironment(
       run,
       "hull",
-      -(incomingDamage - cropBuffer),
+      -(mitigatedDamage - cropBuffer),
       `threat.${threat.id}.breach`,
     );
     this.applySurvivor(run, "stress", 12, `threat.${threat.id}.breach`);
     this.applySurvivor(run, "sleep", -18, `threat.${threat.id}.breach`);
-    run.lastMessage = `${threat.name}造成破口。損害已隔離，但乘客被驚醒。`;
+    const prevented = incomingDamage - mitigatedDamage;
+    run.lastMessage = `${threat.name}造成破口。${prevented > 0 ? `設備與改裝吸收 ${prevented} 點衝擊；` : ""}損害已隔離，但乘客被驚醒。`;
     return this.endRunIfTerminal(run);
   }
 
@@ -3371,7 +3814,11 @@ export class RunService {
         hydroponics.powered &&
         plot.wateredDay === run.day
       ) {
-        plot.stage = Math.min(3, plot.stage + 1) as 0 | 1 | 2 | 3;
+        plot.poweredGrowthNights = (plot.poweredGrowthNights ?? 0) + 1;
+        plot.stage = cropStageForGrowthNights(
+          plot.cropId!,
+          plot.poweredGrowthNights,
+        );
         plot.dryDays = 0;
         advanced += 1;
       } else {
@@ -3382,6 +3829,7 @@ export class RunService {
           plot.plantedDay = undefined;
           plot.wateredDay = undefined;
           plot.dryDays = 0;
+          plot.poweredGrowthNights = undefined;
           withered += 1;
         }
       }
@@ -3393,6 +3841,7 @@ export class RunService {
 
   private settleNightPower(run: RunState): string {
     const efficiencyDiscount = run.techOwned.includes("E1") ? 1 : 0;
+    const lifeSupportReserve = deriveGameplayEffects(run).lifeSupportReserve;
     const ordered = run.modules
       .map((instance) => ({
         instance,
@@ -3405,7 +3854,8 @@ export class RunService {
         (left, right) =>
           (right.definition?.priority ?? 0) - (left.definition?.priority ?? 0),
       );
-    let spent = 0;
+    let gridSpent = 0;
+    let reserveUsed = 0;
     const offline: string[] = [];
     for (const { instance, definition } of ordered) {
       if (!definition || !instance.active) {
@@ -3413,17 +3863,25 @@ export class RunService {
         continue;
       }
       const cost = Math.max(0, definition.activeCost - efficiencyDiscount);
-      if (spent + cost <= run.resources.energy) {
+      const gridRemaining = Math.max(0, run.resources.energy - gridSpent);
+      if (cost <= gridRemaining) {
         instance.powered = true;
-        spent += cost;
+        gridSpent += cost;
+      } else if (
+        definition.priority === 3 &&
+        cost <= gridRemaining + (lifeSupportReserve - reserveUsed)
+      ) {
+        instance.powered = true;
+        gridSpent += gridRemaining;
+        reserveUsed += cost - gridRemaining;
       } else {
         instance.powered = false;
         offline.push(definition.name);
       }
     }
-    if (spent > 0)
-      this.applyResource(run, "energy", -spent, "night.power-grid");
-    run.nightPowerDemand = spent;
+    if (gridSpent > 0)
+      this.applyResource(run, "energy", -gridSpent, "night.power-grid");
+    run.nightPowerDemand = gridSpent + reserveUsed;
     const heaterOnline = run.modules.some(
       (instance) =>
         instance.definitionId === "M002" && instance.active && instance.powered,
@@ -3431,12 +3889,12 @@ export class RunService {
     this.applyEnvironment(
       run,
       "temperature",
-      heaterOnline ? 1 : -3,
+      heaterOnline ? deriveGameplayEffects(run).dawnTemperatureBonus : -3,
       "night.heating",
     );
     return offline.length
-      ? `今夜耗電 ${spent} E；斷載：${offline.join("、")}。`
-      : `今夜耗電 ${spent} E；所有排程設備供電正常。`;
+      ? `今夜耗電 ${gridSpent} E${reserveUsed ? `、備援 ${reserveUsed} E` : ""}；斷載：${offline.join("、")}。`
+      : `今夜耗電 ${gridSpent} E${reserveUsed ? `、備援 ${reserveUsed} E` : ""}；所有排程設備供電正常。`;
   }
 
   private settleRation(run: RunState): string {

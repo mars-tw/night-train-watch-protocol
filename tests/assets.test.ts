@@ -325,7 +325,9 @@ describe("shipping art", () => {
       resolve(workspace, "public/sw.js"),
       "utf8",
     );
-    expect(serviceWorker).toContain("night-train-v1.1.0-green-tide-r1");
+    expect(serviceWorker).toContain("night-train-v2-");
+    expect(serviceWorker).toContain("precache.json");
+    expect(serviceWorker).toContain("manifest.build !== BUILD");
   });
 
   it("wires every rendered button action to the application controller", () => {

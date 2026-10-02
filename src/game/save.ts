@@ -1,11 +1,13 @@
 import type {
   FrostZone,
+  CropPlot,
   GreenCycleState,
   GreenCycleZone,
   GreenSampleId,
   GreenTideState,
   HeatTokenId,
   LurkerZone,
+  ProfileState,
   RunState,
   SettingsState,
   StoryRouteId,
@@ -18,18 +20,33 @@ import type {
 } from "./types";
 import { DECORATION_SLOTS } from "./content";
 import { createCropPlots, createDecorationPlacements } from "./model";
+import { createProfile, repairProfile } from "./profile";
+import { createQuestState, repairQuestState } from "./quests";
 import {
   createDefaultGreenTideState,
   createDefaultStoryState,
   createDefaultWhiteFrostState,
   getThermalAllocation,
 } from "./story";
+import { repairVoyageState } from "./voyage/engine";
 
 const DB_NAME = "night-train-save";
 const STORE_NAME = "snapshots";
-const CURRENT_KEY = "run.current";
-const BACKUP_KEY = "run.backup";
+const LEGACY_CURRENT_KEY = "run.current";
+const LEGACY_BACKUP_KEY = "run.backup";
+const CURRENT_KEY = "ntwp.v2.current";
+const BACKUP_KEY = "ntwp.v2.backup";
+const PROFILE_RECOVERY_KEY = "ntwp.v2.profile-recovery";
 const SETTINGS_KEY = "settings";
+
+export const SAVE_KEYS = {
+  current: CURRENT_KEY,
+  backup: BACKUP_KEY,
+  profileRecovery: PROFILE_RECOVERY_KEY,
+  legacyCurrent: LEGACY_CURRENT_KEY,
+  legacyBackup: LEGACY_BACKUP_KEY,
+  settings: SETTINGS_KEY,
+} as const;
 
 const HEAT_TOKEN_IDS: readonly HeatTokenId[] = ["H1", "H2", "H3", "H4", "H5", "H6"];
 const FROST_ZONES: readonly FrostZone[] = ["BERTH", "DEICER", "LOOP"];
@@ -58,6 +75,20 @@ function finiteInteger(value: unknown, fallback: number, minimum = 0, maximum = 
   return typeof value === "number" && Number.isFinite(value)
     ? Math.min(maximum, Math.max(minimum, Math.floor(value)))
     : fallback;
+}
+
+function repairCropPlots(saved: unknown): CropPlot[] {
+  const defaults = createCropPlots();
+  if (!Array.isArray(saved) || saved.length !== defaults.length) return defaults;
+  return defaults.map((fallback) => {
+    const candidate = saved.find((plot): plot is CropPlot => plot?.id === fallback.id);
+    if (!candidate) return fallback;
+    const legacyGrowthNights = Math.max(0, finiteInteger(candidate.stage, 0, 0, 3) - 1);
+    return {
+      ...candidate,
+      poweredGrowthNights: finiteInteger(candidate.poweredGrowthNights, legacyGrowthNights, 0, 99),
+    };
+  });
 }
 
 function repairThermalRouting(saved: Partial<ThermalRoutingState> | null | undefined): ThermalRoutingState {
@@ -305,9 +336,19 @@ function parseStoryRouteId(value: unknown, schemaVersion: number): StoryRouteId 
 
 export function parseRun(raw: string | null): RunState | null {
   if (!raw) return null;
-  const value = JSON.parse(raw) as RunState & { schemaVersion: number };
-  if (![1, 2, 3, 4, 5].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
-  const routeId = parseStoryRouteId((value as RunState & { routeId?: unknown }).routeId, value.schemaVersion);
+  const value = JSON.parse(raw) as Omit<RunState, "schemaVersion" | "runId" | "quests"> & {
+    schemaVersion: number;
+    runId?: unknown;
+    quests?: RunState["quests"];
+    routeId?: unknown;
+  };
+  if (![1, 2, 3, 4, 5, 6].includes(value.schemaVersion) || !value.seed || !value.resources || !value.survivor) throw new Error("Invalid save schema");
+  const routeId = parseStoryRouteId(value.routeId, value.schemaVersion);
+  const day = finiteInteger(value.day, 1, 1, 7);
+  if (value.schemaVersion === 6 && (typeof value.runId !== "string" || !value.runId)) throw new Error("Invalid save run id");
+  const runId = typeof value.runId === "string" && value.runId
+    ? value.runId
+    : `legacy-${routeId}-${value.seed}`.replace(/[^A-Za-z0-9._:-]/g, "-");
   const defaults = createDecorationPlacements();
   const decorations = defaults.map((fallback) => {
     const saved = Array.isArray(value.decorations) ? value.decorations.find((item) => item.id === fallback.id) : undefined;
@@ -319,16 +360,18 @@ export function parseRun(raw: string | null): RunState | null {
   });
   const storyDefaults = createDefaultStoryState(routeId);
   const savedStory = value.story;
-  return {
+  const migrated = {
     ...value,
-    schemaVersion: 5,
+    schemaVersion: 6 as const,
+    runId,
+    day,
     routeId,
     actionPoints: typeof value.actionPoints === "number" ? value.actionPoints : 5,
     rationMode: value.rationMode ?? "standard",
     nightPowerDemand: typeof value.nightPowerDemand === "number" ? value.nightPowerDemand : 0,
     outcome: value.outcome ?? (value.ended ? "victory" : "active"),
     decorations,
-    crops: Array.isArray(value.crops) && value.crops.length === 2 ? value.crops : createCropPlots(),
+    crops: repairCropPlots(value.crops),
     activeContact: repairActiveContact(value.activeContact),
     story: {
       ...storyDefaults,
@@ -349,7 +392,14 @@ export function parseRun(raw: string | null): RunState | null {
         ? repairGreenTide(savedStory?.greenTide)
         : null,
     },
-  };
+    quests: repairQuestState(value.quests, runId, routeId, day),
+    voyage: repairVoyageState(value.voyage),
+  } satisfies RunState;
+  if (value.schemaVersion < 6) {
+    migrated.quests = createQuestState(runId, routeId, day);
+    migrated.quests.importedFromLegacy = true;
+  }
+  return migrated;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -364,11 +414,12 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function idbWrite(key: string, value: string): Promise<void> {
+async function idbWriteBatch(entries: ReadonlyArray<readonly [string, string]>): Promise<void> {
   const database = await openDatabase();
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(value, key);
+    const store = transaction.objectStore(STORE_NAME);
+    for (const [key, value] of entries) store.put(value, key);
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error ?? new Error("Cannot write save"));
   });
@@ -386,37 +437,143 @@ async function idbRead(key: string): Promise<string | null> {
   return value;
 }
 
+export interface SaveEnvelopeV2 {
+  format: "ntwp.v2";
+  version: 1;
+  savedAt: number;
+  run: RunState;
+  profile: ProfileState;
+}
+
+interface ProfileRecoveryEnvelope {
+  format: "ntwp.v2.profile";
+  version: 1;
+  savedAt: number;
+  profile: ProfileState;
+}
+
+function parseEnvelope(raw: string | null): { run: RunState; profile: ProfileState } | null {
+  if (!raw) return null;
+  const value = JSON.parse(raw) as Partial<SaveEnvelopeV2>;
+  if (value.format !== "ntwp.v2" || value.version !== 1 || !value.run) throw new Error("Invalid save envelope");
+  const run = parseRun(JSON.stringify(value.run));
+  if (!run) throw new Error("Invalid save run");
+  return { run, profile: repairProfile(value.profile) };
+}
+
+function parseProfileRecovery(raw: string | null): ProfileState | null {
+  if (!raw) return null;
+  const value = JSON.parse(raw) as Partial<ProfileRecoveryEnvelope>;
+  if (value.format !== "ntwp.v2.profile" || value.version !== 1 || !value.profile) throw new Error("Invalid profile recovery");
+  return repairProfile(value.profile);
+}
+
+function mergeProfileRecovery(profile: ProfileState, rawCandidates: Array<string | null>): ProfileState {
+  for (const raw of rawCandidates) {
+    if (!raw) continue;
+    try {
+      const recovery = parseProfileRecovery(raw);
+      if (!recovery || recovery.profileId !== profile.profileId) continue;
+      return repairProfile({
+        ...profile,
+        createdAt: Math.min(profile.createdAt, recovery.createdAt),
+        updatedAt: Math.max(profile.updatedAt, recovery.updatedAt),
+        routeUnlocks: [...profile.routeUnlocks, ...recovery.routeUnlocks],
+        blueprints: [...profile.blueprints, ...recovery.blueprints],
+        decorations: [...profile.decorations, ...recovery.decorations],
+        journal: [...profile.journal, ...recovery.journal],
+        milestones: [...profile.milestones, ...recovery.milestones],
+        rewardReceipts: [...profile.rewardReceipts, ...recovery.rewardReceipts],
+      });
+    } catch {
+      // A corrupt recovery snapshot never invalidates the matching run envelope.
+    }
+  }
+  return profile;
+}
+
+function restoreLocalValue(key: string, value: string | null): void {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {
+    // Preserve the original write failure; the previous current envelope remains authoritative.
+  }
+}
+
 export class SaveService {
   public async hasSave(): Promise<boolean> {
     try {
-      return Boolean((await idbRead(CURRENT_KEY)) ?? localStorage.getItem(CURRENT_KEY));
+      return Boolean(
+        localStorage.getItem(CURRENT_KEY)
+        ?? localStorage.getItem(LEGACY_CURRENT_KEY)
+        ?? await idbRead(CURRENT_KEY)
+        ?? await idbRead(LEGACY_CURRENT_KEY),
+      );
     } catch {
-      return Boolean(localStorage.getItem(CURRENT_KEY));
+      return Boolean(localStorage.getItem(CURRENT_KEY) ?? localStorage.getItem(LEGACY_CURRENT_KEY));
     }
   }
 
-  public async save(run: RunState): Promise<void> {
-    const serialized = JSON.stringify(run);
+  public async save(run: RunState, profile?: ProfileState): Promise<void> {
+    const resolvedProfile = repairProfile(profile ?? await this.loadProfile());
+    const envelope: SaveEnvelopeV2 = {
+      format: "ntwp.v2",
+      version: 1,
+      savedAt: Date.now(),
+      run: parseRun(JSON.stringify(run)) ?? run,
+      profile: resolvedProfile,
+    };
+    const serialized = JSON.stringify(envelope);
+    const recovery = JSON.stringify({
+      format: "ntwp.v2.profile",
+      version: 1,
+      savedAt: envelope.savedAt,
+      profile: resolvedProfile,
+    } satisfies ProfileRecoveryEnvelope);
     const previous = localStorage.getItem(CURRENT_KEY);
-    if (previous) localStorage.setItem(BACKUP_KEY, previous);
-    localStorage.setItem(CURRENT_KEY, serialized);
+    const previousBackup = localStorage.getItem(BACKUP_KEY);
+    const previousRecovery = localStorage.getItem(PROFILE_RECOVERY_KEY);
+    try {
+      localStorage.setItem(PROFILE_RECOVERY_KEY, recovery);
+      if (previous) localStorage.setItem(BACKUP_KEY, previous);
+      localStorage.setItem(CURRENT_KEY, serialized);
+    } catch (error) {
+      restoreLocalValue(PROFILE_RECOVERY_KEY, previousRecovery);
+      restoreLocalValue(BACKUP_KEY, previousBackup);
+      restoreLocalValue(CURRENT_KEY, previous);
+      throw error;
+    }
     try {
       const idbCurrent = await idbRead(CURRENT_KEY);
-      if (idbCurrent) await idbWrite(BACKUP_KEY, idbCurrent);
-      await idbWrite(CURRENT_KEY, serialized);
+      const entries: Array<readonly [string, string]> = [
+        [CURRENT_KEY, serialized],
+        [PROFILE_RECOVERY_KEY, recovery],
+      ];
+      if (idbCurrent) entries.push([BACKUP_KEY, idbCurrent]);
+      await idbWriteBatch(entries);
     } catch {
-      // localStorage remains the deterministic offline fallback.
+      // The complete localStorage envelope remains the deterministic offline fallback.
     }
   }
 
-  public async load(): Promise<{ run: RunState | null; recovered: boolean }> {
+  public async load(): Promise<{ run: RunState | null; recovered: boolean; profile: ProfileState }> {
     const localCurrent = localStorage.getItem(CURRENT_KEY);
     const localBackup = localStorage.getItem(BACKUP_KEY);
+    const localProfileRecovery = localStorage.getItem(PROFILE_RECOVERY_KEY);
+    const legacyLocalCurrent = localStorage.getItem(LEGACY_CURRENT_KEY);
+    const legacyLocalBackup = localStorage.getItem(LEGACY_BACKUP_KEY);
     let idbCurrent: string | null = null;
     let idbBackup: string | null = null;
+    let legacyIdbCurrent: string | null = null;
+    let legacyIdbBackup: string | null = null;
+    let idbProfileRecovery: string | null = null;
     try {
       idbCurrent = await idbRead(CURRENT_KEY);
       idbBackup = await idbRead(BACKUP_KEY);
+      idbProfileRecovery = await idbRead(PROFILE_RECOVERY_KEY);
+      legacyIdbCurrent = await idbRead(LEGACY_CURRENT_KEY);
+      legacyIdbBackup = await idbRead(LEGACY_BACKUP_KEY);
     } catch {
       // The synchronous local snapshot remains usable when IndexedDB is unavailable.
     }
@@ -432,12 +589,71 @@ export class SaveService {
     for (const candidate of candidates) {
       if (!candidate.raw) continue;
       try {
-        return { run: parseRun(candidate.raw), recovered: candidate.recovered };
+        const loaded = parseEnvelope(candidate.raw);
+        if (loaded) {
+          const profile = candidate.recovered
+            ? mergeProfileRecovery(loaded.profile, [localProfileRecovery, idbProfileRecovery])
+            : loaded.profile;
+          return { run: loaded.run, profile, recovered: candidate.recovered };
+        }
       } catch {
         // Try the next current/backup copy before declaring the save unavailable.
       }
     }
-    return { run: null, recovered: false };
+    const legacyCandidates = [
+      { raw: legacyLocalCurrent, recovered: false },
+      { raw: legacyIdbCurrent, recovered: false },
+      { raw: legacyLocalBackup, recovered: true },
+      { raw: legacyIdbBackup, recovered: true },
+    ];
+    for (const candidate of legacyCandidates) {
+      if (!candidate.raw) continue;
+      try {
+        const run = parseRun(candidate.raw);
+        if (run) return { run, recovered: candidate.recovered, profile: await this.loadProfile() };
+      } catch {
+        // Keep trying legacy current and backup fixtures.
+      }
+    }
+    return { run: null, recovered: false, profile: await this.loadProfile() };
+  }
+
+  public async loadProfile(): Promise<ProfileState> {
+    const localCurrent = localStorage.getItem(CURRENT_KEY);
+    if (localCurrent) {
+      try {
+        const loaded = parseEnvelope(localCurrent);
+        if (loaded) return loaded.profile;
+      } catch {
+        // Try the dedicated recovery copy.
+      }
+    }
+    try {
+      const recovery = parseProfileRecovery(localStorage.getItem(PROFILE_RECOVERY_KEY));
+      if (recovery) return recovery;
+    } catch {
+      // Try IndexedDB copies next.
+    }
+    const localBackup = localStorage.getItem(BACKUP_KEY);
+    if (localBackup) {
+      try {
+        const loaded = parseEnvelope(localBackup);
+        if (loaded) return loaded.profile;
+      } catch {
+        // Try IndexedDB copies next.
+      }
+    }
+    try {
+      for (const key of [CURRENT_KEY, BACKUP_KEY]) {
+        const loaded = parseEnvelope(await idbRead(key));
+        if (loaded) return loaded.profile;
+      }
+      const recovery = parseProfileRecovery(await idbRead(PROFILE_RECOVERY_KEY));
+      if (recovery) return recovery;
+    } catch {
+      // A fresh profile is valid when all persisted copies are unavailable.
+    }
+    return createProfile();
   }
 
   public saveSettings(settings: SettingsState): void {
@@ -453,4 +669,4 @@ export class SaveService {
   }
 }
 
-export const saveKeys = { current: CURRENT_KEY, backup: BACKUP_KEY } as const;
+export const saveKeys = SAVE_KEYS;

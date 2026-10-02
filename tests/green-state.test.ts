@@ -13,12 +13,12 @@ import type {
 } from "../src/game/types";
 
 describe("R03 green-tide state", () => {
-  it("creates independent schema-5 R03 runs without leaking R01 or R02 state", () => {
+  it("creates independent schema-6 R03 runs without leaking R01 or R02 state", () => {
     const first = createRun("green-default-one", "R03");
     const second = createRun("green-default-two", "R03");
 
     expect(first).toMatchObject({
-      schemaVersion: 5,
+      schemaVersion: 6,
       routeId: "R03",
       resources: { water: 8 },
       story: {
