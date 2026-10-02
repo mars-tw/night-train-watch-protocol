@@ -1,0 +1,13 @@
+Night Train Watch Protocol — v2.1.1 promotional film
+
+The promotional videos, cover image, and original gameplay recordings are
+licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+Credit: Night Train Watch Protocol contributors / 夜行列車：守夜協定 contributors.
+https://creativecommons.org/licenses/by/4.0/
+
+The original promotional score synthesized by tools/edit-promo-v211.py is
+dedicated to the public domain under CC0-1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The recording is genuine browser gameplay. The promotional score is separate
+from the game's audio. Source code and project documents retain AGPL-3.0-or-later.

@@ -1,0 +1,21 @@
+{
+  "kind": "portrait",
+  "endpoint": "local LM Studio documented OpenAI-compatible endpoint",
+  "model": "qwen3.8-27b",
+  "usage": {
+    "prompt_tokens": 1088,
+    "completion_tokens": 162,
+    "total_tokens": 1250,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "delegationEnabled": false,
+  "image": "portrait-contact-sheet.jpg",
+  "judgment": {
+    "verdict": "PASS",
+    "evidence": "1. 左上角畫面顯示遊戲主介面，頂部標題「夜行列車：守夜協定」與角色狀態欄清晰可見；中央繪有紅髮女性角色臥於床鋪上的插畫，周圍佈置了書桌、檯燈等物件，整體構圖完整且無破圖現象。2. 左下角畫面展示了任務日誌介面，標題「56項任務」及下方詳細的任務描述（如「先看她是否安睡」、「替今晚留好燈與餐」）字體清晰、排版整齊，繁體中文顯示正常，未見錯字或文字遮擋問題。",
+    "issues": []
+  },
+  "contentScope": "ordered contact-sheet visual inspection; full decode and audio measured separately"
+}

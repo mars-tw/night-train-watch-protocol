@@ -1,6 +1,6 @@
 {
   "name": "night-train-watch-protocol",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": false,
   "type": "module",
   "description": "夜行列車：守夜協定－手繪圖片動畫、56項任務與離線七夜生存旅程",
@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test && npm run build",
     "capture:video": "node tools/capture-gameplay.mjs",
+    "capture:promo": "node tools/record-promo-v211.mjs",
     "capture:motion": "node tools/capture-motion-qa.mjs",
     "capture:playability": "node tools/capture-playability-qa.mjs",
     "audit:buttons": "node tools/audit-buttons.mjs",
@@ -23,6 +24,7 @@
     "audit:journeys": "node tools/audit-v2-journeys.mjs",
     "audit:release": "node tools/audit-v2-release.mjs",
     "audit:raster": "node tools/audit-raster-v21.mjs",
+    "audit:promo": "node tools/audit-promo-navigation.mjs",
     "simulate:balance": "vite-node tools/simulate-v2-balance.ts",
     "validate:design": "node tools/validate-reboot-design.mjs"
   },

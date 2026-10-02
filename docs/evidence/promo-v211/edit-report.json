@@ -1,0 +1,407 @@
+{
+  "durationSeconds": 55.109,
+  "gameplaySpeed": 1,
+  "sources": {
+    "playthrough": {
+      "path": "output/playwright/promo-v211/raw/promo-v211-real-playthrough-1790959951354.webm",
+      "sha256": "09045f246e289efb56391b2026603deb29c21c1777c79d265541740c5fef295e"
+    },
+    "hero": {
+      "path": "output/playwright/promo-v211/hero/promo-v211-a07-hero-1790960255070.webm",
+      "sha256": "5cd9051d0e00551c5459a4b76bba7e3adf78ebc7dfa1c24faa9222ba27e8952b"
+    }
+  },
+  "shots": [
+    {
+      "source": "hero",
+      "in": 4.136,
+      "out": 9.136,
+      "heading": "移動的小家",
+      "copy": "暖木、毛毯與燈火\n照亮守夜旅程",
+      "outputStart": 0,
+      "outputEnd": 5.0
+    },
+    {
+      "source": "playthrough",
+      "in": 6.526,
+      "out": 11.705,
+      "heading": "照顧乘客",
+      "copy": "安撫、休息與照護\n每個行動都有取捨",
+      "outputStart": 5.0,
+      "outputEnd": 10.179
+    },
+    {
+      "source": "playthrough",
+      "in": 12.214,
+      "out": 21.643,
+      "heading": "五節生活車廂",
+      "copy": "臥室、物資與工坊\n溫室、廚房各有用途",
+      "outputStart": 10.179,
+      "outputEnd": 19.608
+    },
+    {
+      "source": "playthrough",
+      "in": 22.653,
+      "out": 26.397,
+      "heading": "種下明天",
+      "copy": "播種與灌溉\n把收成留給下一夜",
+      "outputStart": 19.608,
+      "outputEnd": 23.352
+    },
+    {
+      "source": "playthrough",
+      "in": 27.466,
+      "out": 31.911,
+      "heading": "一碗熱食",
+      "copy": "確認成本，再動手\n照顧乘客的日常",
+      "outputStart": 23.352,
+      "outputEnd": 27.797
+    },
+    {
+      "source": "playthrough",
+      "in": 32.721,
+      "out": 36.021,
+      "heading": "56項任務",
+      "copy": "從教學到七夜主線\n把成果收進旅程檔案",
+      "outputStart": 27.797,
+      "outputEnd": 31.097
+    },
+    {
+      "source": "playthrough",
+      "in": 47.707,
+      "out": 51.007,
+      "heading": "選擇下一站",
+      "copy": "讀懂紙本路線\n決定燃料與風險",
+      "outputStart": 31.097,
+      "outputEnd": 34.397
+    },
+    {
+      "source": "playthrough",
+      "in": 56.33,
+      "out": 60.899,
+      "heading": "窗外的危機",
+      "copy": "觀察威脅，再反制\n守住列車的這一夜",
+      "outputStart": 34.397,
+      "outputEnd": 38.966
+    },
+    {
+      "source": "playthrough",
+      "in": 61.917,
+      "out": 65.217,
+      "heading": "迎向黎明",
+      "copy": "查看夜晚的結果\n重新整理移動的小家",
+      "outputStart": 38.966,
+      "outputEnd": 42.266
+    },
+    {
+      "source": "playthrough",
+      "in": 66.983,
+      "out": 76.815,
+      "heading": "停站探索",
+      "copy": "觀察、工具與抉擇\n帶著物資安全撤回",
+      "outputStart": 42.266,
+      "outputEnd": 52.098
+    },
+    {
+      "source": "hero",
+      "in": 9.136,
+      "out": 12.147,
+      "heading": "現在啟程",
+      "copy": "瀏覽器即可遊玩\n完整原始碼公開",
+      "outputStart": 52.098,
+      "outputEnd": 55.109
+    }
+  ],
+  "audio": {
+    "origin": "original score synthesized by edit-promo-v211.py; not recorded in-game audio",
+    "license": "CC0-1.0"
+  },
+  "exports": [
+    {
+      "file": "public/assets/video/night-train-promo-v211.mp4",
+      "bytes": 5831490,
+      "sha256": "748eca7bb2cdb53f52156d8c5cd5a3f7eba9f8ba3a5719652a44f3d9c21e2c91",
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.64001f",
+            "width": 1280,
+            "height": 720,
+            "coded_width": 1280,
+            "coded_height": 720,
+            "has_b_frames": 2,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "16:9",
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "30/1",
+            "avg_frame_rate": "30/1",
+            "time_base": "1/15360",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 846848,
+            "duration": "55.133333",
+            "bit_rate": "740372",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "1654",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc63.1.100 libx264"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "mime_codec_string": "mp4a.40.2",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "initial_padding": 1024,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 2645232,
+            "duration": "55.109000",
+            "bit_rate": "96806",
+            "nb_frames": "2580",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler"
+            }
+          }
+        ],
+        "format": {
+          "filename": "./public/assets/video/night-train-promo-v211.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "55.133333",
+          "size": "5831490",
+          "bit_rate": "846165",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf63.1.100"
+          }
+        }
+      }
+    },
+    {
+      "file": "public/assets/video/night-train-promo-v211-portrait.mp4",
+      "bytes": 7398515,
+      "sha256": "0ad8637fc0cbcced696c08e151f3f4c0801fb9f4e0c505c333dcc9d67a130000",
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.64001f",
+            "width": 720,
+            "height": 1280,
+            "coded_width": 720,
+            "coded_height": 1280,
+            "has_b_frames": 2,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "9:16",
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "30/1",
+            "avg_frame_rate": "30/1",
+            "time_base": "1/15360",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 846848,
+            "duration": "55.133333",
+            "bit_rate": "967774",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "1654",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc63.1.100 libx264"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "mime_codec_string": "mp4a.40.2",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "initial_padding": 1024,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 2645232,
+            "duration": "55.109000",
+            "bit_rate": "96806",
+            "nb_frames": "2580",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler"
+            }
+          }
+        ],
+        "format": {
+          "filename": "./public/assets/video/night-train-promo-v211-portrait.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "55.133333",
+          "size": "7398515",
+          "bit_rate": "1073545",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf63.1.100"
+          }
+        }
+      }
+    }
+  ]
+}

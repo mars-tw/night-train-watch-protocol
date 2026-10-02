@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#161b20" />
+    <link rel="icon" href="./assets/art/v21/ui/app-icon-192.png" />
+    <meta
+      name="description"
+      content="《夜行列車：守夜協定》遊戲宣傳片與遊玩入口。"
+    />
+    <title>宣傳片｜夜行列車：守夜協定</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --night: #11171c;
+        --window: #223541;
+        --window-light: #8eb3bd;
+        --wood: #654331;
+        --copper: #c9915b;
+        --paper: #ead9b9;
+        --ink: #24211d;
+        --mist: #c6d4d3;
+        --line: rgba(234, 217, 185, 0.28);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--night);
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--paper);
+        background:
+          linear-gradient(90deg, rgba(91, 58, 39, 0.32) 1px, transparent 1px) 0 0 / 72px 100%,
+          radial-gradient(circle at 78% 24%, rgba(80, 124, 140, 0.3), transparent 34rem),
+          linear-gradient(145deg, #1a1a19 0%, var(--night) 55%, #101920 100%);
+        font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      a:focus-visible,
+      video:focus-visible {
+        outline: 3px solid #f1c27d;
+        outline-offset: 4px;
+      }
+
+      .page-shell {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .site-header {
+        min-height: 72px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .site-header .page-shell {
+        display: flex;
+        min-height: 72px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        text-decoration: none;
+      }
+
+      .brand strong {
+        display: block;
+        font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+        font-size: 1.02rem;
+        letter-spacing: 0.12em;
+      }
+
+      .brand span {
+        color: var(--window-light);
+        font-size: 0.68rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .repo-link {
+        color: var(--mist);
+        font-size: 0.86rem;
+        text-underline-offset: 0.3em;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(270px, 340px);
+        gap: clamp(30px, 5vw, 72px);
+        align-items: center;
+        min-height: calc(100vh - 72px);
+        padding: 34px 0;
+      }
+
+      .screen {
+        position: relative;
+        min-width: 0;
+      }
+
+      .screen::before {
+        position: absolute;
+        inset: -10px;
+        z-index: -1;
+        border: 1px solid rgba(201, 145, 91, 0.42);
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.46);
+        content: "";
+      }
+
+      video {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #080b0d;
+        object-fit: contain;
+      }
+
+      .platform-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0 0;
+        color: #a9bdbc;
+        font-family: Consolas, "SFMono-Regular", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .platform-label::before {
+        width: 38px;
+        height: 1px;
+        background: var(--copper);
+        content: "";
+      }
+
+      .intro {
+        padding: 20px 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--copper);
+        font-family: Consolas, "SFMono-Regular", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+      }
+
+      h1 {
+        max-width: 8em;
+        margin: 0;
+        font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+        font-size: clamp(2.3rem, 4.4vw, 4.7rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: 0.05em;
+      }
+
+      .lede {
+        max-width: 30em;
+        margin: 22px 0 0;
+        color: var(--mist);
+        font-size: 0.98rem;
+        line-height: 1.8;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+        margin-top: 28px;
+      }
+
+      .action {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 19px;
+        border: 1px solid var(--paper);
+        color: var(--paper);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .action.primary {
+        border-color: var(--paper);
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      .action:hover {
+        border-color: #f3ca8f;
+        color: #f3ca8f;
+      }
+
+      .action.primary:hover {
+        color: #17130f;
+        background: #f3ca8f;
+      }
+
+      .download {
+        margin-top: 22px;
+        color: #b7c4c2;
+        font-size: 0.82rem;
+      }
+
+      .download a {
+        text-underline-offset: 0.28em;
+      }
+
+      @media (max-width: 760px) {
+        .page-shell {
+          width: min(100% - 28px, 620px);
+        }
+
+        .site-header,
+        .site-header .page-shell {
+          min-height: 62px;
+        }
+
+        main {
+          grid-template-columns: 1fr;
+          gap: 20px;
+          min-height: auto;
+          padding: 26px 0 40px;
+        }
+
+        .screen {
+          order: 1;
+        }
+
+        .intro {
+          order: 2;
+          padding: 4px 0 0;
+        }
+
+        .platform-label {
+          margin-top: 16px;
+        }
+
+        h1 {
+          max-width: none;
+          font-size: clamp(2.18rem, 11vw, 3.4rem);
+        }
+
+        .lede {
+          margin-top: 16px;
+          line-height: 1.7;
+        }
+
+        .actions {
+          margin-top: 22px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .repo-link {
+          font-size: 0.78rem;
+        }
+
+        .brand strong {
+          font-size: 0.88rem;
+        }
+
+        .brand span {
+          display: none;
+        }
+
+        .action {
+          flex: 1 1 130px;
+          padding-inline: 12px;
+        }
+      }
+
+      @media (min-width: 761px) and (max-height: 680px) {
+        main {
+          padding: 22px 0;
+        }
+
+        h1 {
+          font-size: clamp(2.4rem, 4.2vw, 3.6rem);
+        }
+
+        .lede {
+          margin-top: 16px;
+          line-height: 1.55;
+        }
+
+        .actions {
+          margin-top: 20px;
+        }
+
+        .download {
+          margin-top: 14px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-shell">
+        <a class="brand" href="./" aria-label="返回《夜行列車：守夜協定》遊戲">
+          <strong>夜行列車：守夜協定</strong>
+          <span>Night Train Watch Protocol</span>
+        </a>
+        <a class="repo-link" href="https://github.com/mars-tw/night-train-watch-protocol">
+          開源專案
+        </a>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="screen" aria-label="遊戲宣傳片">
+        <video
+          controls
+          playsinline
+          preload="metadata"
+          poster="./assets/video/night-train-promo-v211-cover.jpg"
+          aria-label="《夜行列車：守夜協定》遊戲宣傳片"
+        >
+          <source src="./assets/video/night-train-promo-v211.mp4" type="video/mp4" />
+          <track
+            default
+            kind="subtitles"
+            srclang="zh-Hant"
+            label="繁體中文"
+            src="./assets/video/night-train-promo-v211.zh-Hant.vtt"
+          />
+          你的瀏覽器無法播放這段影片。你可以直接下載 MP4 觀看。
+        </video>
+        <p class="platform-label">v2.1 gameplay film · 16:9</p>
+      </section>
+
+      <section class="intro">
+        <p class="eyebrow">七夜旅程／暖車廂／冷窗外</p>
+        <h1>守住這班往夜裡開的車</h1>
+        <p class="lede">
+          白天照顧乘客、修理設備、種植與停站探索；夜裡讀懂窗外留下的線索，決定有限物資要用在哪裡。
+        </p>
+        <nav class="actions" aria-label="主要連結">
+          <a class="action primary" href="./">直接遊玩</a>
+          <a class="action" href="https://github.com/mars-tw/night-train-watch-protocol">
+            查看 GitHub
+          </a>
+        </nav>
+        <p class="download">
+          想離線看？
+          <a href="./assets/video/night-train-promo-v211.mp4" download>下載 MP4</a>
+          ·
+          <a href="./assets/video/night-train-promo-v211-portrait.mp4" download>手機直式版</a>
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

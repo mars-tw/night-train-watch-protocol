@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "base": "http://127.0.0.1:4312/",
+  "trailer": {
+    "title": "宣傳片｜夜行列車：守夜協定",
+    "worker": true,
+    "video": {
+      "time": 0.402359,
+      "width": 1280,
+      "paused": false
+    }
+  },
+  "offlineGame": {
+    "menu": true,
+    "worker": true
+  },
+  "errors": []
+}

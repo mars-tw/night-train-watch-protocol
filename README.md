@@ -1,8 +1,12 @@
-# 夜行列車：守夜協定 v2.1.0
+# 夜行列車：守夜協定 v2.1.1
+
+[![觀看遊戲宣傳片](public/assets/video/night-train-promo-v211-cover.jpg)](https://mars-tw.github.io/night-train-watch-protocol/trailer.html)
+
+[觀看遊戲宣傳片](https://mars-tw.github.io/night-train-watch-protocol/trailer.html) · [直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/)
 
 你是列車的守護系統。白天照顧乘客 A-07、修理設備、種植與停站探索；夜裡觀察窗外的線索，選擇反制與資源取捨，讓這個移動的小家繼續前進。
 
-[直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/) · [完整企劃](docs/reboot-v2/GAME_DESIGN.md) · [圖片動畫與來源](docs/reboot-v21/ASSET_RUNTIME_V21.md)
+[完整企劃](docs/reboot-v2/GAME_DESIGN.md) · [圖片動畫與來源](docs/reboot-v21/ASSET_RUNTIME_V21.md)
 
 固定 9:16，手機瀏覽器與桌機皆可操作，支援離線保存。每一條故事線是一段完整七夜旅程，可逐夜保存、失敗重試。
 
@@ -94,6 +98,7 @@ TypeScript＋Vite，DOM／CSS 負責可及性與控制，Canvas 負責 720×1280
 
 - 程式碼與文件：GNU AGPL-3.0-or-later。
 - `public/assets/art/` 圖像：CC BY 4.0，署名「夜行列車：守夜協定 contributors」。
+- 宣傳影片、封面與實錄來源：CC BY 4.0，署名同上；原創宣傳配樂採 CC0-1.0，詳見 [影片授權](public/assets/video/night-train-promo-v211.LICENSE.txt)。
 - 新圖來源與處理：[ASSET_PROMPTS_V2.json](docs/reboot-v2/ASSET_PROMPTS_V2.json)、[ASSET_RUNTIME_V2.md](docs/reboot-v2/ASSET_RUNTIME_V2.md)。
 - v2.1 圖片提示與處理：[IMAGE_PROMPTS.json](docs/reboot-v21/IMAGE_PROMPTS.json)、[ASSET_RUNTIME_V21.md](docs/reboot-v21/ASSET_RUNTIME_V21.md)。
 - 使用者廣告照片、原始私人 GDD／ZIP 不包含在公開專案。
