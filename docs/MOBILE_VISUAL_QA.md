@@ -18,10 +18,10 @@ v0.8.0 的驗收目標是讓玩家先看見並理解每節不同的車廂，再�
 
 ## 2026-07-24 實測結果
 
-| 視窗 | 不被面板切斷的場景高度 | 底部指令列 | 最小可點區 | 水平溢位 |
-|---|---:|---:|---:|---:|
-| 390×844 | 534px | 70px | 60×48px | 0px |
-| 360×640 | 338px | 70px | 60×48px | 0px |
+| 視窗    | 不被面板切斷的場景高度 | 底部指令列 | 最小可點區 | 水平溢位 |
+| ------- | ---------------------: | ---------: | ---------: | -------: |
+| 390×844 |                  534px |       70px |    60×48px |      0px |
+| 360×640 |                  338px |       70px |    60×48px |      0px |
 
 自動流程實際走過 49 種玩家操作、五節 GPT 專屬車廂、左右滑動、抽屜開關、播種至收成、佈置拖曳、中風險兩波夜襲、破口維修、存檔重載與局外預覽，共通過 498 項斷言。每次操作都先確認按鈕可見中心沒有被遮擋，再由滑鼠座標模擬玩家按下。整備畫面不存在假暫停鍵，夜間暫停會切換為「繼續」，第一次滑動提示會在成功操作後消失，播種後可直接看見 `AP -1` 與 `水 -1`；瀏覽器沒有頁面或 console 錯誤。
 
@@ -46,4 +46,87 @@ $env:GAME_URL='http://127.0.0.1:4312'
 npm run audit:buttons
 npm run capture:playability
 npm run capture:video
+npm run audit:frost
+npm run audit:green
 ```
+
+## 2026-07-26 灰霧線三分支專項
+
+`npm run audit:story` 現在預設依序完成 GO、DETOUR、STOP 三局七日流程。Day 7 第三波分別強制為 T006、T004、T005，且舊式 `.emergency-actions` 不再被視為合格：
+
+- T004 由 Playwright 把 `[data-threat-tool="cutter"]` 真實拖到權威狀態指定的 `plot-a` 或 `plot-b`。
+- T005 點選權威狀態指定的色／形／節拍訊號卡；單元測試另驗證第一次誤判零傷害、第二次誤判健康 −2。
+- T006 只使用葉片或電表視覺線索；遊戲控制器不播放該威脅的 tap、warning 或 safe 音效。
+- 三條分支都在 360×640、140% 文字下檢查 EV051、EV052、結局主要按鈕的尺寸、中心命中、面板寬度與水平溢位，結果皆為 0px 溢位。
+
+公開證據為 `public/assets/screenshots/28-story-t004-fog-vine.png` 至 `30-story-t006-silent-crowd.png`、三支 `public/assets/video/night-train-story-v090*.webm`，以及 `public/assets/qa/story-flow-report.json`。
+
+## 2026-07-28 白霜線驗收
+
+白霜線 R02 已在真實 Chromium 手機視窗完成 CARE、CLEAR、SUSTAIN 三條分支，各自走完 Day 1 至 Day 7。完整稽核報告為 `status: passed`，來源 commit 為 `4d3757dce3d99d8f3512250b476f630b4dd9c07e`，且啟動稽核時 `workingTreeDirty: false`。同版全按鈕稽核覆蓋 56 個 controller actions、591 項斷言；瀏覽器 page error 與 console error 合計為 0。
+
+### 肉眼與操作驗收
+
+- R02 route card 在 390×844 視窗中完整可見，主要按鈕中心命中測試通過。
+- thermal drawer 在 390×844 與 360×640、140% 文字模式下不遮住主要場景或警報；水平溢位為 0，主要控制項中心皆可命中。
+- 六枚熱能 token 維持唯一身分與唯一配置；配置同時通過可見按鈕 tap 與真實 pointer drag，拖曳結果會寫回權威存檔。
+- EV057 由可見選項進入 CARE、CLEAR、SUSTAIN 三條分支，並在 route node 選擇前保存、重載後維持同一分支。
+- T009 覆蓋錯誤檢查、弱點 reveal、立即 reload 與 retry；CARE、SUSTAIN 以 reveal 後重試完成，CLEAR 另以 manual scrape 完成。Day 7 再次以熱能配置解決 T009。
+- 三條分支都驗證 EV057、T009 first miss 與 ending 三個 reload checkpoint；結局重載前後完成獎勵都只有一筆。
+- 無燃料時的 emergency route 由畫面上可見按鈕中心點擊完成，並在 360×640、140% 與 390×844 兩種視窗確認不重疊、可命中。
+- 四個結局均由可見選項完成：CARE `frost-shared-arrival`、CLEAR `frost-guarded-arrival`、SUSTAIN `frost-chosen-detour`，以及 CARE 的替代抉擇 `frost-emergency-shelter`。第 4 結局使用 Day 7 EV065 選擇前的自然存檔 checkpoint，在 fresh 390×844 context 從主選單繼續；選擇前不改寫權威數值，結局與獎勵唯一性在 reload 後仍成立。
+
+### 公開確證
+
+- `public/assets/qa/frost-story-flow-report.json`：三分支完整報告、reload checkpoint、緊急路線、第 4 結局、畫面量測與 browser errors。
+- `public/assets/video/night-train-frost-v100-care.webm`：390×844，184.24 秒。
+- `public/assets/video/night-train-frost-v100-clear.webm`：390×844，148.04 秒。
+- `public/assets/video/night-train-frost-v100-sustain.webm`：390×844，124.36 秒。
+- 全部 22 張公開 PNG 均存在且通過 PNG 格式檢查；主要畫面包括：
+  - `public/assets/screenshots/frost-route-selection-v100.png`
+  - `public/assets/screenshots/frost-thermal-drawer-360x640-text140-v100.png`
+  - `public/assets/screenshots/frost-thermal-pointer-drag-v100.png`
+  - `public/assets/screenshots/frost-ev057-three-branches-v100.png`
+  - `public/assets/screenshots/frost-t009-first-miss-360x640-text140-v100.png`
+  - `public/assets/screenshots/frost-emergency-route-360x640-v100.png`
+  - `public/assets/screenshots/frost-care-ending-v100.png`
+  - `public/assets/screenshots/frost-clear-ending-v100.png`
+  - `public/assets/screenshots/frost-sustain-ending-v100.png`
+  - `public/assets/screenshots/frost-emergency-shelter-ending-v100.png`
+
+以上為桌面 Chromium 的手機 viewport 自動驗收；iOS Safari 與 Android Chrome 實機人工 QA 尚未完成，因此相關 PR 必須保持 Draft，不得以本報告宣稱已通過實機發布門檻。
+
+## 2026-07-28 綠潮線驗收
+
+R03 綠潮線已在真實 Chromium 手機視窗完成 CULTIVATE、FILTER、PURGE 三條可玩預覽。錄影使用畫面上的可見控制項，並明確揭露 Day 3／4／5／7 存檔檢查點注入；用途是快速證明循環板、分支設備、雙威脅與結局都能操作，不宣稱為未中斷七夜通關。
+
+### 肉眼與操作驗收
+
+- 三條分支合計完成 165 次可見操作；每次一般操作先檢查至少 44px、中心未被遮擋，再實際點擊。
+- 360×640、140% 文字與 reduced-motion 下，Cycle Board 水平溢位為 0px；板面位於 `left 8px` 至 `right 352px`。
+- 小螢幕 Cycle Board 共量測 13 個可用控制項：關閉、水樣 S1–S4、檢查、五個節點、還原與提交；每個至少 48px 高且中心命中。
+- compact 修正將底部操作列改為隨板面內容正常滾動，避免 sticky 操作列遮住 INTAKE 等節點。
+- EV072 的 CULTIVATE／FILTER／PURGE 選擇會被權威狀態永久鎖定；重新注入同事件也不能覆寫分支。
+- Day 5 必須從可見事件完成 `EV073 control`、`EV074 full-filter` 或 `EV075 burn-water`，之後才截取對應車廂設備。
+- Day 7 固定為 T013 → T008 → EV078。Day 7 整備階段即使已提交 Cycle，T013 仍使用獨立接觸結算鍵，不會被同日 duplicate guard 卡死。
+- T013 還原會保留 attempts 與首次揭示狀態，不能無限重置免傷；T008 首錯仍維持零感染與零壓力代價。
+- EV078 會拒絕 Day 7 lifecycle 尚未完成的 schema 5 存檔，四個結局獎勵各只結算一次。
+
+### 公開確證
+
+- `public/assets/qa/green-story-flow-report.json`：`status: PASS`、三分支 actions/checkpoints、影片尺寸與 SHA-256、18 張截圖雜湊，以及 compact 中心命中量測。
+- `public/assets/video/night-train-green-v110-cultivate.webm`
+- `public/assets/video/night-train-green-v110-filter.webm`
+- `public/assets/video/night-train-green-v110-purge.webm`
+- 18 張公開 PNG 包含：
+  - `public/assets/screenshots/green-route-selection-v110.png`
+  - `public/assets/screenshots/green-cycle-board-360x640-text140-v110.png`
+  - `public/assets/screenshots/green-ev072-three-branches-v110.png`
+  - `public/assets/screenshots/green-ev078-four-endings-v110.png`
+  - `public/assets/screenshots/green-{cultivate,filter,purge}-carriage-v110.png`
+  - `public/assets/screenshots/green-{cultivate,filter,purge}-t013-cycle-v110.png`
+  - `public/assets/screenshots/green-{cultivate,filter,purge}-t008-first-miss-v110.png`
+  - `public/assets/screenshots/green-{cultivate,filter,purge}-ending-v110.png`
+  - `public/assets/screenshots/green-quarantine-ending-v110.png`
+
+以上仍是桌面 Chromium 的手機 viewport 自動驗收。iOS Safari 與 Android Chrome 實機人工 QA 尚未完成，因此 v1.1 PR 必須保持 Draft，不能部署或宣稱通過實機發布門檻。

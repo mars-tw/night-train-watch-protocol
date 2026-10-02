@@ -1,0 +1,3632 @@
+{
+  "schemaVersion": 1,
+  "status": "proposed",
+  "gameVersion": "2.0-design",
+  "description": "全新企劃的 56 項任務目錄。本檔不是既有 runtime API、已完成內容或實測平衡；A-07 沿用現有乘客身分，玩家是列車守護系統。A-07 的姓名只由原故事揭露，不新增暱稱。無線電工程師老許屬新增遠端角色提案。",
+  "counts": {
+    "total": 56,
+    "main": 21,
+    "tutorial": 5,
+    "relationship": 10,
+    "facility": 8,
+    "exploration": 6,
+    "challenge": 6
+  },
+  "eventContract": {
+    "status": "proposed-domain-events-not-current-api",
+    "roleContract": {
+      "player": "列車守護系統，無新代號",
+      "passenger": "A-07；沿用現有主線乘客與身分謎題，姓名只由原故事揭露，不新增暱稱。",
+      "radioEngineer": "xu／老許；新增遠端角色提案"
+    },
+    "envelope": {
+      "required": [
+        "eventId",
+        "runId",
+        "routeId",
+        "day",
+        "sequence",
+        "transactionId",
+        "type"
+      ],
+      "eventId": "本次已提交事實的唯一ID",
+      "transactionId": "來自唯一權威結算交易；命令重試沿用同一交易",
+      "routeId": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "day": "1..7；無第8夜",
+      "sequence": "本局單調遞增事件序"
+    },
+    "matchSemantics": "match 為欄位 AND；純量為精確相等，陣列為任一值相等。布林摘要須由權威結算狀態推導，不接受 UI 或玩家直接聲明。count 僅累計去重後已提交事件，不累計開面板、預覽、取消、未支付成功或重載。",
+    "progressWindow": "按 routes 與 dayMin 開放即開始記錄；追蹤／接受只是 UI 選擇。dayMax 當夜固定結算後不可再追蹤已錯過任務；不回補窗口之外的事件。scope=profile 的教學只有成功完成標記與解鎖收據跨局保存，未完成目標進度於開新局時清空，不混合兩局的行動或夜間摘要。",
+    "deadlineEvaluation": "固定在該夜 aftermath-before-day-advance 執行：先提交當夜事實事件，再完成符合目標的任務，再處理期限與互斥關閉，最後增加 day。第7夜終局操作與 run.ended 必須在第7夜此結算點之前提交；此順序是v2提案，需實作後驗證。",
+    "earlyTermination": "run.ended 發生在第7夜之前時，先結算當下已符合的目標，其餘run任務標示到期／未進入；不開啟未抵達日的主線，不新增第8天。",
+    "prerequisiteSemantics": {
+      "prior-mission-settled": "比對前一任務的 result 欄位，接受 completed／compromised／expired／declined；不把這四個值當成 lifecycle。若舊存檔缺前段或尚未建立紀錄，自動提供未回應的替代前情，仍在當日開放下一段；不得補造資源、同意、信任或證據。",
+      "facility-branch-uncommitted": "只在同一功能槽未選方案時提供。接受任務不鎖分支；facility.upgraded 的成功交易才原子提交 branchChoice，另一任務立即互斥關閉。"
+    },
+    "lifecycleStates": [
+      "locked",
+      "available",
+      "active",
+      "completed",
+      "claimed",
+      "expired",
+      "retired",
+      "resolved-fallback"
+    ],
+    "lifecycleTransitions": "一般流程 locked → available → active → completed → claimed；到期走 expired，已被成功互斥改裝取代走 retired，主線／關係的保底延續走 resolved-fallback。接受不扣款；第一個符合的已提交事實可自動把 available 轉 active，避免完成原行動卻必須事先接任務。",
+    "lifecycleResultMapping": {
+      "locked": {
+        "result": null
+      },
+      "available": {
+        "result": null
+      },
+      "active": {
+        "result": null
+      },
+      "completed": {
+        "result": "completed"
+      },
+      "claimed": {
+        "result": "completed",
+        "reason": "獎勵已結算，前置仍可接受其 completed 結果。"
+      },
+      "expired": {
+        "result": "expired",
+        "declineException": "玩家明示拒絕時 lifecycle=expired、reason=declined、result=declined。"
+      },
+      "retired": {
+        "result": "expired",
+        "reason": "branch-superseded；互斥方案成功後關閉，不當作玩家曾明示拒絕。"
+      },
+      "resolved-fallback": {
+        "result": "compromised",
+        "reason": "已用有代價或未回應的前情延續，沒有補造成功證據。"
+      }
+    },
+    "missionTerminalResults": [
+      "completed",
+      "compromised",
+      "expired",
+      "declined"
+    ],
+    "policySemantics": {
+      "continue": "當夜未完整達成即 compromised；後續主線按天開，不以任務狀態阻擋。",
+      "expire": "結算點標示 expired 並顯示確切原因。",
+      "fallback": "當夜關係任務未完成記 compromised／未回應，下一段使用明示替代前情。"
+    },
+    "rewardPolicy": "主線、教學只給日誌或下局替代藍圖；其餘亦不追加原事件資源。日誌記本局、外觀與藍圖以profile的唯一ID解鎖一次，不堆疊數值。once-per-profile 只在成功完成且獎勵結算時消耗；未完成教學下局可再提。挑戰不依倒數、音訊辨識或操作速度封鎖可及性設定。",
+    "antiFarm": {
+      "progressDedup": [
+        "runId",
+        "eventId"
+      ],
+      "settlementDedup": [
+        "runId",
+        "missionId",
+        "rewardId"
+      ],
+      "profileUnlockDedup": [
+        "profileId",
+        "rewardId"
+      ],
+      "commandRetry": "重試、雙點、備份復原不產生新的 transactionId 或再次改資源。",
+      "repeatedWorldTarget": "同一夜同一接觸／設施／探索節點的相同已結算操作只生成一次領獎事實；不以打開、關閉、故意損壞、重設或重載刷新目標。",
+      "saveConsistency": "事件游標、任務進度、分支、期限與reward receipts與RunState同批存檔；復原backup後重播相同eventId不二次發獎。",
+      "noFailureRewards": "失敗前進提供故事延續與補救機會，沒有可循環領取的失敗補貼。",
+      "noClockManipulation": "所有期限依run.day與結算序，不依裝置日期或離線掛機時間。"
+    },
+    "events": {
+      "action.committed": {
+        "description": "原行動已通過成本、條件檢查並完成權威結算。反制、種植與其他操作的資源效果只結算一次。",
+        "matchFields": [
+          "operation",
+          "carriageId",
+          "targetId",
+          "result",
+          "method",
+          "growthProvenance",
+          "mature",
+          "healthy"
+        ],
+        "operations": [
+          "inspect",
+          "power.configure",
+          "ration.configure",
+          "crop.plant",
+          "crop.harvest",
+          "route.confirm",
+          "counter.deploy",
+          "comfort",
+          "repair",
+          "cook"
+        ],
+        "resultValues": [
+          "success",
+          "fallback"
+        ],
+        "notes": "有限工具／手動method、grown-in-this-run成熟健康摘要與sameNight關聯均為新增提案欄位；不是現有服務簽章。"
+      },
+      "story.milestone": {
+        "description": "當夜故事節點以完整、妥協或故事備援結果提交；只有真實發生的節點才發事件。",
+        "matchFields": [
+          "milestoneId",
+          "result",
+          "branchChoice"
+        ],
+        "milestonePattern": "R01.N01..N07 / R02.N01..N07 / R03.N01..N07",
+        "resultValues": [
+          "success",
+          "compromised",
+          "fallback"
+        ],
+        "notes": "任務失敗不能自行覆寫故事 flags。必要的不可逆決策仍要由玩家看到後確認。"
+      },
+      "night.resolved": {
+        "description": "當夜全部接觸及必要終局操作完成後的權威夜間摘要。",
+        "matchFields": [
+          "wakeupsDelta",
+          "passengerAlive",
+          "hullPositive",
+          "reservePositive",
+          "lifeSupportPowered",
+          "sameNightAsMissionAction"
+        ],
+        "derivedFields": {
+          "wakeupsDelta": "當夜起始與結算的wakeups差",
+          "passengerAlive": "health>0",
+          "hullPositive": "hull>0",
+          "reservePositive": "本夜結算後備援電量>0",
+          "lifeSupportPowered": "必要生命維持設備在要求期間實際供電",
+          "sameNightAsMissionAction": "任務已記錄反制動作的day與本事件day相同；不能由event producer猜測任務狀態，需匹配器以關聯證據計算。"
+        }
+      },
+      "facility.upgraded": {
+        "description": "固定功能槽的原改裝交易已成功，帶實際設施與互斥分支資料。",
+        "matchFields": [
+          "facilityId",
+          "upgradeId",
+          "branchGroup",
+          "branchChoice",
+          "result"
+        ],
+        "resultValues": [
+          "success"
+        ],
+        "notes": "本目錄8個改裝是替代設備提案；不宣稱既有模組已具備其效益，也沒有杜撰實測成本。"
+      },
+      "expedition.resolved": {
+        "description": "本次沿線探索已不可重複結算，資料結果與原資源交易分開記錄。",
+        "matchFields": [
+          "siteId",
+          "discoveryId",
+          "result"
+        ],
+        "resultValues": [
+          "success",
+          "partial",
+          "failed",
+          "skipped"
+        ],
+        "notes": "局部資訊不等於完整證據；探索 rewards 不由任務再發一份。"
+      },
+      "relationship.choice": {
+        "description": "當夜NPC回應已提交，保留實際說明、拒絕或錄音備援，不把選項預覽當對話。",
+        "matchFields": [
+          "npcId",
+          "stepId",
+          "result",
+          "choiceId"
+        ],
+        "npcIds": [
+          "A-07",
+          "xu"
+        ],
+        "resultValues": [
+          "success",
+          "partial",
+          "declined",
+          "fallback"
+        ],
+        "notes": "關係效果若有，沿用該對話原交易；任務不額外加信任。"
+      },
+      "run.ended": {
+        "description": "本局唯一最終結果。第7夜合法結局與提前死亡都要保存可解釋原因。",
+        "matchFields": [
+          "outcome",
+          "finalDecisionRecorded",
+          "verifiedReasonPresent"
+        ],
+        "outcomeValues": [
+          "victory",
+          "hull-lost",
+          "survivor-lost"
+        ],
+        "notes": "verifiedReasonPresent 指本局權威證據，不以結局文案是否包含某個字作判斷。"
+      }
+    }
+  },
+  "missions": [
+    {
+      "id": "MAIN-R01-N01",
+      "category": "main",
+      "title": "保存訊號指紋",
+      "description": "在工坊聽見重複座標，決定完整記錄、局部保存或接受當夜備援紀錄。完成第一次行車與守夜，讓日誌留下可供追查的起點。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 1,
+            "milestoneId": "R01.N01",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 1
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-1",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N02",
+      "category": "main",
+      "title": "舊床位的編號",
+      "description": "檢查臥室牆面收折的舊床位支架與乘客 A-07 的反應，處理第一次不一致；這是編號證物，不是第二張可睡床。EV042 的 extraBunk 旗標與留架／拆架原效果保留，僅調整敘述與美術。允許保留疑問，不要求先完成關係支線。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 2,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 2,
+            "milestoneId": "R01.N02",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 2
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-2",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N03",
+      "category": "main",
+      "title": "兩組相同座標",
+      "description": "比對列車取得的兩段訊號，分清已知事實與推測。資料不足時標示待驗證，仍能繼續旅程。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 3,
+      "dayMax": 3,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 3,
+            "milestoneId": "R01.N03",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 3
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-3",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 3,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N04",
+      "category": "main",
+      "title": "貨運區的用途",
+      "description": "在 GO／DETOUR／STOP 中確認一項不可逆的路線與貨運用途，明示隔離間、電池陣或採樣室帶來的後果。任務本身不替玩家選分支。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 4,
+      "dayMax": 4,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 4,
+            "milestoneId": "R01.N04",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 4
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-4",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 4,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N05",
+      "category": "main",
+      "title": "缺頁的名冊",
+      "description": "處理名冊缺頁，依已選貨運用途執行逆向定位、路線抽樣或交叉比對；未完成可留下部分證據與風險。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 5,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 5,
+            "milestoneId": "R01.N05",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 5
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-5",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N06",
+      "category": "main",
+      "title": "第七條與作者",
+      "description": "整理守夜協定、工牌與作者線索，決定向 A-07 說明多少。資訊不完整可妥協前進，不以滿資料作唯一通關門檻。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 6,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 6,
+            "milestoneId": "R01.N06",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 6
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-6",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R01-N07",
+      "category": "main",
+      "title": "終點前的守望",
+      "description": "完成終點呼叫、三波接觸與身分查驗，再確認開門、封站、改道或終止協定的可用操作；結局明示成立原因。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 7,
+      "dayMax": 7,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R01",
+            "day": 7,
+            "milestoneId": "R01.N07",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R01",
+            "day": 7
+          },
+          "count": 1
+        },
+        {
+          "event": "run.ended",
+          "match": {
+            "routeId": "R01",
+            "day": 7,
+            "outcome": [
+              "victory",
+              "hull-lost",
+              "survivor-lost"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R01-7",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 7,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N01",
+      "category": "main",
+      "title": "第一夜的暖意",
+      "description": "檢查臥室、除冰器與循環回路的熱力需求，完成第一次保溫配置與白霜守夜。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 1,
+            "milestoneId": "R02.N01",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 1
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-1",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N02",
+      "category": "main",
+      "title": "道岔結霜",
+      "description": "觀察道岔霜區，選擇除冰、維修、衝破或繞行的可用方式。無法完整處理時把冷債與路線代價記入日誌。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 2,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 2,
+            "milestoneId": "R02.N02",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 2
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-2",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N03",
+      "category": "main",
+      "title": "熱圖上的空白",
+      "description": "校準熱圖與六枚熱力單元，分清待確認區與必要區；允許局部熱圖進入下一夜。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 3,
+      "dayMax": 3,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 3,
+            "milestoneId": "R02.N03",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 3
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-3",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 3,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N04",
+      "category": "main",
+      "title": "熱力留給誰",
+      "description": "確認 CARE／CLEAR／SUSTAIN 的一項永久改裝。臥室保溫、除冰能力或溫室循環只有一項獲得分支設備。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 4,
+      "dayMax": 4,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 4,
+            "milestoneId": "R02.N04",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 4
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-4",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 4,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N05",
+      "category": "main",
+      "title": "留下來的冷債",
+      "description": "操作所選分支設備，處理前夜累積冷債；不足時使用明示代價的備援，不重複扣過去已結算的代價。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 5,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 5,
+            "milestoneId": "R02.N05",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 5
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-5",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N06",
+      "category": "main",
+      "title": "共同決定",
+      "description": "向 A-07 說明抵達或改道方案與已知風險，記錄共享、受保護或守護系統自行規劃的同意狀態。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 6,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 6,
+            "milestoneId": "R02.N06",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 6
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-6",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R02-N07",
+      "category": "main",
+      "title": "穿過暴風雪",
+      "description": "完成末夜熱力提交、必要霜區檢查與終局操作，抵達、共同改道或緊急避難都能形成有原因的結局。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 7,
+      "dayMax": 7,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R02",
+            "day": 7,
+            "milestoneId": "R02.N07",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R02",
+            "day": 7
+          },
+          "count": 1
+        },
+        {
+          "event": "run.ended",
+          "match": {
+            "routeId": "R02",
+            "day": 7,
+            "outcome": [
+              "victory",
+              "hull-lost",
+              "survivor-lost"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R02-7",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 7,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N01",
+      "category": "main",
+      "title": "第一杯循環水",
+      "description": "檢查進水、過濾與種植槽的循環關係，留下第一組水樣判讀，不把未知水樣直接當成乾淨。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 1,
+            "milestoneId": "R03.N01",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 1
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-1",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N02",
+      "category": "main",
+      "title": "水樣分流",
+      "description": "辨識乾淨與污染水樣，操作循環節點；首次錯配提供線索，手動排水保留有代價的前進路徑。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 2,
+            "milestoneId": "R03.N02",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 2
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-2",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N03",
+      "category": "main",
+      "title": "污染的來源",
+      "description": "追查水箱與種植槽污染的關聯；保留部分定位成果，避免資料不足就封鎖第4夜。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 3,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 3,
+            "milestoneId": "R03.N03",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 3
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-3",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 3,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N04",
+      "category": "main",
+      "title": "保留、過濾或焚除",
+      "description": "確認 CULTIVATE／FILTER／PURGE 的一項永久改裝，事前看到嫁接環、濾芯塔或焚化導軌的資源與故事後果。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 4,
+      "dayMax": 4,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 4,
+            "milestoneId": "R03.N04",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 4
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-4",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 4,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N05",
+      "category": "main",
+      "title": "新設備的第一夜",
+      "description": "實際操作已選分支設備，驗證循環或隔離結果；失敗時保留污染與補救目標，任務不自動把失敗設備視為正常。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 5,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 5,
+            "milestoneId": "R03.N05",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 5
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-5",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N06",
+      "category": "main",
+      "title": "說出循環真相",
+      "description": "決定向 A-07 說明感染與種庫風險，核對已知水樣與來源資訊，允許不同程度的揭露與結局條件。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 6,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 6,
+            "milestoneId": "R03.N06",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 6
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-6",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "MAIN-R03-N07",
+      "category": "main",
+      "title": "種庫門前",
+      "description": "定位感染源，依序處理孢子者與潛伏者，再確認保存種庫、受控共生、焚除或封站隔離的可用終局操作。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 7,
+      "dayMax": 7,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "story.milestone",
+          "match": {
+            "routeId": "R03",
+            "day": 7,
+            "milestoneId": "R03.N07",
+            "result": [
+              "success",
+              "compromised",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "routeId": "R03",
+            "day": 7
+          },
+          "count": 1
+        },
+        {
+          "event": "run.ended",
+          "match": {
+            "routeId": "R03",
+            "day": 7,
+            "outcome": [
+              "victory",
+              "hull-lost",
+              "survivor-lost"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-MAIN-R03-7",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "continue",
+        "description": "未達成當夜完整目標，結算為 compromised 並記錄缺少的證據或損失。下一夜主線按天開放，沒有前一主線任務完成門檻；原故事必要決策與有代價備援仍由故事系統處理。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 7,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 100
+    },
+    {
+      "id": "TUT-01",
+      "category": "tutorial",
+      "title": "先看她是否安睡",
+      "description": "點選乘客呼吸與窗外輪廓兩個觀察點，辨識室內安全與室外威脅。觀察不喚醒乘客。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "inspect",
+            "targetId": "passenger-breathing",
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "inspect",
+            "targetId": "window-silhouette",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-TUT-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "本局到期後收起導引，不阻擋主線；未成功完成的教學可於下局重新出現。只有成功完成才消耗 once-per-profile 次數。"
+      },
+      "repeat": "once-per-profile",
+      "scope": "profile",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 90
+    },
+    {
+      "id": "TUT-02",
+      "category": "tutorial",
+      "title": "替今晚留好電與餐",
+      "description": "在可收合工具中提交一次配電與配餐；面板顯示供電需求、將消耗的物資與停用設備。提交配置不等同重複領取收益。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "power.configure",
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "ration.configure",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-TUT-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "本局到期後收起導引，不阻擋主線；未成功完成的教學可於下局重新出現。只有成功完成才消耗 once-per-profile 次數。"
+      },
+      "repeat": "once-per-profile",
+      "scope": "profile",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 89
+    },
+    {
+      "id": "TUT-03",
+      "category": "tutorial",
+      "title": "播下第一株",
+      "description": "在溫室 plot-a 或 plot-b 完成一次播種，看到 AP、水與作物狀態實際變化。沒有物資時顯示原因，不強迫玩家為教學花掉最後飲水。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "crop.plant",
+            "targetId": [
+              "plot-a",
+              "plot-b"
+            ],
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-STARTER-SEED-TRAY",
+          "description": "初階種植標記的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "本局到期後收起導引，不阻擋主線；未成功完成的教學可於下局重新出現。只有成功完成才消耗 once-per-profile 次數。"
+      },
+      "repeat": "once-per-profile",
+      "scope": "profile",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 87
+    },
+    {
+      "id": "TUT-04",
+      "category": "tutorial",
+      "title": "確認第一條路",
+      "description": "提交一個路線節點，讀清燃料、預估風險與資訊完整程度。選擇後只執行該節點，不能同時拿三條路線的物資。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 1,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "route.confirm",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-TUT-04",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "本局到期後收起導引，不阻擋主線；未成功完成的教學可於下局重新出現。只有成功完成才消耗 once-per-profile 次數。"
+      },
+      "repeat": "once-per-profile",
+      "scope": "profile",
+      "deadline": {
+        "afterNight": 1,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 88
+    },
+    {
+      "id": "TUT-05",
+      "category": "tutorial",
+      "title": "看懂一次接觸",
+      "description": "對窗、門或車頂的接觸部署一項反制並完成該夜。手動備援也可完成教學；首次錯誤的揭示不會因重載再次免費。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "counter.deploy",
+            "result": [
+              "success",
+              "fallback"
+            ]
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "day": [
+              1,
+              2
+            ],
+            "sameNightAsMissionAction": true
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-TUT-05",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "本局到期後收起導引，不阻擋主線；未成功完成的教學可於下局重新出現。只有成功完成才消耗 once-per-profile 次數。"
+      },
+      "repeat": "once-per-profile",
+      "scope": "profile",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 86
+    },
+    {
+      "id": "REL-A07-01",
+      "category": "relationship",
+      "title": "先問她今晚需要什麼",
+      "description": "黎明詢問燈光、聲音與保暖偏好，讓玩家對下一夜的舒適配置有具體方向；偏好本身不免費改動資源。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "A-07",
+            "stepId": "preferences",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-A07-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "A-07 關係以黎明初次詢問開場；老許關係以可辨識署名錄音開場。"
+    },
+    {
+      "id": "REL-A07-02",
+      "category": "relationship",
+      "title": "一杯熟悉的味道",
+      "description": "在黎明決定是否準備熟悉飲品，或解釋為何要節省物資。未做飲品也能完成一次誠實回應。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 3,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-A07-01",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "A-07",
+            "stepId": "familiar-drink",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-A07-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 3,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-A07-03",
+      "category": "relationship",
+      "title": "讓她知道會改什麼",
+      "description": "在永久改裝前說明已知代價，允許詢問、略述或保留資訊；原分支確認仍由主線處理。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 4,
+      "dayMax": 4,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-A07-02",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "A-07",
+            "stepId": "branch-consultation",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-A07-03",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 4,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-A07-04",
+      "category": "relationship",
+      "title": "缺頁該怎麼說",
+      "description": "回應 A-07 對名冊或協定疑點的提問，記錄說明、只說已證實部分或暫緩的選擇。沒有證據時不能偽稱已查清。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 5,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-A07-03",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "A-07",
+            "stepId": "truth-discussion",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-A07-04",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-A07-05",
+      "category": "relationship",
+      "title": "把最後選擇交還",
+      "description": "說明守護系統已能支持的終局方案並詢問意願；信任不足時接受保留意見，不能強制生成同意。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 6,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-A07-04",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "A-07",
+            "stepId": "final-consent",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-A07-05",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        },
+        {
+          "type": "cosmetic",
+          "id": "COS-A07-NOTE",
+          "description": "床頭便條外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-XU-01",
+      "category": "relationship",
+      "title": "雜訊裡的老許",
+      "description": "透過列車既有電台回覆新增角色老許。他是無線電工程師的提案，第一次接觸可取得完整通話或一段殘缺錄音。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 2,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "xu",
+            "stepId": "first-call",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-XU-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 2,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "A-07 關係以黎明初次詢問開場；老許關係以可辨識署名錄音開場。"
+    },
+    {
+      "id": "REL-XU-02",
+      "category": "relationship",
+      "title": "工程師的舊刻度",
+      "description": "與老許比對電台刻度；若前夜未接通，使用署名的維修錄音開場，不能假稱兩人已交談過。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 3,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-XU-01",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "xu",
+            "stepId": "radio-calibration",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-XU-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 3,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-XU-03",
+      "category": "relationship",
+      "title": "訊號和人該先救誰",
+      "description": "回應老許對中繼站與沿線求救訊號的建議，明示保持行程、短停或只記錄的取捨。此通話不替玩家自動選路。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 4,
+      "dayMax": 4,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-XU-02",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "xu",
+            "stepId": "relay-advice",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-XU-03",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 4,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-XU-04",
+      "category": "relationship",
+      "title": "他沒說完的名字",
+      "description": "追問老許對名冊、熱圖或種庫異常的認識，接受完整證詞、部分證詞或失聯錄音；不同路線使用各自前情。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 5,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-XU-03",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "xu",
+            "stepId": "unfinished-name",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-XU-04",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "REL-XU-05",
+      "category": "relationship",
+      "title": "最後一次通聯",
+      "description": "確認與老許交換最後已知路況，或留下未取得回覆的錄音。可用資訊只標已知部分，不直接給隱藏結局通行權。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 6,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "prior-mission-settled",
+          "missionId": "REL-XU-04",
+          "acceptedResults": [
+            "completed",
+            "compromised",
+            "expired",
+            "declined"
+          ],
+          "onUnresolved": "activate-fallback-context"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "relationship.choice",
+          "match": {
+            "npcId": "xu",
+            "stepId": "last-call",
+            "result": [
+              "success",
+              "partial",
+              "declined",
+              "fallback"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-REL-XU-05",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        },
+        {
+          "type": "cosmetic",
+          "id": "COS-XU-QSL",
+          "description": "老許的通聯卡外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "fallback",
+        "description": "本夜未完成，記錄未回應或妥協結果。下一段按天提供替代前情；不要求先前必須成功，且不替玩家補出不存在的信任、證據或已說過的話。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 70,
+      "contextFallback": "前一段完成用完整前情；妥協、到期、拒絕或缺紀錄用未回應／殘缺錄音前情。當夜仍給一項可執行回應，不補造信任與資源。"
+    },
+    {
+      "id": "FAC-01",
+      "category": "facility",
+      "title": "低噪配線",
+      "description": "核心配線改成低噪方案，降低日後安靜守夜的操作負擔，但不提供峰值防禦供電的相同能力。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "core-output",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "power-core",
+            "upgradeId": "quiet-wiring",
+            "branchGroup": "core-output",
+            "branchChoice": "quiet",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-QUIET-WIRING",
+          "description": "低噪配線的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "core-output",
+      "branchChoice": "quiet"
+    },
+    {
+      "id": "FAC-02",
+      "category": "facility",
+      "title": "峰值緩衝",
+      "description": "核心配線改成峰值緩衝，保留短時反制的輸出選擇，代價是無法同時取得低噪方案。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "core-output",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "power-core",
+            "upgradeId": "burst-buffer",
+            "branchGroup": "core-output",
+            "branchChoice": "burst",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-BURST-BUFFER",
+          "description": "峰值緩衝的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "core-output",
+      "branchChoice": "burst"
+    },
+    {
+      "id": "FAC-03",
+      "category": "facility",
+      "title": "遮光百葉",
+      "description": "將窗區改裝為遮光百葉，偏重隔絕與被動保護，觀察窗外時需接受視野取捨。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "window-approach",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "window-frame",
+            "upgradeId": "blackout-shutter",
+            "branchGroup": "window-approach",
+            "branchChoice": "covered",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-BLACKOUT-SHUTTER",
+          "description": "遮光百葉的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "window-approach",
+      "branchChoice": "covered"
+    },
+    {
+      "id": "FAC-04",
+      "category": "facility",
+      "title": "觀測窗框",
+      "description": "將同一窗區改裝為強化觀測框，偏重提早判讀，沒有遮光百葉的相同隱蔽能力。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "window-approach",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "window-frame",
+            "upgradeId": "observation-frame",
+            "branchGroup": "window-approach",
+            "branchChoice": "visible",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-OBSERVATION-FRAME",
+          "description": "觀測窗框的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "window-approach",
+      "branchChoice": "visible"
+    },
+    {
+      "id": "FAC-05",
+      "category": "facility",
+      "title": "封閉回水",
+      "description": "將溫室接口改為封閉回水方案，偏重節水；污染進入回路時需面對集中循環的風險。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "greenhouse-loop",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "greenhouse-loop",
+            "upgradeId": "closed-return",
+            "branchGroup": "greenhouse-loop",
+            "branchChoice": "closed",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-CLOSED-RETURN",
+          "description": "封閉回水的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "greenhouse-loop",
+      "branchChoice": "closed"
+    },
+    {
+      "id": "FAC-06",
+      "category": "facility",
+      "title": "隔離培育",
+      "description": "將溫室接口改為分槽隔離方案，偏重保留單槽作物；用水與維護不能同時享有封閉回水優勢。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "greenhouse-loop",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "greenhouse-loop",
+            "upgradeId": "isolated-trays",
+            "branchGroup": "greenhouse-loop",
+            "branchChoice": "isolated",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-ISOLATED-TRAYS",
+          "description": "隔離培育的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "greenhouse-loop",
+      "branchChoice": "isolated"
+    },
+    {
+      "id": "FAC-07",
+      "category": "facility",
+      "title": "保暖床邊",
+      "description": "將床邊功能槽留給保暖設施，偏重睡眠與舒適，不能在同一槽放置急救設備。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "bedside-use",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "bedside-bay",
+            "upgradeId": "warm-berth",
+            "branchGroup": "bedside-use",
+            "branchChoice": "warmth",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-WARM-BERTH",
+          "description": "保暖床邊的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "bedside-use",
+      "branchChoice": "warmth"
+    },
+    {
+      "id": "FAC-08",
+      "category": "facility",
+      "title": "急救床邊",
+      "description": "將同一床邊功能槽留給急救設施，偏重健康與隔離操作，不能同時取得保暖床邊配置。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 6,
+      "prerequisites": [
+        {
+          "kind": "facility-branch-uncommitted",
+          "branchGroup": "bedside-use",
+          "onFalse": "close-as-mutually-exclusive"
+        }
+      ],
+      "objectives": [
+        {
+          "event": "facility.upgraded",
+          "match": {
+            "facilityId": "bedside-bay",
+            "upgradeId": "medical-berth",
+            "branchGroup": "bedside-use",
+            "branchChoice": "medical",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "blueprint",
+          "id": "BP-MEDICAL-BERTH",
+          "description": "急救床邊的下局選配藍圖；只解鎖替代方案，不自動裝備、不加永久數值。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期仍未改裝則收起任務。若另一互斥方案已成功安裝，本任務立刻標示 retired、reason=branch-superseded；不顯示仍可執行。任務接受不扣款，也不鎖分支。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 60,
+      "branchGroup": "bedside-use",
+      "branchChoice": "medical"
+    },
+    {
+      "id": "EXP-R01-01",
+      "category": "exploration",
+      "title": "中繼台的舊錄音",
+      "description": "在灰霧中繼台比較廣播原聲與列車樣本。帶回完整或局部來源線索；不要求它作第6、7夜主線唯一前置。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R01",
+            "siteId": "fog-relay",
+            "discoveryId": "signal-origin",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R01-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "EXP-R01-02",
+      "category": "exploration",
+      "title": "側線留下的工牌",
+      "description": "選擇側線探索，核對工牌與名冊；可以保留不匹配結果，不把未知姓名自動填成作者。",
+      "routes": [
+        "R01"
+      ],
+      "dayMin": 3,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R01",
+            "siteId": "fog-service-siding",
+            "discoveryId": "badge-comparison",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R01-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "EXP-R02-01",
+      "category": "exploration",
+      "title": "氣象塔的熱圖",
+      "description": "探索白霜氣象塔取得實測熱圖片段，與列車熱圖比較；若略過，可繼續使用不完整資訊與備援。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R02",
+            "siteId": "frost-weather-tower",
+            "discoveryId": "heat-map-fragment",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R02-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "EXP-R02-02",
+      "category": "exploration",
+      "title": "雪下的維修屋",
+      "description": "查看維修屋留下的道岔紀錄，取得可能的避難方向；不保證沒有風險，也不直接免除末夜暴風雪。",
+      "routes": [
+        "R02"
+      ],
+      "dayMin": 3,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R02",
+            "siteId": "frost-maintenance-hut",
+            "discoveryId": "shelter-route",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R02-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "EXP-R03-01",
+      "category": "exploration",
+      "title": "河道的第二份水樣",
+      "description": "在綠潮河道獲得車外對照樣本，確認污染來自水源或車內循環的證據程度。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 5,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R03",
+            "siteId": "green-river-intake",
+            "discoveryId": "external-water-sample",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R03-01",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 5,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "EXP-R03-02",
+      "category": "exploration",
+      "title": "封存種庫的索引",
+      "description": "探索種庫中繼箱，取得封存索引與不完整來源紀錄；能支持種庫討論，但仍須實際符合終局操作條件。",
+      "routes": [
+        "R03"
+      ],
+      "dayMin": 3,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "expedition.resolved",
+          "match": {
+            "routeId": "R03",
+            "siteId": "green-seed-relay",
+            "discoveryId": "seedbank-index",
+            "result": [
+              "success",
+              "partial"
+            ]
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "journal",
+          "id": "J-EXP-R03-02",
+          "description": "加入本局守夜日誌；不額外發放原事件已給過的物資。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "到期或沿線已不可回頭時標示已錯過，保留原因。局部探索可完成任務但僅留下局部證據；主線與必要備援不依賴此支線。原探索物資僅由探索交易結算一次。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 50
+    },
+    {
+      "id": "CH-01",
+      "category": "challenge",
+      "title": "把一夜留給睡眠",
+      "description": "在第2至6夜任一夜抵達黎明且本夜未驚醒 A-07。可使用無倒數、慢速與暫停設定。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "night.resolved",
+          "match": {
+            "day": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "wakeupsDelta": 0,
+            "passengerAlive": true,
+            "hullPositive": true
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-QUIET-LAMP",
+          "description": "柔光燈罩外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "未達成只失去本局外觀挑戰機會，不降低信任或封鎖結局。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 30
+    },
+    {
+      "id": "CH-02",
+      "category": "challenge",
+      "title": "替緊急狀況留餘裕",
+      "description": "在生命維持設備保持供電的夜晚，以正值備援電量抵達黎明；單純關閉全部設施不能完成。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "night.resolved",
+          "match": {
+            "day": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "lifeSupportPowered": true,
+            "reservePositive": true,
+            "passengerAlive": true,
+            "hullPositive": true
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-RESERVE-GAUGE",
+          "description": "復古電表刻度外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "備援不足或生命維持停用時不完成；不為挑戰追加任何資源懲罰。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 29
+    },
+    {
+      "id": "CH-03",
+      "category": "challenge",
+      "title": "一株完整長大的作物",
+      "description": "實際播種後，收成同一株已成熟且健康的作物。不能拿場景預放作物、買入食物或重設種植槽代替。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "crop.harvest",
+            "growthProvenance": "grown-in-this-run",
+            "mature": true,
+            "healthy": true,
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-GARDEN-LABEL",
+          "description": "手寫菜牌外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "沒有健康成熟作物只收起挑戰，正常收成與主線照原結果運作。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 28
+    },
+    {
+      "id": "CH-04",
+      "category": "challenge",
+      "title": "工具真正派上用場",
+      "description": "完成一次有限工具或手動備援反制，並在同一夜存活。失敗重試不額外補發工具，成功不能在同一接觸重複記次。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 2,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "counter.deploy",
+            "method": [
+              "finite-tool",
+              "manual"
+            ],
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "night.resolved",
+          "match": {
+            "day": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "passengerAlive": true,
+            "hullPositive": true,
+            "sameNightAsMissionAction": true
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-TOOL-WRAP",
+          "description": "帆布工具套外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "備援操作失敗按原威脅結果處理，任務不加第二層傷害，也不自動退款。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 27
+    },
+    {
+      "id": "CH-05",
+      "category": "challenge",
+      "title": "讓車廂各做一件事",
+      "description": "在本局實際完成一次臥室安撫、工坊維修、溫室健康收成、廚房烹飪與防禦反制。切換畫面或開關設備不能代替用途。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 6,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "comfort",
+            "carriageId": "sleep",
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "repair",
+            "carriageId": "workshop",
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "crop.harvest",
+            "carriageId": "greenhouse",
+            "healthy": true,
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "cook",
+            "carriageId": "kitchen",
+            "result": "success"
+          },
+          "count": 1
+        },
+        {
+          "event": "action.committed",
+          "match": {
+            "operation": "counter.deploy",
+            "carriageId": "defense",
+            "result": "success"
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-TRAIN-STAMP",
+          "description": "五車廂圖章外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "未完成不損失任何已取得成果。不要為了追章強迫維修完整車體；該局無需維修時可自然錯過。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 6,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 26
+    },
+    {
+      "id": "CH-06",
+      "category": "challenge",
+      "title": "把選擇的理由留下",
+      "description": "以任一合法結局完成七夜，終局日誌包含玩家實際確認的最後選擇及至少一項已驗證理由；不要求某個被標成最好結局。",
+      "routes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "dayMin": 1,
+      "dayMax": 7,
+      "prerequisites": [],
+      "objectives": [
+        {
+          "event": "run.ended",
+          "match": {
+            "day": 7,
+            "outcome": "victory",
+            "finalDecisionRecorded": true,
+            "verifiedReasonPresent": true
+          },
+          "count": 1
+        }
+      ],
+      "completionMode": "all",
+      "costs": {
+        "accept": [],
+        "execution": "original-operation-costs",
+        "description": "接受或追蹤任務不扣 AP 或物資；玩家執行原行動時，由 RunService 按原成本結算。任務服務不得再次扣款。"
+      },
+      "rewards": [
+        {
+          "type": "cosmetic",
+          "id": "COS-FINAL-LOG",
+          "description": "封存日誌封面外觀；不影響數值或可及性設定。"
+        }
+      ],
+      "failure": {
+        "policy": "expire",
+        "description": "列車或乘客提前失去時保存失敗日誌，挑戰不發外觀；仍能重新開局。"
+      },
+      "repeat": "once-per-run",
+      "scope": "run",
+      "deadline": {
+        "afterNight": 7,
+        "evaluationPhase": "aftermath-before-day-advance"
+      },
+      "priority": 25
+    }
+  ]
+}

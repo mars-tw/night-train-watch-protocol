@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CARRIAGES, DECORATION_SLOTS, EVENTS, MODULES, ROUTE_EVENT_POOLS, THREATS } from "../src/game/content";
+import { CARRIAGES, DECORATION_SLOTS, EVENTS, MODULES, ROUTE_EVENT_POOLS, ROUTE_NODES, THREATS } from "../src/game/content";
 import { createRun } from "../src/game/model";
 import { createRng } from "../src/game/rng";
 import { RunService } from "../src/game/services";
@@ -36,12 +36,77 @@ describe("authoritative run service", () => {
     expect(run.ledger.at(-1)).toMatchObject({ key: "energy", before: 75, delta: -8, after: 67 });
   });
 
+  it("prevents rapid route and next-day actions from charging or advancing twice", () => {
+    const run = createRun("idempotent-actions");
+    const service = new RunService();
+    const fuelBefore = run.resources.fuel;
+
+    service.chooseRoute(run, "RN01");
+    service.chooseRoute(run, "RN01");
+    expect(run.resources.fuel).toBe(fuelBefore - ROUTE_NODES.find((node) => node.id === "RN01")!.fuelCost);
+    expect(run.ledger.filter((entry) => entry.source === "route.RN01")).toHaveLength(1);
+
+    run.phase = "aftermath";
+    run.activeEventId = undefined;
+    service.continueAftermath(run);
+    service.continueAftermath(run);
+    expect(run.day).toBe(2);
+  });
+
+  it("enforces event-level technology, evidence, and ending requirements", () => {
+    const run = createRun("event-requirements");
+    const service = new RunService();
+
+    run.day = 6;
+    run.phase = "travel";
+    run.activeEventId = "EV047";
+    const clauseEvent = service.getEvent(run)!;
+    expect(service.resolveEvent(run, clauseEvent.choices[0]!)).toBe(false);
+
+    run.activeEventId = "EV048";
+    const authorEvent = service.getEvent(run)!;
+    expect(service.resolveEvent(run, authorEvent.choices[0]!)).toBe(false);
+
+    run.day = 7;
+    run.activeEventId = "EV052";
+    const epilogueEvent = service.getEvent(run)!;
+    expect(service.resolveEvent(run, epilogueEvent.choices[0]!)).toBe(false);
+  });
+
+  it("queues Day 5 aftermath evidence until after the night contact", () => {
+    const run = createRun("day5-aftermath-order");
+    const service = new RunService();
+    run.day = 5;
+    run.story.flags.day4Route = "DETOUR";
+    run.story.cargoConversion = "battery-array";
+
+    service.chooseRoute(run, "RN01");
+    const rosterEvent = service.getEvent(run)!;
+    expect(rosterEvent.id).toBe("EV045");
+    expect(service.resolveEvent(run, rosterEvent.choices[0]!)).toBe(true);
+    expect(run.phase).toBe("night");
+    expect(run.activeEventId).toBeUndefined();
+    expect(run.story.queue.map((entry) => entry.eventId)).toContain("EV046");
+
+    const threat = service.getThreat(run.activeContact)!;
+    const counter = threat.id === "T003" ? "emergency-boost" : "close-shutter";
+    expect(service.counterThreat(run, counter)).toBe(true);
+    // Fast line adds a second contact after the teaching nights; dawn evidence
+    // must still wait until every contact has been resolved.
+    expect(run.phase).toBe("night");
+    expect(run.activeEventId).toBeUndefined();
+    const finalThreat = service.getThreat(run.activeContact)!;
+    expect(service.counterThreat(run, finalThreat.id === "T003" ? "emergency-boost" : "close-shutter")).toBe(true);
+    expect(run.phase).toBe("travel");
+    expect(run.activeEventId).toBe("EV046");
+  });
+
   it("moves from route to event to a threat contact", () => {
     const run = createRun("fixed");
     const service = new RunService();
     service.chooseRoute(run, "RN02");
     expect(run.phase).toBe("travel");
-    expect(run.activeEventId).toBe("EV004");
+    expect(run.activeEventId).toBe("EV041");
     const event = service.getEvent(run);
     expect(event).toBeDefined();
     expect(service.resolveEvent(run, event!.choices[1]!)).toBe(true);
@@ -60,7 +125,7 @@ describe("authoritative run service", () => {
     expect(run.modules.some((module) => module.definitionId === target.id)).toBe(true);
   });
 
-  it("runs the visible two-night sow, water, grow, and harvest loop", () => {
+  it("grows fast lettuce after one powered and watered night, then harvests once", () => {
     const run = createRun("crop-loop");
     const service = new RunService();
     const before = { ap: run.actionPoints, food: run.resources.food, water: run.resources.water };
@@ -72,16 +137,16 @@ describe("authoritative run service", () => {
 
     run.phase = "aftermath";
     service.continueAftermath(run);
-    expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 2 });
-    expect(service.waterCrops(run)).toBe(true);
-    run.phase = "aftermath";
-    service.continueAftermath(run);
     expect(run.crops[0]).toMatchObject({ cropId: "lettuce", stage: 3 });
+    expect(service.waterCrops(run)).toBe(false);
 
     expect(service.harvestCrop(run, "plot-a")).toBe(true);
     expect(run.resources.food).toBe(before.food + 2);
     expect(run.crops[0]).toMatchObject({ stage: 0, dryDays: 0 });
     expect(run.crops[0]?.cropId).toBeUndefined();
+    const afterHarvest = { food: run.resources.food, ap: run.actionPoints };
+    expect(service.harvestCrop(run, "plot-a")).toBe(false);
+    expect({ food: run.resources.food, ap: run.actionPoints }).toEqual(afterHarvest);
   });
 
   it("allows prep sowing when the rack is scheduled after a previously shed night", () => {
@@ -251,6 +316,61 @@ describe("authoritative run service", () => {
     expect(run.lastMessage).toContain("未供電");
   });
 
+  it("lets no-countdown runs accept a standard-threat breach when every proper counter is unavailable", () => {
+    const run = createRun("brace-impact-fallback");
+    const service = new RunService();
+    run.day = 7;
+    run.phase = "night";
+    run.resources.energy = 0;
+    run.resources.fuel = 0;
+    run.environment.hull = 100;
+    run.story.finaleStage = "contact";
+    run.story.finaleHealthBuffer = 0;
+    run.activeContact = {
+      id: "brace-impact-wave-2",
+      definitionId: "T003",
+      stage: "approach",
+      secondsLeft: 7,
+      wave: 2,
+      totalWaves: 3,
+    };
+    const sleepBefore = run.survivor.sleep;
+    const stressBefore = run.survivor.stress;
+
+    expect(service.counterThreat(run, "brace-impact")).toBe(true);
+    expect(run.environment.hull).toBe(70);
+    expect(run.survivor.sleep).toBe(sleepBefore - 18);
+    expect(run.survivor.stress).toBe(stressBefore + 12);
+    expect(run.resources.energy).toBe(0);
+    expect(run.resources.fuel).toBe(0);
+    expect(run.activeContact).toMatchObject({ wave: 3, totalWaves: 3, stage: "approach" });
+    expect(run.lastMessage).toContain("列車帶傷繼續前進");
+  });
+
+  it("ends a brace-impact run before it can advance after lethal hull damage", () => {
+    const run = createRun("brace-impact-terminal");
+    const service = new RunService();
+    run.day = 7;
+    run.phase = "night";
+    run.environment.hull = 20;
+    run.story.finaleStage = "contact";
+    run.activeContact = {
+      id: "brace-impact-lethal",
+      definitionId: "T003",
+      stage: "approach",
+      secondsLeft: 7,
+      wave: 2,
+      totalWaves: 3,
+    };
+
+    expect(service.counterThreat(run, "brace-impact")).toBe(true);
+    expect(run.environment.hull).toBe(0);
+    expect(run.ended).toBe(true);
+    expect(run.phase).toBe("ending");
+    expect(run.outcome).toBe("hull-lost");
+    expect(run.activeContact).toBeUndefined();
+  });
+
   it("preserves breach sleep damage in the dawn calculation", () => {
     const run = createRun("fixed");
     const service = new RunService();
@@ -289,7 +409,16 @@ describe("authoritative run service", () => {
   });
 
   it("uses the GDD threat identifiers for the playable contacts", () => {
-    expect(THREATS.map((threat) => threat.id)).toEqual(["T002", "T003"]);
+    expect(THREATS.map((threat) => threat.id)).toEqual([
+      "T002",
+      "T003",
+      "T004",
+      "T005",
+      "T006",
+      "T008",
+      "T009",
+      "T013",
+    ]);
   });
 
   it("ships the twelve-module GDD catalogue", () => {
@@ -301,29 +430,69 @@ describe("authoritative run service", () => {
     expect(reachable).toEqual(new Set(EVENTS.map((event) => event.id)));
   });
 
-  it("rotates both threats and completes the full seven-night route", () => {
+  it("plays the full seven-night story through the Day 4 detour and reroute ending", () => {
     const run = createRun("seven-night-release");
     const service = new RunService();
     const contacts = new Set<string>();
-    run.resources.fuel = 60;
+    const storyChoices: Record<string, string> = {
+      EV041: "full",
+      EV042: "keep",
+      EV043: "compare",
+      EV044: "DETOUR",
+      EV045: "verify",
+      EV046: "scan",
+      EV047: "read",
+      EV048: "tell",
+      EV049: "answer",
+      EV050: "inspect",
+      EV051: "reroute",
+      EV052: "truth",
+    };
+    const counters: Record<string, string> = {
+      T002: "close-shutter",
+      T003: "emergency-boost",
+    };
+    run.resources.fuel = 200;
+    run.resources.energy = 100;
+    run.resources.parts = 20;
+    run.resources.food = 30;
+    run.resources.water = 30;
     service.toggleModule(run, "M002");
     service.toggleModule(run, "M003");
 
     while (!run.ended) {
-      service.chooseRoute(run, "RN01");
-      const event = service.getEvent(run);
-      if (!event) throw new Error("Expected a route event");
-      const safeChoice = event.choices.find((choice) => Object.values(choice.deltas).every((delta) => (delta ?? 0) >= 0)) ?? event.choices.at(-1)!;
-      expect(service.resolveEvent(run, safeChoice)).toBe(true);
-      const contactId = run.activeContact!.definitionId;
-      contacts.add(contactId);
-      const counter = contactId === "T003" ? "emergency-boost" : "close-shutter";
-      expect(service.counterThreat(run, counter)).toBe(true);
-      service.continueAftermath(run);
+      if (run.phase === "prep") service.chooseRoute(run, "RN01");
+      while (run.phase === "travel" && run.activeEventId) {
+        const event = service.getEvent(run);
+        if (!event) throw new Error(`Expected story event ${run.activeEventId}`);
+        const choiceId = storyChoices[event.id];
+        const choice = event.choices.find((candidate) => candidate.id === choiceId) ?? event.choices[0]!;
+        expect(service.resolveEvent(run, choice)).toBe(true);
+      }
+      while (run.phase === "night" && run.activeContact) {
+        const contact = run.activeContact;
+        const contactId = contact.definitionId;
+        contacts.add(contactId);
+        if (contact.interaction?.kind === "T004") {
+          expect(service.interactThreat(run, `cutter:${contact.interaction.targetPlotId}`).resolved).toBe(true);
+        } else if (contact.interaction?.kind === "T005") {
+          expect(service.interactThreat(run, `signal:${contact.interaction.targetSignalId}`).resolved).toBe(true);
+        } else if (contact.interaction?.kind === "T006") {
+          const command = contact.interaction.mode === "leaf" ? "trace:leaves" : "trace:meter";
+          expect(service.interactThreat(run, command).resolved).toBe(true);
+        } else {
+          expect(service.counterThreat(run, counters[contactId]!)).toBe(true);
+        }
+      }
+      if (run.phase === "aftermath") service.continueAftermath(run);
     }
 
     expect(run.day).toBe(7);
     expect(run.phase).toBe("ending");
-    expect(contacts).toEqual(new Set(["T002", "T003"]));
+    expect(contacts).toEqual(new Set(["T002", "T003", "T004"]));
+    expect(run.story.flags.day4Route).toBe("DETOUR");
+    expect(run.story.flags.trueRouteData).toBe(true);
+    expect(run.story.completedContactWaves).toBe(3);
+    expect(run.story.endingId).toBe("reroute");
   });
 });

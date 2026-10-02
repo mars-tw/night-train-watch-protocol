@@ -4,7 +4,7 @@
   /* Logical canvas: authored at 360×640, allowed to breathe to 390×844. */
   --viewport-design-width: 360px;
   --viewport-design-height: 640px;
-  --viewport-max-width: 390px;
+  --viewport-max-width: 430px;
   --viewport-tall-height: 844px;
 
   --grid: 8px;
@@ -45,6 +45,19 @@
   --color-safe-soft: rgba(126, 165, 122, 0.2);
   --color-danger-soft: rgba(194, 96, 78, 0.2);
   --color-scarce-soft: rgba(231, 201, 112, 0.18);
+
+  /* Reboot v2: the carriage is a lived-in shelter, the window stays cold. */
+  --wood-oak: #a9774f;
+  --wood-shadow: #4f3528;
+  --blanket-cream: #d6c4a3;
+  --lamp-amber: #f2bd67;
+  --window-fog: #7d9297;
+  --window-cold: #63716d;
+  --rail-iron: #11181b;
+  --paper-warm: #e8dbc1;
+  --ink-warm: #2b211a;
+  --warning-coral: #c46a52;
+  --scene-min-height: 60svh;
 
   --font-display: "Noto Serif TC", "Source Han Serif TC", "PMingLiU", serif;
   --font-body: "Noto Sans TC", "Source Han Sans TC", "Microsoft JhengHei", system-ui, sans-serif;

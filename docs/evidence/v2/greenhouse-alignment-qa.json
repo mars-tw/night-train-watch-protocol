@@ -1,0 +1,118 @@
+{
+  "status": "passed",
+  "generatedAt": "2026-10-02T11:00:49.676Z",
+  "baseUrl": "http://127.0.0.1:4177",
+  "metadata": {
+    "fixtureInjection": false,
+    "source": "fresh R01 browser context; two lettuce plots matured through one real night",
+    "geometryAuthority": "CARRIAGE_SCENES.greenhouse.hotspots"
+  },
+  "viewports": [
+    {
+      "width": 360,
+      "height": 640,
+      "buttons": [
+        {
+          "hotspot": "greenhouse-a",
+          "x": 20.5,
+          "y": 36.5,
+          "width": 134.2,
+          "height": 57.5,
+          "left": 11.4375,
+          "right": 145.59375,
+          "top": 274.1484375,
+          "bottom": 331.6640625,
+          "centerClear": true,
+          "imageVisible": true
+        },
+        {
+          "hotspot": "greenhouse-b",
+          "x": 22,
+          "y": 54,
+          "width": 144.5,
+          "height": 69.8,
+          "left": 11.4375,
+          "right": 155.90625,
+          "top": 339.4375,
+          "bottom": 409.1875,
+          "centerClear": true,
+          "imageVisible": true
+        }
+      ],
+      "overlapArea": 0,
+      "horizontalOverflow": 0,
+      "screenshot": "greenhouse-alignment-360x640.png"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "buttons": [
+        {
+          "hotspot": "greenhouse-a",
+          "x": 20.5,
+          "y": 36.5,
+          "width": 145.9,
+          "height": 85.3,
+          "left": 11.7265625,
+          "right": 157.5859375,
+          "top": 353.578125,
+          "bottom": 438.828125,
+          "centerClear": true,
+          "imageVisible": true
+        },
+        {
+          "hotspot": "greenhouse-b",
+          "x": 22,
+          "y": 54,
+          "width": 157.1,
+          "height": 101.9,
+          "left": 11.7265625,
+          "right": 168.8046875,
+          "top": 442.21875,
+          "bottom": 544.09375,
+          "centerClear": true,
+          "imageVisible": true
+        }
+      ],
+      "overlapArea": 0,
+      "horizontalOverflow": 0,
+      "screenshot": "greenhouse-alignment-390x844.png"
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "buttons": [
+        {
+          "hotspot": "greenhouse-a",
+          "x": 20.5,
+          "y": 36.5,
+          "width": 161.5,
+          "height": 102,
+          "left": 12.1328125,
+          "right": 173.5859375,
+          "top": 377.34375,
+          "bottom": 479.3125,
+          "centerClear": true,
+          "imageVisible": true
+        },
+        {
+          "hotspot": "greenhouse-b",
+          "x": 22,
+          "y": 54,
+          "width": 173.9,
+          "height": 121.2,
+          "left": 12.140625,
+          "right": 186.015625,
+          "top": 480.0546875,
+          "bottom": 601.2890625,
+          "centerClear": true,
+          "imageVisible": true
+        }
+      ],
+      "overlapArea": 0,
+      "horizontalOverflow": 0,
+      "screenshot": "greenhouse-alignment-430x932.png"
+    }
+  ],
+  "failures": []
+}
