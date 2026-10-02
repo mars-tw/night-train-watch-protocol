@@ -1,13 +1,114 @@
 /* Night Train Reboot v2 — warm shelter, cold window, railway field journal. */
 
+/* Painted instrument atlas. The text sits under the painted cell, so a failed
+   image request still leaves a compact readable label. */
+.ui-icon {
+  --icon-col: 0;
+  --icon-row: 0;
+  position: relative;
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 8px;
+  background-color: rgba(226, 190, 128, 0.12);
+  color: var(--paper-warm);
+  font: 800 7px/1 var(--font-data);
+  text-align: center;
+}
+.ui-icon::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("/assets/art/v21/ui/icon-atlas.webp");
+  background-position: calc(var(--icon-col) * 33.3333%) calc(var(--icon-row) * 14.2857%);
+  background-size: 400% 800%;
+  background-repeat: no-repeat;
+  content: "";
+}
+.ui-icon > span { max-width: 30px; }
+.raster-icons-ready .ui-icon > span { visibility: hidden; }
+.ui-icon-fallback { display: inline-grid; min-width: 28px; min-height: 28px; place-items: center; font-size: 9px; }
+.ui-icon--play { --icon-col: 0; --icon-row: 0; }
+.ui-icon--build { --icon-col: 1; --icon-row: 0; }
+.ui-icon--hub { --icon-col: 2; --icon-row: 0; }
+.ui-icon--settings { --icon-col: 3; --icon-row: 0; }
+.ui-icon--power { --icon-col: 0; --icon-row: 1; }
+.ui-icon--fuel { --icon-col: 1; --icon-row: 1; }
+.ui-icon--temperature { --icon-col: 2; --icon-row: 1; }
+.ui-icon--noise { --icon-col: 3; --icon-row: 1; }
+.ui-icon--hull { --icon-col: 0; --icon-row: 2; }
+.ui-icon--meal { --icon-col: 1; --icon-row: 2; }
+.ui-icon--route { --icon-col: 2; --icon-row: 2; }
+.ui-icon--back { --icon-col: 3; --icon-row: 2; }
+.ui-icon--pause { --icon-col: 0; --icon-row: 3; }
+.ui-icon--scan { --icon-col: 1; --icon-row: 3; }
+.ui-icon--danger { --icon-col: 2; --icon-row: 3; }
+.ui-icon--tech { --icon-col: 3; --icon-row: 3; }
+.ui-icon--shield { --icon-col: 0; --icon-row: 4; }
+.ui-icon--shock { --icon-col: 1; --icon-row: 4; }
+.ui-icon--boost { --icon-col: 2; --icon-row: 4; }
+.ui-icon--sleep { --icon-col: 3; --icon-row: 4; }
+.ui-icon--defense { --icon-col: 0; --icon-row: 5; }
+.ui-icon--workshop { --icon-col: 1; --icon-row: 5; }
+.ui-icon--greenhouse { --icon-col: 2; --icon-row: 5; }
+.ui-icon--kitchen { --icon-col: 3; --icon-row: 5; }
+.ui-icon--water { --icon-col: 0; --icon-row: 6; }
+.ui-icon--medicine { --icon-col: 1; --icon-row: 6; }
+.ui-icon--repair { --icon-col: 2; --icon-row: 6; }
+.ui-icon--comfort { --icon-col: 3; --icon-row: 6; }
+.ui-icon--seed { --icon-col: 0; --icon-row: 7; }
+.ui-icon--harvest { --icon-col: 1; --icon-row: 7; }
+.ui-icon--quest { --icon-col: 2; --icon-row: 7; }
+.ui-icon--journal { --icon-col: 3; --icon-row: 7; }
+
+.map-art {
+  position: absolute;
+  z-index: 0;
+  inset: 6px;
+  overflow: hidden;
+  border-radius: 14px;
+  background-color: #b89466;
+  background-image: url("/assets/art/v21/ui/maps.webp");
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  box-shadow: inset 0 0 0 1px rgba(79, 53, 40, 0.3);
+}
+.map-art--route { background-position: left center; }
+.map-art--tech { background-position: right center; }
+.map-art > span {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  color: rgba(62, 43, 31, 0.82);
+  font: 800 9px/1 var(--font-data);
+  letter-spacing: 0.12em;
+}
+.route-map,
+.tech-tree {
+  overflow: hidden;
+  border-width: 1px;
+  background: rgba(32, 27, 23, 0.64);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+.route-node,
+.tech-node { z-index: 2; min-width: 48px; min-height: 48px; }
+.route-legend { z-index: 2; background: rgba(27, 22, 18, 0.74); border-radius: 8px; padding: 4px 7px; }
+.action-button__icon .ui-icon { width: 42px; height: 42px; }
+.icon-button .ui-icon { width: 32px; height: 32px; }
+.resource-bar .ui-icon { width: 22px; height: 22px; border-radius: 5px; }
+.screen--carriage .scene-hotspots button { grid-template-columns: 30px minmax(0, 1fr); }
+.screen--carriage .scene-hotspots button b .ui-icon { width: 28px; height: 28px; border-radius: 7px; }
+
 .panel,
 .app-header,
 .bottom-nav,
 .carriage-dock {
-  border-color: color-mix(in srgb, var(--wood-oak) 46%, var(--window-fog));
+  border-color: color-mix(in srgb, var(--wood-oak) 32%, var(--window-fog));
   background:
-    linear-gradient(135deg, rgba(169, 119, 79, 0.12), transparent 38%),
-    rgba(17, 24, 27, 0.94);
+    linear-gradient(135deg, rgba(169, 119, 79, 0.1), transparent 38%),
+    rgba(17, 24, 27, 0.84);
 }
 
 .app-header {

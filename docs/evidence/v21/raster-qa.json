@@ -1,0 +1,136 @@
+{
+  "version": "2.1.0",
+  "authority": "fresh contexts, visible UI actions, real Canvas drawImage arguments; no game-state injection",
+  "status": "PASS",
+  "assertions": [
+    "360: menu contains no SVG",
+    "360: sleep contains no SVG",
+    "360: defense contains no SVG",
+    "360: workshop contains no SVG",
+    "360: greenhouse contains no SVG",
+    "360: kitchen contains no SVG",
+    "360: kitchen renders four distinct flame source cells",
+    "360: real icon atlas loads and fallback text does not bleed through",
+    "360: route uses painted raster map",
+    "390: menu contains no SVG",
+    "390: sleep contains no SVG",
+    "390: defense contains no SVG",
+    "390: workshop contains no SVG",
+    "390: greenhouse contains no SVG",
+    "390: kitchen contains no SVG",
+    "390: kitchen renders four distinct flame source cells",
+    "390: real icon atlas loads and fallback text does not bleed through",
+    "390: route uses painted raster map",
+    "430: menu contains no SVG",
+    "430: sleep contains no SVG",
+    "430: defense contains no SVG",
+    "430: workshop contains no SVG",
+    "430: greenhouse contains no SVG",
+    "430: kitchen contains no SVG",
+    "430: kitchen renders four distinct flame source cells",
+    "430: real icon atlas loads and fallback text does not bleed through",
+    "430: route uses painted raster map",
+    "1366: menu contains no SVG",
+    "1366: sleep contains no SVG",
+    "1366: defense contains no SVG",
+    "1366: workshop contains no SVG",
+    "1366: greenhouse contains no SVG",
+    "1366: kitchen contains no SVG",
+    "1366: kitchen renders four distinct flame source cells",
+    "1366: real icon atlas loads and fallback text does not bleed through",
+    "1366: route uses painted raster map",
+    "no runtime SVG request, including app icon",
+    "all raster screens have no browser runtime error"
+  ],
+  "failures": [],
+  "errors": [],
+  "svgRequests": [],
+  "screenshots": [
+    "docs/evidence/v21/screenshots/360-sleep.png",
+    "docs/evidence/v21/screenshots/360-defense.png",
+    "docs/evidence/v21/screenshots/360-workshop.png",
+    "docs/evidence/v21/screenshots/360-greenhouse.png",
+    "docs/evidence/v21/screenshots/360-kitchen.png",
+    "docs/evidence/v21/screenshots/360-route.png",
+    "docs/evidence/v21/screenshots/390-sleep.png",
+    "docs/evidence/v21/screenshots/390-defense.png",
+    "docs/evidence/v21/screenshots/390-workshop.png",
+    "docs/evidence/v21/screenshots/390-greenhouse.png",
+    "docs/evidence/v21/screenshots/390-kitchen.png",
+    "docs/evidence/v21/screenshots/390-route.png",
+    "docs/evidence/v21/screenshots/430-sleep.png",
+    "docs/evidence/v21/screenshots/430-defense.png",
+    "docs/evidence/v21/screenshots/430-workshop.png",
+    "docs/evidence/v21/screenshots/430-greenhouse.png",
+    "docs/evidence/v21/screenshots/430-kitchen.png",
+    "docs/evidence/v21/screenshots/430-route.png",
+    "docs/evidence/v21/screenshots/1366-sleep.png",
+    "docs/evidence/v21/screenshots/1366-defense.png",
+    "docs/evidence/v21/screenshots/1366-workshop.png",
+    "docs/evidence/v21/screenshots/1366-greenhouse.png",
+    "docs/evidence/v21/screenshots/1366-kitchen.png",
+    "docs/evidence/v21/screenshots/1366-route.png"
+  ],
+  "observedEffectFrames": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "unique": [
+        "256,256,128,128",
+        "384,256,128,128",
+        "0,256,128,128",
+        "128,256,128,128"
+      ],
+      "iconReady": true,
+      "iconBackground": "url(\"http://127.0.0.1:4177/assets/art/v21/ui/icon-atlas.webp\")",
+      "fallbackHidden": "hidden"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "unique": [
+        "0,256,128,128",
+        "128,256,128,128",
+        "256,256,128,128",
+        "384,256,128,128"
+      ],
+      "iconReady": true,
+      "iconBackground": "url(\"http://127.0.0.1:4177/assets/art/v21/ui/icon-atlas.webp\")",
+      "fallbackHidden": "hidden"
+    },
+    {
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "unique": [
+        "0,256,128,128",
+        "128,256,128,128",
+        "256,256,128,128",
+        "384,256,128,128"
+      ],
+      "iconReady": true,
+      "iconBackground": "url(\"http://127.0.0.1:4177/assets/art/v21/ui/icon-atlas.webp\")",
+      "fallbackHidden": "hidden"
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "unique": [
+        "128,256,128,128",
+        "256,256,128,128",
+        "384,256,128,128",
+        "0,256,128,128"
+      ],
+      "iconReady": true,
+      "iconBackground": "url(\"http://127.0.0.1:4177/assets/art/v21/ui/icon-atlas.webp\")",
+      "fallbackHidden": "hidden"
+    }
+  ]
+}

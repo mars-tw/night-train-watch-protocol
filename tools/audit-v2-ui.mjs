@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { chromium } from "playwright";
 
 const baseUrl = process.env.GAME_URL ?? "http://127.0.0.1:4177";
-const evidenceRoot = resolve("docs/evidence/v2");
+const evidenceRoot = resolve(process.env.EVIDENCE_DIR ?? "docs/evidence/v2");
 const screenshotRoot = resolve(evidenceRoot, "screenshots");
 const reportPath = resolve(evidenceRoot, "ui-qa.json");
 await mkdir(screenshotRoot, { recursive: true });

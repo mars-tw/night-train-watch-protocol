@@ -8,7 +8,9 @@ import { BoundedLoadQueue } from "../src/game/scene-loader";
 import {
   A07_ATLAS,
   CARRIAGE_SCENES,
+  EFFECT_ATLAS,
   EQUIPMENT_ATLAS,
+  PROP_ATLAS,
   THREAT_ATLASES,
   sceneAssetPriority,
 } from "../src/game/scene-manifest";
@@ -258,7 +260,9 @@ describe("v2 lossless runtime loading", () => {
     expect(greenhouse[0]).toBe("v2-carriage-greenhouse");
     expect(greenhouse).toEqual([
       "v2-carriage-greenhouse",
+      "prop-atlas",
       "equipment-atlas",
+      "effect-atlas",
       "v2-carriage-workshop",
       "v2-carriage-kitchen",
       "a07-atlas",
@@ -275,6 +279,23 @@ describe("v2 lossless runtime loading", () => {
       "v2-threat-clinger",
     ]);
     expect(contact.filter((key) => key.startsWith("v2-threat-"))).toHaveLength(2);
+  });
+
+  it("maps the v21 prop and natural-effect atlases in authored frame order", () => {
+    expect(PROP_ATLAS.source).toBe("./assets/art/v21/props/atlas.webp");
+    expect(Object.values(PROP_ATLAS.frames)).toEqual(Array.from({ length: 16 }, (_, index) => index));
+    expect(EFFECT_ATLAS.source).toBe("./assets/art/v21/effects/atlas.webp");
+    expect(EFFECT_ATLAS.frames).toMatchObject({
+      rain: 0,
+      frost: 1,
+      mist: 2,
+      spores: 3,
+      steam: { start: 4, frames: 4 },
+      flame: { start: 8, frames: 4 },
+      leaf: { start: 12, frames: 4 },
+    });
+    expect(renderer).toContain('imageSmoothingQuality = "high"');
+    expect(renderer).not.toContain("drawGreenBranchEquipmentFallback");
   });
 
   it("deduplicates work, holds concurrency at two, and bounds same-key retries at three", async () => {

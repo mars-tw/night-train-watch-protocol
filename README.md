@@ -1,16 +1,18 @@
-# 夜行列車：守夜協定 v2.0.1
+# 夜行列車：守夜協定 v2.1.0
 
 你是列車的守護系統。白天照顧乘客 A-07、修理設備、種植與停站探索；夜裡觀察窗外的線索，選擇反制與資源取捨，讓這個移動的小家繼續前進。
 
-[直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/) · [完整企劃](docs/reboot-v2/GAME_DESIGN.md) · [美術與來源](docs/reboot-v2/ASSET_RUNTIME_V2.md)
+[直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/) · [完整企劃](docs/reboot-v2/GAME_DESIGN.md) · [圖片動畫與來源](docs/reboot-v21/ASSET_RUNTIME_V21.md)
 
 固定 9:16，手機瀏覽器與桌機皆可操作，支援離線保存。每一條故事線是一段完整七夜旅程，可逐夜保存、失敗重試。
 
-![v2 臥室實際離線畫面](docs/evidence/v2/screenshots/release-390-offline.png)
+![v2.1 圖片動畫實際畫面](docs/evidence/v21/screenshots/390-sleep.png)
 
 ## 這次更新
 
-- **五廂新美術**：暖木作、厚毛毯、冷灰窗景；臥室、防禦物資、工坊情報、溫室、廚房各有自己的生活空間。A-07 只在唯一主床，舊床位劇情轉成收折支架與編號證物。
+- **五廂畫質重製**：從原始手繪圖片重新輸出，移除粗重顆粒與量化；暖木作、毛毯、金屬、食物與冷窗保留細節，夜景也降低黑色遮罩。A-07 只在唯一主床。
+- **圖片介面與物件**：32 格手繪儀表圖示、16 個道具、紙本路線／科技圖和 PNG app icon。主要場景熱區、工具、車廂列與地圖使用圖片，實際瀏覽器驗證沒有 SVG 元素或請求。
+- **環境逐幀動畫**：蒸氣、燈火、葉片各四個不同畫格；雨霧與霜限於車窗，減少動態及暫停設定仍有效。新九張圖片由 Blender 5.2 實際處理，合計 1.679 MiB。
 - **真正姿勢圖集**：A-07 52 格、五個威脅家族各 20 格、設備 50 格。12 張生成來源由 Blender 5.2 實際處理，圖層與狀態由 runtime 使用；照片與廣告介面不進遊戲。
 - **56 項任務**：21 主線、5 教學、10 關係、8 設施、6 探索、6 挑戰。支援兩項釘選、期限、保底前情、互斥改裝與單次領獎；觀看、取消、快速連點與重載不刷獎勵。
 - **照顧與生產**：整備有 3–5 AP。播種、收成、回收、熱食、安撫、修理與用藥有實際成本；萵苣 1 夜、番茄 3 夜、香草 2 夜，皆需供電與灌溉。
@@ -20,7 +22,7 @@
 - **守夜與補救**：觀察、判斷、工具與處置。攀附者可用燃料加速或消耗一個零件切離扣具；缺少作者證據仍可明示保留疑問，繼續主線。
 - **手機操作**：先看車廂、再叫工具；成本預覽可取消，面板可關，拖曳有點選替代。文字 100／120／140%、減少動態、無倒數、慢速與靜音皆保留。
 - **存檔與更新**：schema 1–5 匯入 schema 6，舊 key 與備份保留。run、Profile、任務及領獎憑據一起保存，損壞時恢復備份；PWA 以 build manifest 安裝整份資產，避免半套更新。
-- **首次載入優化**：美術改用無損 WebP，按目前車廂載入；首選單必要美術 1.83 MiB。離線快取只收遊戲需要的 33 個檔案，合計 13.85 MiB，較 v2.0.0 減少 74.65%。原始 PNG 與製作紀錄仍保留供開源使用。
+- **圖片載入**：按目前車廂載入，離線快取只收目前需要的 38 個檔案，合計 13.60 MiB。新圖片採 quality 92 WebP，透明 alpha 完整保留於編碼；原始 PNG、處理檔與製作紀錄仍保留供開源使用。
 
 ## 三條七夜故事
 
@@ -60,6 +62,7 @@ npm run preview -- --port 4312
 npm run audit:v2
 npm run audit:journeys
 npm run audit:release
+npm run audit:raster
 npm run simulate:balance
 ```
 
@@ -67,6 +70,11 @@ npm run simulate:balance
 
 ## 驗證證據
 
+- [v2.1 圖片、真畫格與零 SVG 驗收](docs/evidence/v21/raster-qa.json)
+- [v2.1 手機操作與 15 組視口／字級矩陣](docs/evidence/v21/ui-qa.json)
+- [v2.1 正式版離線與效能](docs/evidence/v21/release-qa.json)
+- [v2.1 素材來源、Blender 與 SHA](public/assets/art/v21/pipeline-report.json)
+- [v2.1 更新驗收](docs/CODEX_RESPONSE_V21.md)
 - [手機操作與 15 組視口／字級矩陣](docs/evidence/v2/ui-qa.json)
 - [完整七夜 UI 流程](docs/evidence/v2/journey-qa.json)
 - [正式版、離線與效能](docs/evidence/v2/release-qa.json)
@@ -87,6 +95,7 @@ TypeScript＋Vite，DOM／CSS 負責可及性與控制，Canvas 負責 720×1280
 - 程式碼與文件：GNU AGPL-3.0-or-later。
 - `public/assets/art/` 圖像：CC BY 4.0，署名「夜行列車：守夜協定 contributors」。
 - 新圖來源與處理：[ASSET_PROMPTS_V2.json](docs/reboot-v2/ASSET_PROMPTS_V2.json)、[ASSET_RUNTIME_V2.md](docs/reboot-v2/ASSET_RUNTIME_V2.md)。
+- v2.1 圖片提示與處理：[IMAGE_PROMPTS.json](docs/reboot-v21/IMAGE_PROMPTS.json)、[ASSET_RUNTIME_V21.md](docs/reboot-v21/ASSET_RUNTIME_V21.md)。
 - 使用者廣告照片、原始私人 GDD／ZIP 不包含在公開專案。
 
 參與開發請閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

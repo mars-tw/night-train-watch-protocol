@@ -16,9 +16,11 @@ async function collect(dir) {
 // Precache the shipping runtime, not historical screenshots/source PNGs.
 const files = (await collect(root)).filter(file =>
   ["index.html", "manifest.webmanifest"].includes(file)
-  || file.startsWith("icons/")
+  || /^icons\/.*\.png$/.test(file)
   || /^assets\/[^/]+\.(js|css)$/.test(file)
-  || /^assets\/art\/v2\/(carriages|characters|equipment|threats)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v2\/(characters|equipment|threats)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v21\/(carriages|ui|props|effects)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v21\/ui\/app-icon-(192|512)\.png$/.test(file)
   || /^assets\/art\/(crops|decor)\/.*\.png$/.test(file),
 ).sort();
 const digest = createHash("sha256");

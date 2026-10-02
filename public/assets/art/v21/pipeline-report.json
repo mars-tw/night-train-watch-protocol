@@ -1,0 +1,1919 @@
+{
+  "schemaVersion": 1,
+  "pipeline": "v21-blender-image-plane-material-orthographic-render",
+  "blenderVersion": "5.2.0 LTS",
+  "renderEngine": "BLENDER_EEVEE",
+  "sourceTool": "OpenAI built-in image generation tool (four new sheets); existing v2 source PNGs (five carriage plates)",
+  "sourceModelIdentifier": null,
+  "backgroundRemoval": "no colour-key masking; alpha <= 2/255 cleared; icons composited onto opaque warm tiles",
+  "sampling": "linear image texture; Standard view transform; no quantization, nearest sampling, dithering, or colour grading",
+  "webpQuality": 92,
+  "runtimeLimitBytes": 3145728,
+  "runtimeBytes": 1760324,
+  "runtimeMiB": 1.679,
+  "runtimeLimitPass": true,
+  "assetCount": 9,
+  "assets": [
+    {
+      "assetId": "v21.carriage.sleep",
+      "source": "../v2/source/carriage-sleep-source.png",
+      "sourceSha256": "4dff5c6f37d547256c37caeb4e8105d7f2e21a1b519c1b07ff2eba04d17b70a2",
+      "processedPng": "processed/carriages/sleep.png",
+      "processedPngSha256": "84b82200facfaa5eaa0bfc4081c15c25fdfd14aa7ff03f8695b2280bfaca06af",
+      "runtime": "carriages/sleep.webp",
+      "runtimeSha256": "c18344a3328e3386fb6596731be184763617658486dc4cd00cc424b32eee6dee",
+      "sourceDimensions": [
+        941,
+        1672
+      ],
+      "runtimeDimensions": [
+        720,
+        1280
+      ],
+      "grid": [
+        1,
+        1
+      ],
+      "sourceCellAspect": 0.56279904,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 1,
+      "frameOrder": [
+        "sleep"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1573352,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 4010,
+        "opaquePixels": 917590,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.537255,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1573352,
+        "meanLinearLuminance": 0.262626,
+        "meanRgbSaturation": 0.563055
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 921600,
+        "meanLinearLuminance": 0.264831,
+        "meanRgbSaturation": 0.562964
+      },
+      "meanLuminanceRatio": 1.008396,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00769606,
+        "visibleRgbMaxAbsoluteError": 0.17647059,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 4010,
+          "opaquePixels": 917590,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.537255,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 1669139,
+      "runtimeBytes": 223132,
+      "cells": [
+        {
+          "index": 0,
+          "name": "sleep",
+          "cell": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "visiblePixels": 921600,
+          "opaquePixels": 917590,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "489bf92c2edd67ac718c717243a90f7b41798edc6951cc4ae6c4d4b8518ec8ee"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.carriage.defense",
+      "source": "../v2/source/carriage-defense-source.png",
+      "sourceSha256": "c7dabeef38c08b89819a1c4e5dce6379055f812deae194db075529ed9b65e148",
+      "processedPng": "processed/carriages/defense.png",
+      "processedPngSha256": "9a05ed316974fb01758cae8145aff97c318ecaf76f3da29d416d8fd7010ddff2",
+      "runtime": "carriages/defense.webp",
+      "runtimeSha256": "97b08011442eec75921612fa64bc8228cf0bf6a8ee6e242659630046e1da1523",
+      "sourceDimensions": [
+        941,
+        1672
+      ],
+      "runtimeDimensions": [
+        720,
+        1280
+      ],
+      "grid": [
+        1,
+        1
+      ],
+      "sourceCellAspect": 0.56279904,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 1,
+      "frameOrder": [
+        "defense"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1573352,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 4010,
+        "opaquePixels": 917590,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.537255,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1573352,
+        "meanLinearLuminance": 0.258673,
+        "meanRgbSaturation": 0.512913
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 921600,
+        "meanLinearLuminance": 0.26185,
+        "meanRgbSaturation": 0.510293
+      },
+      "meanLuminanceRatio": 1.012282,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00802914,
+        "visibleRgbMaxAbsoluteError": 0.24705885,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 4010,
+          "opaquePixels": 917590,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.537255,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 1686354,
+      "runtimeBytes": 220252,
+      "cells": [
+        {
+          "index": 0,
+          "name": "defense",
+          "cell": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "visiblePixels": 921600,
+          "opaquePixels": 917590,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "c40e1002cad304eb57236f7806df1b14e06a2ac18019b95d0a3736d509b6a6c4"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.carriage.workshop",
+      "source": "../v2/source/carriage-workshop-source.png",
+      "sourceSha256": "7d2dd940f852314ee31c6d29bb2757737f32a8b7bbf94cb18fe65a5ea7bd8695",
+      "processedPng": "processed/carriages/workshop.png",
+      "processedPngSha256": "fc780348a2f38f6ba4571d79b4bfc6a29880b4f598891a83aa2aa32849f9789b",
+      "runtime": "carriages/workshop.webp",
+      "runtimeSha256": "d9f11ad7f789eb18590483c12f87ed01b25398da477279af007cf9771db2d69a",
+      "sourceDimensions": [
+        941,
+        1672
+      ],
+      "runtimeDimensions": [
+        720,
+        1280
+      ],
+      "grid": [
+        1,
+        1
+      ],
+      "sourceCellAspect": 0.56279904,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 1,
+      "frameOrder": [
+        "workshop"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1573352,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 4010,
+        "opaquePixels": 917590,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.537255,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1573352,
+        "meanLinearLuminance": 0.283624,
+        "meanRgbSaturation": 0.536409
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 921600,
+        "meanLinearLuminance": 0.288322,
+        "meanRgbSaturation": 0.529982
+      },
+      "meanLuminanceRatio": 1.016564,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00860304,
+        "visibleRgbMaxAbsoluteError": 0.21960784,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 4010,
+          "opaquePixels": 917590,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.537255,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 1810627,
+      "runtimeBytes": 264806,
+      "cells": [
+        {
+          "index": 0,
+          "name": "workshop",
+          "cell": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "visiblePixels": 921600,
+          "opaquePixels": 917590,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "605d8c95ce3da0c14c57c3b2e1b8827c3ade09fc275b00be03f7e44561fb6862"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.carriage.greenhouse",
+      "source": "../v2/source/carriage-greenhouse-source.png",
+      "sourceSha256": "3966d3a2b3b94785899b39b7e0b77c546f94adec9e8edf3231d3c88eb37dac8a",
+      "processedPng": "processed/carriages/greenhouse.png",
+      "processedPngSha256": "c2f133f7a02d0cd885b537e4bd54379bf9b72990d031ab7f889ad669bf158176",
+      "runtime": "carriages/greenhouse.webp",
+      "runtimeSha256": "bff659e0e15b272556bda94778b31a91994f00dfef9e3c62bc5ca5710a5bf94a",
+      "sourceDimensions": [
+        940,
+        1672
+      ],
+      "runtimeDimensions": [
+        720,
+        1280
+      ],
+      "grid": [
+        1,
+        1
+      ],
+      "sourceCellAspect": 0.56220096,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 1,
+      "frameOrder": [
+        "greenhouse"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1571680,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 3996,
+        "opaquePixels": 917604,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.694118,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1571680,
+        "meanLinearLuminance": 0.338975,
+        "meanRgbSaturation": 0.490313
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 921600,
+        "meanLinearLuminance": 0.342741,
+        "meanRgbSaturation": 0.486233
+      },
+      "meanLuminanceRatio": 1.01111,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00921553,
+        "visibleRgbMaxAbsoluteError": 0.24705884,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 3996,
+          "opaquePixels": 917604,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.694118,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 1887213,
+      "runtimeBytes": 292592,
+      "cells": [
+        {
+          "index": 0,
+          "name": "greenhouse",
+          "cell": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "visiblePixels": 921600,
+          "opaquePixels": 917604,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "4f2d5c5cf471c6d7d32278cf14c79bfc4df7b3e9267b136424c94055a9ca3bd5"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.carriage.kitchen",
+      "source": "../v2/source/carriage-kitchen-source.png",
+      "sourceSha256": "bbbec6b6eb87f502de1387f428b0a998539ab020b375831e51b0dc4805c9c9e9",
+      "processedPng": "processed/carriages/kitchen.png",
+      "processedPngSha256": "2ed4eeb5104aa6a48c41c20ba3ad9d44efa0bf50148adabbd8ecc069adb9bd2a",
+      "runtime": "carriages/kitchen.webp",
+      "runtimeSha256": "142063a3a6414f1a764a0ca56c69df79b3f52f3a032a4152ac234e5c6540e79c",
+      "sourceDimensions": [
+        941,
+        1672
+      ],
+      "runtimeDimensions": [
+        720,
+        1280
+      ],
+      "grid": [
+        1,
+        1
+      ],
+      "sourceCellAspect": 0.56279904,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 1,
+      "frameOrder": [
+        "kitchen"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1573352,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 4010,
+        "opaquePixels": 917590,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.537255,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1573352,
+        "meanLinearLuminance": 0.29953,
+        "meanRgbSaturation": 0.5694
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 921600,
+        "meanLinearLuminance": 0.303709,
+        "meanRgbSaturation": 0.564766
+      },
+      "meanLuminanceRatio": 1.013952,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00895681,
+        "visibleRgbMaxAbsoluteError": 0.16470587,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 4010,
+          "opaquePixels": 917590,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.537255,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 1817852,
+      "runtimeBytes": 269090,
+      "cells": [
+        {
+          "index": 0,
+          "name": "kitchen",
+          "cell": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "visiblePixels": 921600,
+          "opaquePixels": 917590,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "a05e4327bd9d86f9ddb9881a75e271cb3a1f33c7ad16bcc900cedfd4d746ce67"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.ui.icon-atlas",
+      "source": "source/v21-ui-icon-atlas-source.png",
+      "sourceSha256": "9e31553541ac3c18d0967d7da80ae79b9866e85e01aba0b18f1b385bc693c209",
+      "processedPng": "processed/ui/icon-atlas.png",
+      "processedPngSha256": "10f8c1386fc5aee47c1165de9a203a004f8590a64a785a75b3801d8d1061db8f",
+      "runtime": "ui/icon-atlas.webp",
+      "runtimeSha256": "3de67e70091990d74c3136fefda588e00b0287a2d096137c9ae85b713f11a264",
+      "sourceDimensions": [
+        1024,
+        1536
+      ],
+      "runtimeDimensions": [
+        512,
+        1024
+      ],
+      "grid": [
+        4,
+        8
+      ],
+      "sourceCellAspect": 1.48148148,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": true,
+      "tileBackground": "#3B281D",
+      "sourceCellBottomTrimFraction": 0.1,
+      "frameCount": 32,
+      "frameOrder": [
+        "icon-00",
+        "icon-01",
+        "icon-02",
+        "icon-03",
+        "icon-04",
+        "icon-05",
+        "icon-06",
+        "icon-07",
+        "icon-08",
+        "icon-09",
+        "icon-10",
+        "icon-11",
+        "icon-12",
+        "icon-13",
+        "icon-14",
+        "icon-15",
+        "icon-16",
+        "icon-17",
+        "icon-18",
+        "icon-19",
+        "icon-20",
+        "icon-21",
+        "icon-22",
+        "icon-23",
+        "icon-24",
+        "icon-25",
+        "icon-26",
+        "icon-27",
+        "icon-28",
+        "icon-29",
+        "icon-30",
+        "icon-31"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 751961,
+        "translucentPixels": 809157,
+        "opaquePixels": 11746,
+        "transparentRatio": 0.478084,
+        "alphaRange": [
+          0.0,
+          0.996078
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 1535,
+        "opaquePixels": 522753,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.988235,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 820903,
+        "meanLinearLuminance": 0.376811,
+        "meanRgbSaturation": 0.624547
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 524288,
+        "meanLinearLuminance": 0.242244,
+        "meanRgbSaturation": 0.538711
+      },
+      "meanLuminanceRatio": 0.642879,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.0069008,
+        "visibleRgbMaxAbsoluteError": 0.26666667,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 1535,
+          "opaquePixels": 522753,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            0.988235,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 720398,
+      "runtimeBytes": 91778,
+      "cells": [
+        {
+          "index": 0,
+          "name": "icon-00",
+          "cell": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "59311a337d227ba148eb67bce406fc29a36ff6842b1bb0521f974492bd0868ec"
+        },
+        {
+          "index": 1,
+          "name": "icon-01",
+          "cell": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "048491d6062f2f64d46eb44ae47b3f0e826fa57ba53b5593174ee30abeee85a8"
+        },
+        {
+          "index": 2,
+          "name": "icon-02",
+          "cell": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "d8a859278f728fd0ca15d9cc7264a53d635d4ed0c608a4c2a4a05cd0757c1279"
+        },
+        {
+          "index": 3,
+          "name": "icon-03",
+          "cell": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16129,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "654136a27e2d80b821ebdc762b5d54088ca5867f754657b5b7baac19a1567e62"
+        },
+        {
+          "index": 4,
+          "name": "icon-04",
+          "cell": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "e6dc4fe7126cb71a3fcab091dad7599a79645bc46b5f916caa8dbe3feebc02fa"
+        },
+        {
+          "index": 5,
+          "name": "icon-05",
+          "cell": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "e411f0d58bba9f89aa2e7b6847c27b397f5d5af033a4dbd62cc251e2b1938679"
+        },
+        {
+          "index": 6,
+          "name": "icon-06",
+          "cell": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "3fd483c90790232e4afe3cc336be5f7ea14585e19362ffd9135557758dd8f898"
+        },
+        {
+          "index": 7,
+          "name": "icon-07",
+          "cell": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "0fc5d8fea544cfa9b957cf45c5eae00d046430f43882a6892b5928f4a46e0db9"
+        },
+        {
+          "index": 8,
+          "name": "icon-08",
+          "cell": [
+            0,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "fcc5373ee9836f186d5b3193653066e673878ae78b221cc4919473e19169d0c2"
+        },
+        {
+          "index": 9,
+          "name": "icon-09",
+          "cell": [
+            128,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "08b37d22f9a39e6fc947429e537f9cab1953ffd6e424f783da9ff29944b80788"
+        },
+        {
+          "index": 10,
+          "name": "icon-10",
+          "cell": [
+            256,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "cab3ea1f027d85cb0e1f01888088cf82a4ddfe81994c5600b86de21b5cdb73c5"
+        },
+        {
+          "index": 11,
+          "name": "icon-11",
+          "cell": [
+            384,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "f30e68653bf78bd4a4b3efb99c8e5768fc15602f012529964034b70d7d1b6918"
+        },
+        {
+          "index": 12,
+          "name": "icon-12",
+          "cell": [
+            0,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "acbb075bd06e43b887334bcea73ad9ea53191b08f4d30e672af3f5c303e1817c"
+        },
+        {
+          "index": 13,
+          "name": "icon-13",
+          "cell": [
+            128,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "f5e384a3c768875b859a758f76a0498c452cb413b1148f588949532efc517ace"
+        },
+        {
+          "index": 14,
+          "name": "icon-14",
+          "cell": [
+            256,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "14e5c1154bd973fe7c6f603049b58313811099c5c4829ca0590371ad70586cd9"
+        },
+        {
+          "index": 15,
+          "name": "icon-15",
+          "cell": [
+            384,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "d3f9279925183327f65834d3d354271c611d24bdaa74829d6739d5942dfab16a"
+        },
+        {
+          "index": 16,
+          "name": "icon-16",
+          "cell": [
+            0,
+            512,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "f58ae890ab1470898cee38fef1337d26301bb65ceeb434d681099936ab84f74b"
+        },
+        {
+          "index": 17,
+          "name": "icon-17",
+          "cell": [
+            128,
+            512,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "a1e200383a72056f1f4e507981bd7c047ca00e992afab7a826b412bcc83bebad"
+        },
+        {
+          "index": 18,
+          "name": "icon-18",
+          "cell": [
+            256,
+            512,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "643bf7152a743305f90a5523ccabc9034a3b6b999371f37890a658c7a254e274"
+        },
+        {
+          "index": 19,
+          "name": "icon-19",
+          "cell": [
+            384,
+            512,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "b0a6e672f9ac7bb393faf246e6f7cf121f381546f71ecfeeb63cdc2bf3d3b006"
+        },
+        {
+          "index": 20,
+          "name": "icon-20",
+          "cell": [
+            0,
+            640,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "3800570625f913731ede6d6a452c4e4e617dc89ba304dfc850ee8ff7bd194de9"
+        },
+        {
+          "index": 21,
+          "name": "icon-21",
+          "cell": [
+            128,
+            640,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "a25bc987b4c19a019d57e901f77ae2c508f655204c9477bd0a719a8dba22bf37"
+        },
+        {
+          "index": 22,
+          "name": "icon-22",
+          "cell": [
+            256,
+            640,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "02d80e4f265a6cb4628973446e3cbaaebd19c024f9b66065c83a6009f3bd1c50"
+        },
+        {
+          "index": 23,
+          "name": "icon-23",
+          "cell": [
+            384,
+            640,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "0552b774ed0149641ab4ddd1c5f8a58e2db62de55fc8828c00934d2d8eeb4137"
+        },
+        {
+          "index": 24,
+          "name": "icon-24",
+          "cell": [
+            0,
+            768,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "0c29fe7d96456d38b4f55ca814e1c42a5b78c9b29868dd16cc8a00f83fb64240"
+        },
+        {
+          "index": 25,
+          "name": "icon-25",
+          "cell": [
+            128,
+            768,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "47fdbff7ce182313e9e76cfdd970979d9e6d9c686a32e84a425dadbb2af82dcd"
+        },
+        {
+          "index": 26,
+          "name": "icon-26",
+          "cell": [
+            256,
+            768,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "dd8b94310172e14f1467c65b18b0411bae00a4d745fccf9155e2396678e4b5b9"
+        },
+        {
+          "index": 27,
+          "name": "icon-27",
+          "cell": [
+            384,
+            768,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "ade46c4b77c5d06d2fb266be01029d2828af498e938290b591d328b73c2a0d43"
+        },
+        {
+          "index": 28,
+          "name": "icon-28",
+          "cell": [
+            0,
+            896,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "a054c7ad93df8e53333df75a9086828ced9137065a845965883b504b8c3115a7"
+        },
+        {
+          "index": 29,
+          "name": "icon-29",
+          "cell": [
+            128,
+            896,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "c23b6b65dbbcc69b9c5745f6fe73955a2e3f0835f7b63dc900eed926e67dacd3"
+        },
+        {
+          "index": 30,
+          "name": "icon-30",
+          "cell": [
+            256,
+            896,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16384,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "de3966f27d5ebbec824354aa03ac478a5d0191f8ad9f68cfc05d0103129a0a4a"
+        },
+        {
+          "index": 31,
+          "name": "icon-31",
+          "cell": [
+            384,
+            896,
+            128,
+            128
+          ],
+          "visiblePixels": 16384,
+          "opaquePixels": 16256,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "129dd822af404e866e5765841a6d7ff628ee06cd8ab44581953843f33fb40fab"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.props.atlas",
+      "source": "source/v21-props-atlas-source.png",
+      "sourceSha256": "73d78d1fce8d821cd6dea3a564fc030e280f32184ee3bc7dfb2ff14a7266eab4",
+      "processedPng": "processed/props/atlas.png",
+      "processedPngSha256": "1e600161d578f153399f3512fe78b084d2b33bb26e7296aa230ba16ebe1bb02c",
+      "runtime": "props/atlas.webp",
+      "runtimeSha256": "5da25cf19040ed8d4c6ff8f4021fb8df81ddc051994ce0fb51667ad2c559f933",
+      "sourceDimensions": [
+        1226,
+        1283
+      ],
+      "runtimeDimensions": [
+        512,
+        512
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "sourceCellAspect": 0.95557288,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 16,
+      "frameOrder": [
+        "prop-00",
+        "prop-01",
+        "prop-02",
+        "prop-03",
+        "prop-04",
+        "prop-05",
+        "prop-06",
+        "prop-07",
+        "prop-08",
+        "prop-09",
+        "prop-10",
+        "prop-11",
+        "prop-12",
+        "prop-13",
+        "prop-14",
+        "prop-15"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 670283,
+        "translucentPixels": 886289,
+        "opaquePixels": 16386,
+        "transparentRatio": 0.426129,
+        "alphaRange": [
+          0.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 118551,
+        "translucentPixels": 90247,
+        "opaquePixels": 53346,
+        "transparentRatio": 0.452236,
+        "alphaRange": [
+          0.0,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": 2,
+      "clearedNearTransparentPixels": 34672,
+      "sourceColor": {
+        "sampledVisiblePixels": 902675,
+        "meanLinearLuminance": 0.38071,
+        "meanRgbSaturation": 0.596084
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 143593,
+        "meanLinearLuminance": 0.398872,
+        "meanRgbSaturation": 0.591295
+      },
+      "meanLuminanceRatio": 1.047706,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.01363776,
+        "visibleRgbMaxAbsoluteError": 0.29803923,
+        "decodedAlpha": {
+          "transparentPixels": 118551,
+          "translucentPixels": 90247,
+          "opaquePixels": 53346,
+          "transparentRatio": 0.452236,
+          "alphaRange": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 493088,
+      "runtimeBytes": 148534,
+      "cells": [
+        {
+          "index": 0,
+          "name": "prop-00",
+          "cell": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 9651,
+          "opaquePixels": 3796,
+          "alphaOccupancyRatio": 0.58905,
+          "rgbaSha256": "65b4979a85620627298994bd2a8e4473c9d177269d1f45482dfef6b43dc5ef4f"
+        },
+        {
+          "index": 1,
+          "name": "prop-01",
+          "cell": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 7170,
+          "opaquePixels": 2609,
+          "alphaOccupancyRatio": 0.437622,
+          "rgbaSha256": "420f91593ea387ac8216d2480dd6e7c4af2b27233800776df84190f8c41da6f7"
+        },
+        {
+          "index": 2,
+          "name": "prop-02",
+          "cell": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 9320,
+          "opaquePixels": 3579,
+          "alphaOccupancyRatio": 0.568848,
+          "rgbaSha256": "05dd2c526d1da01607f2126b95a6561da6e85106b233e11416810ec394d4b8b0"
+        },
+        {
+          "index": 3,
+          "name": "prop-03",
+          "cell": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 9127,
+          "opaquePixels": 3372,
+          "alphaOccupancyRatio": 0.557068,
+          "rgbaSha256": "98f849b8deaec71950c0133cea1453f5831533a61e02449b65038f52506e1271"
+        },
+        {
+          "index": 4,
+          "name": "prop-04",
+          "cell": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 10925,
+          "opaquePixels": 4276,
+          "alphaOccupancyRatio": 0.666809,
+          "rgbaSha256": "a79ff8f25c238c4b1d3410bd330953b0be184e788375874f5916f74a308706cc"
+        },
+        {
+          "index": 5,
+          "name": "prop-05",
+          "cell": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 8841,
+          "opaquePixels": 3377,
+          "alphaOccupancyRatio": 0.539612,
+          "rgbaSha256": "5415745752f45884df8a93fdf51be6e06389c6cac1d45e5d919d080eed21eb96"
+        },
+        {
+          "index": 6,
+          "name": "prop-06",
+          "cell": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 6597,
+          "opaquePixels": 1692,
+          "alphaOccupancyRatio": 0.402649,
+          "rgbaSha256": "ad6c78fe5c5e67e380a87993fd0d213d0370fc71d50de809aeaba4e89bdbb3ce"
+        },
+        {
+          "index": 7,
+          "name": "prop-07",
+          "cell": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 10339,
+          "opaquePixels": 4309,
+          "alphaOccupancyRatio": 0.631042,
+          "rgbaSha256": "e2ac6f568c33f43fb24b233d8dcfb958044153e92e8787d6e55a1c9e9c19ce6a"
+        },
+        {
+          "index": 8,
+          "name": "prop-08",
+          "cell": [
+            0,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 10524,
+          "opaquePixels": 4338,
+          "alphaOccupancyRatio": 0.642334,
+          "rgbaSha256": "412a8b41c260e9e7df4e8ed2dfea2d1c6f4edecccec478c344057606692acc23"
+        },
+        {
+          "index": 9,
+          "name": "prop-09",
+          "cell": [
+            128,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 7195,
+          "opaquePixels": 2114,
+          "alphaOccupancyRatio": 0.439148,
+          "rgbaSha256": "f4b8dab6919edc40430d4bcf92e5be1da24d0863a25c572a28fc9a9f6802e7f1"
+        },
+        {
+          "index": 10,
+          "name": "prop-10",
+          "cell": [
+            256,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 8089,
+          "opaquePixels": 3020,
+          "alphaOccupancyRatio": 0.493713,
+          "rgbaSha256": "a4bba0cb6801b89ceefb73bdb9d9d43741583bf8c77c05d8aadb2d14cfb92e76"
+        },
+        {
+          "index": 11,
+          "name": "prop-11",
+          "cell": [
+            384,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 9466,
+          "opaquePixels": 3977,
+          "alphaOccupancyRatio": 0.577759,
+          "rgbaSha256": "23a919a1dfb04ce7dec0f74fbfa73251a941e22b83c2f6097b0050ca60eb975f"
+        },
+        {
+          "index": 12,
+          "name": "prop-12",
+          "cell": [
+            0,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 10957,
+          "opaquePixels": 4475,
+          "alphaOccupancyRatio": 0.668762,
+          "rgbaSha256": "05e50a530321ed5bd7c49b7a5a79e59360ba2ee3361b1db58989a52675d355ed"
+        },
+        {
+          "index": 13,
+          "name": "prop-13",
+          "cell": [
+            128,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 8564,
+          "opaquePixels": 2444,
+          "alphaOccupancyRatio": 0.522705,
+          "rgbaSha256": "d2edeba92b4aae2f3b8f0428050e87aa3296ec5477ce93a8ce4c9780843b4c55"
+        },
+        {
+          "index": 14,
+          "name": "prop-14",
+          "cell": [
+            256,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 8013,
+          "opaquePixels": 2453,
+          "alphaOccupancyRatio": 0.489075,
+          "rgbaSha256": "e8416f73269ef11c32b6640116c683ffad6624ec094cf44240ad15d099741f59"
+        },
+        {
+          "index": 15,
+          "name": "prop-15",
+          "cell": [
+            384,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 8815,
+          "opaquePixels": 3515,
+          "alphaOccupancyRatio": 0.538025,
+          "rgbaSha256": "0a88024945959db9e911049ad17575ca76fc797cd99f833356f09665e0800182"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.effects.atlas",
+      "source": "source/v21-effects-atlas-source.png",
+      "sourceSha256": "725c9fb0fc12af375b3cc881dd4f19de4103c70ecc150f7d733b5a69b2c2f199",
+      "processedPng": "processed/effects/atlas.png",
+      "processedPngSha256": "796295ae9f8458286f745f1c840098598380193e543a83c891e3867569bf88cb",
+      "runtime": "effects/atlas.webp",
+      "runtimeSha256": "dbccd9682924a49c374d90ae09ad83efbc24223a2d4277df3b98eab8ff4940b3",
+      "sourceDimensions": [
+        1254,
+        1254
+      ],
+      "runtimeDimensions": [
+        512,
+        512
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "sourceCellAspect": 1.0,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 16,
+      "frameOrder": [
+        "rain",
+        "frost",
+        "mist",
+        "spores",
+        "steam-0",
+        "steam-1",
+        "steam-2",
+        "steam-3",
+        "flame-0",
+        "flame-1",
+        "flame-2",
+        "flame-3",
+        "leaf-0",
+        "leaf-1",
+        "leaf-2",
+        "leaf-3"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 438470,
+        "translucentPixels": 1133847,
+        "opaquePixels": 199,
+        "transparentRatio": 0.278833,
+        "alphaRange": [
+          0.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 146846,
+        "translucentPixels": 109360,
+        "opaquePixels": 5938,
+        "transparentRatio": 0.560173,
+        "alphaRange": [
+          0.0,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": 2,
+      "clearedNearTransparentPixels": 420743,
+      "sourceColor": {
+        "sampledVisiblePixels": 1134046,
+        "meanLinearLuminance": 0.668273,
+        "meanRgbSaturation": 0.376737
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 115298,
+        "meanLinearLuminance": 0.679329,
+        "meanRgbSaturation": 0.36984
+      },
+      "meanLuminanceRatio": 1.016544,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.01016908,
+        "visibleRgbMaxAbsoluteError": 0.30588239,
+        "decodedAlpha": {
+          "transparentPixels": 146846,
+          "translucentPixels": 109360,
+          "opaquePixels": 5938,
+          "transparentRatio": 0.560173,
+          "alphaRange": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 419920,
+      "runtimeBytes": 131070,
+      "cells": [
+        {
+          "index": 0,
+          "name": "rain",
+          "cell": [
+            0,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 10080,
+          "opaquePixels": 1,
+          "alphaOccupancyRatio": 0.615234,
+          "rgbaSha256": "59c9df3ff153d0b88d39019c6ff7d2d9a8a7da43ae04075717f6569f8b1b28b1"
+        },
+        {
+          "index": 1,
+          "name": "frost",
+          "cell": [
+            128,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 9844,
+          "opaquePixels": 120,
+          "alphaOccupancyRatio": 0.60083,
+          "rgbaSha256": "67503af61fefec726c361092c4b56122c6560dbbaa9bd5705af4180465d9ab46"
+        },
+        {
+          "index": 2,
+          "name": "mist",
+          "cell": [
+            256,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 10706,
+          "opaquePixels": 174,
+          "alphaOccupancyRatio": 0.653442,
+          "rgbaSha256": "418f386c1ace807b9aec663e2a7fcb4fd3a4b58b47e4d14f22f9ce97ff444390"
+        },
+        {
+          "index": 3,
+          "name": "spores",
+          "cell": [
+            384,
+            0,
+            128,
+            128
+          ],
+          "visiblePixels": 9734,
+          "opaquePixels": 20,
+          "alphaOccupancyRatio": 0.594116,
+          "rgbaSha256": "d9a0e3eb2407153c9608d6d0b3c8b7b78d4578611d536420e3c382545e2be3d6"
+        },
+        {
+          "index": 4,
+          "name": "steam-0",
+          "cell": [
+            0,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 6545,
+          "opaquePixels": 235,
+          "alphaOccupancyRatio": 0.399475,
+          "rgbaSha256": "85e57cc18c685eec3ec823b01272584d3f3d5f749473da2c0917dc9dc27ae80b"
+        },
+        {
+          "index": 5,
+          "name": "steam-1",
+          "cell": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 7910,
+          "opaquePixels": 311,
+          "alphaOccupancyRatio": 0.482788,
+          "rgbaSha256": "e78d372e1bc1163430b7aedf18cb88738e5dd6c715e9f1cac028a5ec93549b0a"
+        },
+        {
+          "index": 6,
+          "name": "steam-2",
+          "cell": [
+            256,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 7431,
+          "opaquePixels": 348,
+          "alphaOccupancyRatio": 0.453552,
+          "rgbaSha256": "de533eb1e954ed08d0f66c2cf91d66f62089d102f9c73065c66982c45599772d"
+        },
+        {
+          "index": 7,
+          "name": "steam-3",
+          "cell": [
+            384,
+            128,
+            128,
+            128
+          ],
+          "visiblePixels": 8891,
+          "opaquePixels": 470,
+          "alphaOccupancyRatio": 0.542664,
+          "rgbaSha256": "931d991e4da37da1af058a78ef21a135f8ecc99f5d4b8afadb75d3798eef673e"
+        },
+        {
+          "index": 8,
+          "name": "flame-0",
+          "cell": [
+            0,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 5766,
+          "opaquePixels": 614,
+          "alphaOccupancyRatio": 0.351929,
+          "rgbaSha256": "52b8dce10b2db77d100dfd5c11ebf08f6145f18668bcafa743b8d4f52fb31206"
+        },
+        {
+          "index": 9,
+          "name": "flame-1",
+          "cell": [
+            128,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 7271,
+          "opaquePixels": 639,
+          "alphaOccupancyRatio": 0.443787,
+          "rgbaSha256": "922e64caaade7663981d0209c0abdddd8bbccc980fc5fcfcce898f7fc473f996"
+        },
+        {
+          "index": 10,
+          "name": "flame-2",
+          "cell": [
+            256,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 8071,
+          "opaquePixels": 786,
+          "alphaOccupancyRatio": 0.492615,
+          "rgbaSha256": "87033ffe738ad5f659bf098d4af3bd6a6e22bfaacbf904171147c8e61797b9f3"
+        },
+        {
+          "index": 11,
+          "name": "flame-3",
+          "cell": [
+            384,
+            256,
+            128,
+            128
+          ],
+          "visiblePixels": 6907,
+          "opaquePixels": 483,
+          "alphaOccupancyRatio": 0.42157,
+          "rgbaSha256": "e108dd9301d787bc169f923fb261b879be53eaf9f7f930d3e46a33b443025dcb"
+        },
+        {
+          "index": 12,
+          "name": "leaf-0",
+          "cell": [
+            0,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 4400,
+          "opaquePixels": 537,
+          "alphaOccupancyRatio": 0.268555,
+          "rgbaSha256": "c3b349de08520bf755e465308d414a7593a86e99075aa205c032e1b909812d6e"
+        },
+        {
+          "index": 13,
+          "name": "leaf-1",
+          "cell": [
+            128,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 3345,
+          "opaquePixels": 267,
+          "alphaOccupancyRatio": 0.204163,
+          "rgbaSha256": "c94fccc138e8da06aa5be51b9fe452da73270afc1e9d0af76234c62c63f1b1f8"
+        },
+        {
+          "index": 14,
+          "name": "leaf-2",
+          "cell": [
+            256,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 4440,
+          "opaquePixels": 522,
+          "alphaOccupancyRatio": 0.270996,
+          "rgbaSha256": "4725dbf3b1df479e64df4141a3731f7efbff67a210eabe8c3bbde64e02a2208f"
+        },
+        {
+          "index": 15,
+          "name": "leaf-3",
+          "cell": [
+            384,
+            384,
+            128,
+            128
+          ],
+          "visiblePixels": 3957,
+          "opaquePixels": 411,
+          "alphaOccupancyRatio": 0.241516,
+          "rgbaSha256": "79c49d5320ab6b6ad19664c292b5fbfe4e9f3089453e852532880ef17e12d278"
+        }
+      ],
+      "allFrameHashesUnique": true
+    },
+    {
+      "assetId": "v21.ui.maps",
+      "source": "source/v21-ui-maps-source.png",
+      "sourceSha256": "6ffe46f10b9866160fefcfcf4a4f440c0f3ed3164365c22fe39fb16cc2099909",
+      "processedPng": "processed/ui/maps.png",
+      "processedPngSha256": "031f0af4edf415b18b32638417c60ff057c7260ca2671595cb73ef9c869af841",
+      "runtime": "ui/maps.webp",
+      "runtimeSha256": "bb9e731b3f10acbe76295952d3e7535955a97077c78b336745f5c025e1ec2115",
+      "sourceDimensions": [
+        1536,
+        1024
+      ],
+      "runtimeDimensions": [
+        768,
+        512
+      ],
+      "grid": [
+        2,
+        1
+      ],
+      "sourceCellAspect": 0.75,
+      "cellPlacement": "aspect-fit-center",
+      "iconsOpaqueTiles": null,
+      "tileBackground": null,
+      "sourceCellBottomTrimFraction": 0.0,
+      "frameCount": 2,
+      "frameOrder": [
+        "route-map",
+        "technical-map"
+      ],
+      "interpolation": "Linear",
+      "sourceAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 1572864,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "processedAlpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 0,
+        "opaquePixels": 393216,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          1.0,
+          1.0
+        ]
+      },
+      "nearTransparentAlphaByteCutoff": null,
+      "clearedNearTransparentPixels": 0,
+      "sourceColor": {
+        "sampledVisiblePixels": 1572864,
+        "meanLinearLuminance": 0.702441,
+        "meanRgbSaturation": 0.213334
+      },
+      "processedColor": {
+        "sampledVisiblePixels": 393216,
+        "meanLinearLuminance": 0.697386,
+        "meanRgbSaturation": 0.193238
+      },
+      "meanLuminanceRatio": 0.992804,
+      "readback": {
+        "dimensionsExact": true,
+        "alphaMeanAbsoluteError": 0.0,
+        "alphaMaxAbsoluteError": 0.0,
+        "visibleRgbMeanAbsoluteError": 0.00732601,
+        "visibleRgbMaxAbsoluteError": 0.1529412,
+        "decodedAlpha": {
+          "transparentPixels": 0,
+          "translucentPixels": 0,
+          "opaquePixels": 393216,
+          "transparentRatio": 0.0,
+          "alphaRange": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "processedPngBytes": 831941,
+      "runtimeBytes": 119070,
+      "cells": [
+        {
+          "index": 0,
+          "name": "route-map",
+          "cell": [
+            0,
+            0,
+            384,
+            512
+          ],
+          "visiblePixels": 196608,
+          "opaquePixels": 196608,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "63777fa53be5d10843b791b9f05d94a7fe375e6ab437ae4a6d971b759f0bb261"
+        },
+        {
+          "index": 1,
+          "name": "technical-map",
+          "cell": [
+            384,
+            0,
+            384,
+            512
+          ],
+          "visiblePixels": 196608,
+          "opaquePixels": 196608,
+          "alphaOccupancyRatio": 1.0,
+          "rgbaSha256": "9d228dd91667128b0934a2d3d3cf45893e5cfd9e8eb9b8ade35ac332aada38bb"
+        }
+      ],
+      "allFrameHashesUnique": true
+    }
+  ],
+  "platformIconCount": 2,
+  "platformIcons": [
+    {
+      "assetId": "v21.platform.app-icon-192",
+      "source": "../v2/source/carriage-sleep-source.png",
+      "sourceSha256": "4dff5c6f37d547256c37caeb4e8105d7f2e21a1b519c1b07ff2eba04d17b70a2",
+      "runtime": "ui/app-icon-192.png",
+      "runtimeSha256": "7715b31aaf0c336f5af07c18ba9c1c9476324cae449478726baba58250bbbac9",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "cropPixelsTopDown": [
+        0,
+        393,
+        941,
+        941
+      ],
+      "interpolation": "Linear",
+      "alpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 574,
+        "opaquePixels": 36290,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.882353,
+          1.0
+        ]
+      },
+      "color": {
+        "sampledVisiblePixels": 36864,
+        "meanLinearLuminance": 0.309245,
+        "meanRgbSaturation": 0.536637
+      },
+      "bytes": 74842
+    },
+    {
+      "assetId": "v21.platform.app-icon-512",
+      "source": "../v2/source/carriage-sleep-source.png",
+      "sourceSha256": "4dff5c6f37d547256c37caeb4e8105d7f2e21a1b519c1b07ff2eba04d17b70a2",
+      "runtime": "ui/app-icon-512.png",
+      "runtimeSha256": "8d629ac8acaca4e75fab2b4937b4dc06e764fcbb06b97935c3f6f6b89386291e",
+      "runtimeDimensions": [
+        512,
+        512
+      ],
+      "cropPixelsTopDown": [
+        0,
+        393,
+        941,
+        941
+      ],
+      "interpolation": "Linear",
+      "alpha": {
+        "transparentPixels": 0,
+        "translucentPixels": 1534,
+        "opaquePixels": 260610,
+        "transparentRatio": 0.0,
+        "alphaRange": [
+          0.87451,
+          1.0
+        ]
+      },
+      "color": {
+        "sampledVisiblePixels": 262144,
+        "meanLinearLuminance": 0.304606,
+        "meanRgbSaturation": 0.535339
+      },
+      "bytes": 497101
+    }
+  ]
+}
