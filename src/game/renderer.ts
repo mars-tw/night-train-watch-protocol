@@ -1,4 +1,5 @@
 import type { AppState, CarriageId, ThreatContact } from "./types";
+import { BoundedLoadQueue } from "./scene-loader";
 import {
   A07_ATLAS,
   A07_FRAME_CELLS,
@@ -11,6 +12,7 @@ import {
   a07PlaybackForRun,
   installedFacilityVisuals,
   sceneVisualState,
+  sceneAssetPriority,
   threatFamilyForId,
   threatClipForStage,
   updateThreatVisualLifecycle,
@@ -21,11 +23,12 @@ import {
   type ThreatClipId,
   type ThreatRetreatVisual,
   type ThreatVisualLifecycle,
+  type SceneAssetKey,
 } from "./scene-manifest";
 
 type CarriageArtKey = `v2-carriage-${CarriageId}`;
 type ThreatArtKey = `v2-threat-${ThreatFamilyId}`;
-type ArtKey = CarriageArtKey | ThreatArtKey | "a07-atlas" | "equipment-atlas" | "night" | "menu";
+type ArtKey = SceneAssetKey;
 
 const ART_SOURCES: Record<ArtKey, string> = {
   "v2-carriage-sleep": CARRIAGE_SCENES.sleep.source,
@@ -40,13 +43,13 @@ const ART_SOURCES: Record<ArtKey, string> = {
   "v2-threat-vine": THREAT_ATLASES.vine.source,
   "v2-threat-echo": THREAT_ATLASES.echo.source,
   "v2-threat-crowd": THREAT_ATLASES.crowd.source,
-  night: "./assets/art/carriage-night.png",
-  menu: "./assets/art/carriage-menu.png",
 };
 
 // Kept only as migration/provenance references. These full-scene plates are not
 // loaded into ART_SOURCES and never replace a v2 carriage during a contact.
 export const LEGACY_STORY_PLATE_REFERENCES = [
+  "./assets/art/carriage-menu.png",
+  "./assets/art/carriage-night.png",
   "./assets/art/carriage-sleep.png",
   "./assets/art/carriage-defense.png",
   "./assets/art/carriage-workshop.png",
@@ -65,8 +68,13 @@ export const LEGACY_STORY_PLATE_REFERENCES = [
 ] as const;
 
 export class SceneRenderer {
+  private static readonly MAX_RESIDENT_PIXELS = 10_000_000;
   private readonly context: CanvasRenderingContext2D;
   private readonly images = new Map<ArtKey, HTMLImageElement>();
+  private readonly imageLastUsed = new Map<ArtKey, number>();
+  private readonly loadQueue: BoundedLoadQueue<ArtKey>;
+  private pinnedAssets = new Set<ArtKey>();
+  private prioritySignature = "";
   private animationFrame = 0;
   private state: AppState | null = null;
   private threatAnimationKey = "";
@@ -83,13 +91,25 @@ export class SceneRenderer {
     this.canvas.width = 720;
     this.canvas.height = 1280;
     this.context.imageSmoothingEnabled = false;
-    for (const [key, source] of Object.entries(ART_SOURCES) as [ArtKey, string][]) {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = source;
-      image.addEventListener("load", () => this.draw(performance.now()));
-      this.images.set(key, image);
-    }
+    this.loadQueue = new BoundedLoadQueue(
+      (key, attempt) => this.loadImage(key, attempt),
+      {
+        concurrency: 2,
+        maxAttempts: 3,
+        onLoaded: (key) => {
+          this.imageLastUsed.set(key, performance.now());
+          this.enforceResidentBudget();
+          this.draw(performance.now());
+        },
+        onFailed: (key) => {
+          const image = this.images.get(key);
+          if (image) image.src = "";
+          this.images.delete(key);
+          this.imageLastUsed.delete(key);
+        },
+      },
+    );
+    this.updateAssetPriority(null);
   }
 
   public start(): void {
@@ -112,6 +132,7 @@ export class SceneRenderer {
   private draw(time: number): void {
     const { context: ctx } = this;
     const state = this.state;
+    this.updateAssetPriority(state);
     const elapsedSinceDraw = this.lastDrawTime > 0 ? Math.max(0, time - this.lastDrawTime) : 0;
     this.lastDrawTime = time;
     if (state?.nightPaused && elapsedSinceDraw > 0) {
@@ -168,6 +189,74 @@ export class SceneRenderer {
     if (!["carriage", "menu", "result"].includes(state?.screen ?? "")) {
       ctx.fillStyle = "rgba(9, 14, 18, 0.74)";
       ctx.fillRect(0, 0, 720, 1280);
+    }
+  }
+
+  private updateAssetPriority(state: AppState | null): void {
+    const priority = sceneAssetPriority({
+      screen: state?.screen ?? "menu",
+      activeCarriageId: state?.activeCarriageId ?? "sleep",
+      activeThreatDefinitionId: state?.run?.activeContact?.definitionId,
+      retreatFamily: this.threatVisualLifecycle.retreat?.family,
+    });
+    const signature = priority.join("|");
+    this.pinnedAssets = new Set(priority);
+    if (signature !== this.prioritySignature) {
+      this.prioritySignature = signature;
+      this.loadQueue.setPriority(priority);
+    }
+    this.enforceResidentBudget();
+  }
+
+  private loadImage(key: ArtKey, _attempt: number): Promise<void> {
+    const source = ART_SOURCES[key];
+    let image = this.images.get(key);
+    if (!image) {
+      image = new Image();
+      image.decoding = "async";
+      this.images.set(key, image);
+    }
+    image.onload = null;
+    image.onerror = null;
+    image.src = "";
+    return new Promise((resolve, reject) => {
+      image!.onload = () => {
+        void image!.decode().then(resolve, reject);
+      };
+      image!.onerror = () => reject(new Error(`Cannot load scene asset ${key}`));
+      queueMicrotask(() => {
+        image!.src = source;
+      });
+    });
+  }
+
+  private touchImage(key: ArtKey): HTMLImageElement | undefined {
+    const image = this.images.get(key);
+    if (!image?.complete || image.naturalWidth === 0) return undefined;
+    this.imageLastUsed.set(key, performance.now());
+    return image;
+  }
+
+  private enforceResidentBudget(): void {
+    let residentPixels = 0;
+    const candidates: Array<{ key: ArtKey; pixels: number; used: number }> = [];
+    for (const [key, image] of this.images) {
+      if (!image.complete || image.naturalWidth === 0) continue;
+      const pixels = image.naturalWidth * image.naturalHeight;
+      residentPixels += pixels;
+      if (!this.pinnedAssets.has(key) && !this.loadQueue.isLoading(key)) {
+        candidates.push({ key, pixels, used: this.imageLastUsed.get(key) ?? 0 });
+      }
+    }
+    candidates.sort((left, right) => left.used - right.used);
+    for (const candidate of candidates) {
+      if (residentPixels <= SceneRenderer.MAX_RESIDENT_PIXELS) break;
+      const image = this.images.get(candidate.key);
+      if (image) image.src = "";
+      this.images.delete(candidate.key);
+      this.imageLastUsed.delete(candidate.key);
+      this.loadQueue.evict(candidate.key);
+      residentPixels -= candidate.pixels;
     }
   }
 
@@ -410,8 +499,8 @@ export class SceneRenderer {
   }
 
   private drawArt(key: ArtKey): boolean {
-    const image = this.images.get(key);
-    if (!image?.complete || image.naturalWidth === 0) return false;
+    const image = this.touchImage(key);
+    if (!image) return false;
     const ratio = Math.max(720 / image.naturalWidth, 1280 / image.naturalHeight) * 1.012;
     const width = image.naturalWidth * ratio;
     const height = image.naturalHeight * ratio;
@@ -419,7 +508,7 @@ export class SceneRenderer {
     return true;
   }
 
-  private drawFallback(key: ArtKey, time: number, night = key === "night"): void {
+  private drawFallback(_key: ArtKey, time: number, night = false): void {
     const ctx = this.context;
     const gradient = ctx.createLinearGradient(0, 0, 0, 1280);
     gradient.addColorStop(0, night ? "#16232b" : "#3c3329");
@@ -546,8 +635,8 @@ export class SceneRenderer {
 
   private drawA07Passenger(time: number, reducedMotion: boolean): void {
     const run = this.state?.run;
-    const image = this.images.get("a07-atlas");
-    if (!image?.complete || image.naturalWidth === 0) return;
+    const image = this.touchImage("a07-atlas");
+    if (!image) return;
     const playback = run
       ? a07PlaybackForRun(run)
       : { clipId: "sleep" as const, animationKey: "menu:sleep" };
@@ -791,8 +880,8 @@ export class SceneRenderer {
   }
 
   private drawEquipmentFrame(frame: number, centerX: number, centerY: number, size: number, alpha = 1): boolean {
-    const image = this.images.get("equipment-atlas");
-    if (!image?.complete || image.naturalWidth === 0 || frame < 0 || frame >= EQUIPMENT_ATLAS.frameCount) return false;
+    const image = this.touchImage("equipment-atlas");
+    if (!image || frame < 0 || frame >= EQUIPMENT_ATLAS.frameCount) return false;
     const column = frame % EQUIPMENT_ATLAS.columns;
     const row = Math.floor(frame / EQUIPMENT_ATLAS.columns);
     const sourceX = Math.floor(column * image.naturalWidth / EQUIPMENT_ATLAS.columns);
@@ -931,8 +1020,8 @@ export class SceneRenderer {
   ): void {
     const manifest = THREAT_ATLASES[family];
     const key: ThreatArtKey = `v2-threat-${family}`;
-    const image = this.images.get(key);
-    if (!image?.complete || image.naturalWidth === 0) return;
+    const image = this.touchImage(key);
+    if (!image) return;
     const clip = manifest.clips[clipId];
     const elapsedFrame = Math.floor(elapsedMs * clip.fps / 1000);
     const offset = reducedMotion ? clip.keyFrame : Math.min(clip.frames - 1, elapsedFrame);

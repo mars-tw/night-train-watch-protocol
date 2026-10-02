@@ -1,4 +1,4 @@
-# 夜行列車 v2.0 更新驗收
+# 夜行列車 v2.0.1 更新驗收
 
 日期：2026-10-02。使用者要求依新企劃製作並更新開源遊戲，本輪從`231b122`故事分支完成實作；原公開main為v0.8。發布結果於下方追加，不把本機建置當成線上部署。
 
@@ -16,16 +16,17 @@
 
 | 項目 | 實際結果 | 證據 |
 | --- | --- | --- |
-| TypeScript／單元與整合 | 23檔、288項通過 | `npm run check` |
+| TypeScript／單元與整合 | 24檔、297項通過 | `npm run check` |
 | 手機版面 | 5視口×3字級，179斷言通過；場景最低60.6%，新熱區最低60×48 | [ui-qa.json](evidence/v2/ui-qa.json) |
 | 三線自然七夜 | 559次實際按鍵，三線從fresh context到合法勝利；不注入資源、phase或checkpoint | [journey-qa.json](evidence/v2/journey-qa.json) |
 | 領獎與選配 | 自然claim→reload→選配→新局→標準還原；無重複發獎或數值累積 | UI／Profile測試及截图 |
-| 正式版與離線 | 51項precache無缺件，斷網reload後回復同run與720 Canvas；11斷言通過 | [release-qa.json](evidence/v2/release-qa.json) |
-| 效能 | Windows Chromium三跑中位p95：1366視口16.7ms、390視口16.8ms | release-qa.json；非實體手機 |
+| 正式版與離線 | 33項precache無缺件，斷網reload後回復同run與720 Canvas；11斷言通過 | [release-qa.json](evidence/v2/release-qa.json) |
+| 效能 | Windows Chromium三跑中位p95：1366視口16.8ms、390視口16.7ms | release-qa.json；非實體手機 |
+| 載入優化 | 12張無損WebP較PNG減少35.52%；首選單必要美術1.827MiB；完整快取14,520,811 bytes／13.848MiB，較v2.0.0減少74.65% | [compression-report.json](../public/assets/art/v2/compression-report.json)、runtime-loading-v2測試 |
 | 平衡 | 30seed×3線×3策略=270局，210勝／60失守／0主線停滯 | [balance-report.md](evidence/v2/balance-report.md) |
 | 美術 | Blender5.2實跑12來源，source/runtime SHA、52/100/50格、alpha邊緣與色盤檢查通過；暖色平均0.6786 | [pipeline-report.json](../public/assets/art/v2/pipeline-report.json) |
 | 套件 | 升級Vitest4.1.11與修正間接依賴，npm audit 0漏洞 | [dependency-audit.json](evidence/v2/dependency-audit.json) |
-| 秘密與版本 | 新檔與runtime秘密字串掃描0命中，package／lock版本2.0.0，diff check通過 | 本輪命令讀回 |
+| 秘密與版本 | 新檔與runtime秘密字串掃描0命中，package／lock版本2.0.1，diff check通過 | 本輪命令讀回 |
 
 ## 由完整流程找到並修正
 
@@ -47,4 +48,6 @@
 
 ## 發布記錄
 
-本機與獨立上下文覆核均已通過，接續GitHub更新與部署後追加實際commit／PR／workflow證據。
+v2.0.0 已於 2026-10-02 由 [PR #8](https://github.com/mars-tw/night-train-watch-protocol/pull/8) 合併；main commit 為 `f9a679bd090974e83d12f8c157d2a61298f12fe7`。[CI](https://github.com/mars-tw/night-train-watch-protocol/actions/runs/36999788399) 與 [Pages 部署](https://github.com/mars-tw/night-train-watch-protocol/actions/runs/36999788380) 均成功，[v2.0.0 release](https://github.com/mars-tw/night-train-watch-protocol/releases/tag/v2.0.0) 已公開。
+
+公開驗收發現首次快取仍包含舊版素材，因而追加 v2.0.1：只快取目前 runtime，改用 lossless WebP，限制圖片載入併發為 2，並修正快速切廂取消佇列後無法重新排入的問題。Linux CI 會安裝 Chromium，執行真實 PNG／WebP 合成比較；半透明像素顯示差異最多 1／255，未宣稱其 Canvas unpremultiply 數值完全相等。v2.0.1 的發布與部署狀態以 [release](https://github.com/mars-tw/night-train-watch-protocol/releases/tag/v2.0.1) 及 [GitHub Actions](https://github.com/mars-tw/night-train-watch-protocol/actions) 記錄為準。

@@ -1,5 +1,6 @@
 /* Versioned shell + immutable build precache. Legacy saves use separate keys. */
 const BUILD = "__NTWP_BUILD__";
+const VERSION = "__NTWP_VERSION__";
 const CACHE = `night-train-v2-${BUILD}`;
 const SCOPE = self.registration.scope;
 const localUrl = (path) => new URL(path, SCOPE).href;
@@ -52,5 +53,5 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "NTWP_BUILD") event.source?.postMessage({ type: "NTWP_BUILD", build: BUILD, version: "2.0.0" });
+  if (event.data?.type === "NTWP_BUILD") event.source?.postMessage({ type: "NTWP_BUILD", build: BUILD, version: VERSION });
 });

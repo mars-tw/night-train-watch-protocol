@@ -1509,7 +1509,7 @@
   border-radius: 9px;
   background:
     linear-gradient(rgba(9, 14, 18, 0.16), rgba(9, 14, 18, 0.6)),
-    url("/assets/art/carriage-night.png") center 25% / cover;
+    url("/assets/art/v2/carriages/sleep.webp") center 25% / cover;
 }
 
 .event-id {
@@ -3388,14 +3388,14 @@
   border-color: rgba(174, 219, 234, 0.8);
   background:
     linear-gradient(120deg, rgba(185, 228, 240, 0.16), rgba(9, 14, 18, 0.92) 56%),
-    url("/assets/art/story/carriage-frostline-gpt-v1.png") center 48% / cover;
+    url("/assets/art/v2/carriages/defense.webp") center 48% / cover;
 }
 
 .route-launch-card--frost.action-button--primary {
   border-color: var(--color-action);
   background:
     linear-gradient(120deg, rgba(8, 24, 32, 0.68), rgba(9, 14, 18, 0.94) 62%),
-    url("/assets/art/story/carriage-frostline-gpt-v1.png") center 48% / cover;
+    url("/assets/art/v2/carriages/defense.webp") center 48% / cover;
   color: #f4fbfd;
   box-shadow:
     inset 0 0 0 1px rgba(226, 168, 93, 0.42),

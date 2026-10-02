@@ -1,6 +1,6 @@
 {
   "name": "night-train-watch-protocol",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": false,
   "type": "module",
   "description": "夜行列車：守夜協定 v2－手繪像素列車、56項任務與離線七夜生存旅程",

@@ -3,6 +3,7 @@ import { join, relative } from "node:path";
 import { createHash } from "node:crypto";
 
 const root = "dist";
+const { version } = JSON.parse(await readFile("package.json", "utf8"));
 async function collect(dir) {
   const files = [];
   for (const item of await readdir(dir, { withFileTypes: true })) {
@@ -12,21 +13,20 @@ async function collect(dir) {
   }
   return files;
 }
+// Precache the shipping runtime, not historical screenshots/source PNGs.
 const files = (await collect(root)).filter(file =>
-  !["sw.js", "precache.json"].includes(file)
-  && !file.endsWith(".map")
-  && !file.startsWith("assets/video/")
-  && !file.startsWith("assets/screenshots/")
-  && !file.startsWith("assets/qa/")
-  && !file.startsWith("assets/art/v2/source/")
-  && !file.startsWith("assets/source/")
-  && !/\.blend\d*$/.test(file)
-  && !file.endsWith("pipeline-report.json"),
+  ["index.html", "manifest.webmanifest"].includes(file)
+  || file.startsWith("icons/")
+  || /^assets\/[^/]+\.(js|css)$/.test(file)
+  || /^assets\/art\/v2\/(carriages|characters|equipment|threats)\/.*\.webp$/.test(file)
+  || /^assets\/art\/(crops|decor)\/.*\.png$/.test(file),
 ).sort();
 const digest = createHash("sha256");
+digest.update(version);
 for (const file of files) digest.update(file).update(await readFile(join(root, file)));
 const build = digest.digest("hex").slice(0, 16);
-await writeFile(join(root, "precache.json"), JSON.stringify({ version: "2.0.0", build, files }, null, 2));
-const worker = (await readFile(join(root, "sw.js"), "utf8")).replaceAll("__NTWP_BUILD__", build);
+await writeFile(join(root, "precache.json"), JSON.stringify({ version, build, files }, null, 2));
+const worker = (await readFile(join(root, "sw.js"), "utf8"))
+  .replaceAll("__NTWP_BUILD__", build).replaceAll("__NTWP_VERSION__", version);
 await writeFile(join(root, "sw.js"), worker);
 console.log(`Offline build ${build}: ${files.length} coherent assets`);

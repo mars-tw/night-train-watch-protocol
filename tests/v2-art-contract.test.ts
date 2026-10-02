@@ -119,7 +119,7 @@ function alphaCount(
 describe("v2 art runtime contract", () => {
   it("ships five independent 720x1280 carriage plates and preserves all six sources", () => {
     for (const carriageId of ["sleep", "defense", "workshop", "greenhouse", "kitchen"] as const) {
-      const runtime = resolve(workspace, CARRIAGE_SCENES[carriageId].source.replace(/^\.\//, "public/"));
+      const runtime = resolve(workspace, CARRIAGE_SCENES[carriageId].pngSource.replace(/^\.\//, "public/"));
       expect(existsSync(runtime), carriageId).toBe(true);
       expect(pngSize(runtime)).toEqual([720, 1280]);
       expect(existsSync(resolve(artRoot, `source/carriage-${carriageId}-source.png`))).toBe(true);
