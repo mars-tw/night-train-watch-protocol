@@ -12,6 +12,7 @@ import {
   SCENE_STATE_COUNT,
   THREAT_RETREAT_DURATION_MS,
   a07PlaybackForRun,
+  a07PlaybackForScene,
   threatClipForStage,
   updateThreatVisualLifecycle,
 } from "../src/game/scene-manifest";
@@ -228,6 +229,8 @@ describe("v2 art runtime contract", () => {
 
     run.phase = "aftermath";
     expect(a07PlaybackForRun(run).clipId).toBe("sit");
+    expect(a07PlaybackForScene("menu", run)).toEqual({ clipId: "sleep", animationKey: "menu:sleep" });
+    expect(a07PlaybackForScene("carriage", run).clipId).toBe("sit");
     run.phase = "prep";
     run.flags.push("comforted-1");
     run.ledger.push({ id: "comfort-ledger", at: 1, source: "prep.comfort", key: "stress", before: 20, delta: -8, after: 12 });
@@ -270,7 +273,10 @@ describe("v2 art runtime contract", () => {
     const renderer = readFileSync(resolve(workspace, "src/game/renderer.ts"), "utf8");
     const runtimeSources = renderer.slice(renderer.indexOf("const ART_SOURCES"), renderer.indexOf("};", renderer.indexOf("const ART_SOURCES")) + 2);
     expect(runtimeSources).toContain("v2-carriage-sleep");
-    expect(runtimeSources).toContain("a07-atlas");
+    for (const clip of ["sleep", "turn", "listen", "startle", "sit", "drink", "settle"]) {
+      expect(runtimeSources).toContain(`a07-clip-${clip}`);
+    }
+    expect(runtimeSources).not.toContain('"a07-atlas"');
     expect(runtimeSources).toContain("equipment-atlas");
     expect(runtimeSources).toContain("v2-threat-knocker");
     expect(runtimeSources).not.toContain("assets/art/story");

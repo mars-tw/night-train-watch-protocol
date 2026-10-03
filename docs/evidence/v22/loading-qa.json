@@ -1,0 +1,109 @@
+{
+  "status": "PASS",
+  "authority": "fresh browser, service workers blocked to isolate visual loading from complete offline download; no save injection",
+  "checks": [
+    "fresh menu requests only the sleep clip, never the full A-07 atlas",
+    "real menu Canvas renders all eight distinct sleep cells using exact cropped row",
+    "offline manifest contains all seven clips and 44 complete runtime files",
+    "offline manifest excludes superseded whole A-07 atlas while source remains in repository",
+    "new game continues to use clips without fetching the old full atlas",
+    "no JavaScript runtime error during real clip loading"
+  ],
+  "failures": [],
+  "requests": [
+    "http://127.0.0.1:4312/assets/art/v21/ui/icon-atlas.webp",
+    "http://127.0.0.1:4312/assets/art/v21/carriages/sleep.webp",
+    "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+    "http://127.0.0.1:4312/assets/art/v21/carriages/defense.webp",
+    "http://127.0.0.1:4312/assets/art/v21/carriages/greenhouse.webp",
+    "http://127.0.0.1:4312/assets/art/v21/props/atlas.webp",
+    "http://127.0.0.1:4312/assets/art/decor/fern.png",
+    "http://127.0.0.1:4312/assets/art/crops/lettuce-0.png",
+    "http://127.0.0.1:4312/assets/art/crops/lettuce-3.png",
+    "http://127.0.0.1:4312/assets/art/crops/tomato-3.png",
+    "http://127.0.0.1:4312/assets/art/crops/herb-3.png",
+    "http://127.0.0.1:4312/assets/art/v2/equipment/atlas.webp",
+    "http://127.0.0.1:4312/assets/art/v21/effects/atlas.webp",
+    "http://127.0.0.1:4312/assets/art/v21/carriages/workshop.webp",
+    "http://127.0.0.1:4312/assets/art/v21/carriages/kitchen.webp",
+    "http://127.0.0.1:4312/assets/art/v22/a07-clips/turn.webp",
+    "http://127.0.0.1:4312/assets/art/decor/lantern.png"
+  ],
+  "errors": [],
+  "menu": {
+    "requests": [
+      "http://127.0.0.1:4312/assets/art/v21/ui/icon-atlas.webp",
+      "http://127.0.0.1:4312/assets/art/v21/carriages/sleep.webp",
+      "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+      "http://127.0.0.1:4312/assets/art/v21/carriages/defense.webp"
+    ],
+    "cells": [
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 0,
+        "sy": 0,
+        "sw": 167,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 167,
+        "sy": 0,
+        "sw": 168,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 335,
+        "sy": 0,
+        "sw": 167,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 502,
+        "sy": 0,
+        "sw": 168,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 670,
+        "sy": 0,
+        "sw": 167,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 837,
+        "sy": 0,
+        "sw": 168,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 1005,
+        "sy": 0,
+        "sw": 167,
+        "sh": 167
+      },
+      {
+        "source": "http://127.0.0.1:4312/assets/art/v22/a07-clips/sleep.webp",
+        "sx": 1172,
+        "sy": 0,
+        "sw": 168,
+        "sh": 167
+      }
+    ],
+    "requiredSceneBytesBefore": 1730562,
+    "requiredSceneBytesAfter": 430790,
+    "reductionPercent": 75.11,
+    "measurement": "encoded file bytes for required scene plus A-07, excludes other UI files and offline download"
+  },
+  "cache": {
+    "version": "2.2.0",
+    "build": "88c1fbdc4f6ad8a4",
+    "count": 44,
+    "bytes": 14233179
+  }
+}

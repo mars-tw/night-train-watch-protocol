@@ -1,0 +1,163 @@
+{
+  "status": "passed",
+  "generatedAt": "2026-10-03T03:30:42.799Z",
+  "baseUrl": "http://127.0.0.1:4177",
+  "metadata": {
+    "scenario": "fresh-r01-five-tutorial-onboarding",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "fixtureInjection": false,
+    "authority": "visible UI actions and read-only ntwp.v2.current evidence",
+    "synchronization": "visible screen/cue transitions and persisted quest events; no fixed transaction sleeps"
+  },
+  "actions": [
+    "main mission pinned through the journal",
+    "main mission unpinned through the journal",
+    "TUT-01 reward saved through the coach",
+    "M003 disabled through the visible power control",
+    "M003 restored before leaving the power lesson",
+    "TUT-02 reward saved through the coach",
+    "one lettuce planted through preview confirmation",
+    "TUT-03 reward saved through the coach",
+    "priced emergency-boost counter committed through the coach",
+    "TUT-04 reward saved through the coach",
+    "TUT-05 reward saved through the coach"
+  ],
+  "assertions": [
+    "player pin makes the coach yield",
+    "coach returns with a 48px mission entry after unpinning",
+    "free inspections keep actionPoints unchanged",
+    "free inspections keep energy unchanged",
+    "free inspections keep fuel unchanged",
+    "free inspections keep food unchanged",
+    "free inspections keep water unchanged",
+    "free inspections keep parts unchanged",
+    "free inspections keep medicine unchanged",
+    "M001 remains active during the power lesson",
+    "plant preview cancellation keeps AP and water unchanged",
+    "plant confirmation charges AP exactly once",
+    "plant confirmation charges water exactly once",
+    "live coach selects a known legal counter",
+    "live coach shows the exact counter name and cost",
+    "shown counter cost matches the committed resource delta",
+    "all five tutorials are completed and saved to the profile",
+    "M001 is active at the end of onboarding",
+    "M003 is restored at the end of onboarding"
+  ],
+  "evidence": {
+    "pinGiveWay": {
+      "pinnedThenYielded": true,
+      "unpinnedThenReturned": true
+    },
+    "freeInspection": {
+      "before": {
+        "ap": 5,
+        "resources": {
+          "energy": 75,
+          "fuel": 40,
+          "food": 5,
+          "water": 6,
+          "parts": 8,
+          "medicine": 1,
+          "data": 0
+        }
+      },
+      "after": {
+        "ap": 5,
+        "resources": {
+          "energy": 75,
+          "fuel": 40,
+          "food": 5,
+          "water": 6,
+          "parts": 8,
+          "medicine": 1,
+          "data": 0
+        }
+      }
+    },
+    "power": {
+      "M001": true,
+      "M003Restored": true
+    },
+    "planting": {
+      "before": {
+        "ap": 5,
+        "water": 6
+      },
+      "afterCancel": {
+        "ap": 5,
+        "water": 6
+      },
+      "afterConfirm": {
+        "ap": 4,
+        "water": 5
+      }
+    },
+    "counter": {
+      "id": "emergency-boost",
+      "label": "緊急加速・燃料 4",
+      "resource": "fuel",
+      "before": 35,
+      "after": 31
+    },
+    "dawn": {
+      "day": 2,
+      "tutorialEvidence": {
+        "TUT-01": {
+          "lifecycle": "claimed",
+          "result": "completed",
+          "profileMilestone": true,
+          "progress": [
+            1,
+            1
+          ]
+        },
+        "TUT-02": {
+          "lifecycle": "claimed",
+          "result": "completed",
+          "profileMilestone": true,
+          "progress": [
+            1,
+            1
+          ]
+        },
+        "TUT-03": {
+          "lifecycle": "claimed",
+          "result": "completed",
+          "profileMilestone": true,
+          "progress": [
+            1
+          ]
+        },
+        "TUT-04": {
+          "lifecycle": "claimed",
+          "result": "completed",
+          "profileMilestone": true,
+          "progress": [
+            1
+          ]
+        },
+        "TUT-05": {
+          "lifecycle": "claimed",
+          "result": "completed",
+          "profileMilestone": true,
+          "progress": [
+            1,
+            1
+          ]
+        }
+      }
+    }
+  },
+  "screenshots": [
+    "onboarding-screenshots/01-fresh-coach.png",
+    "onboarding-screenshots/02-player-pin-owns-ribbon.png",
+    "onboarding-screenshots/03-plant-cost-preview.png",
+    "onboarding-screenshots/04-live-counter-cost.png",
+    "onboarding-screenshots/05-dawn-five-tutorials.png"
+  ],
+  "failures": [],
+  "completedAt": "2026-10-03T03:30:52.462Z"
+}

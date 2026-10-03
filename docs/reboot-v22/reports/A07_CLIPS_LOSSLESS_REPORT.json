@@ -1,0 +1,1116 @@
+{
+  "schemaVersion": 1,
+  "codec": "Pillow lossless WebP",
+  "pillowVersion": "12.3.0",
+  "settings": {
+    "lossless": true,
+    "quality": 100,
+    "method": 6,
+    "exact": true
+  },
+  "source": "public/assets/art/v2/characters/a07/atlas.webp",
+  "sourceBytes": 1507430,
+  "sourceSha256": "9179678bdef21120239acaaf424c9bba2acee5349b9ebf9711910a853b1bf220",
+  "sourceDimensions": [
+    1340,
+    1174
+  ],
+  "rowBoundaryFormula": "floor(row * 1174 / 7)",
+  "columnBoundaryFormula": "floor(column * 1340 / 8)",
+  "assetCount": 7,
+  "totalBytes": 1464004,
+  "allRgbaExact": true,
+  "allAlphaExact": true,
+  "assets": [
+    {
+      "clipId": "sleep",
+      "sourceRow": 0,
+      "frameCount": 8,
+      "sourceBox": [
+        0,
+        0,
+        1340,
+        167
+      ],
+      "width": 1340,
+      "height": 167,
+      "path": "public/assets/art/v22/a07-clips/sleep.webp",
+      "bytes": 207658,
+      "sha256": "96b1d95b505d1f578de96e25e0bbd4cf66523f2f4b63c3dcb23f92ab3d3ca51a",
+      "sourceCropRgbaSha256": "8952324ed135389c2beac4bbe27cc81073291b237fc2edbff09f738d74830e18",
+      "decodedRgbaSha256": "8952324ed135389c2beac4bbe27cc81073291b237fc2edbff09f738d74830e18",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            0,
+            167,
+            167
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "e27e4e2f956183b47343ad422e42ca2c01975362366b22b92ea878f54f9357be"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            0,
+            335,
+            167
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "16d7020df933f17705200bfbac7e3833331ee67dfa60789784578b4aebf40606"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            0,
+            502,
+            167
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "8bb56e62bbb4d109c807b8d5ca184776e64ff7769e46af04e9105b0dbd078808"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            0,
+            670,
+            167
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "fe25e7d0b56f29c068e82ab73b8139f8ca4586cc1774a3c66cb169cf869ae230"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            0,
+            837,
+            167
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "e60e71e70c22e860b9cda46a06e349ebe547793f23597572b9c1d191a7cfd0ef"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            0,
+            1005,
+            167
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "34041edfd9eaa8eba74e820d8a24f9abaf079eab68f32c68da4575eabd2fab8d"
+        },
+        {
+          "frame": 6,
+          "atlasBox": [
+            1005,
+            0,
+            1172,
+            167
+          ],
+          "clipBox": [
+            1005,
+            0,
+            1172,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "a15e0aa19418638f281f19f8df3405414603c4af83182dfd8bfd8ee2345eac19"
+        },
+        {
+          "frame": 7,
+          "atlasBox": [
+            1172,
+            0,
+            1340,
+            167
+          ],
+          "clipBox": [
+            1172,
+            0,
+            1340,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "03ea0598de406471a1624e9858d363b18cbbd78866a752545f57202acfa2fefc"
+        }
+      ]
+    },
+    {
+      "clipId": "turn",
+      "sourceRow": 1,
+      "frameCount": 8,
+      "sourceBox": [
+        0,
+        167,
+        1340,
+        335
+      ],
+      "width": 1340,
+      "height": 168,
+      "path": "public/assets/art/v22/a07-clips/turn.webp",
+      "bytes": 215632,
+      "sha256": "f8a38e2cdf50c2e4e19a5f80e5fc8fbcb4aafd5b5948260d71a2aa1f8c515a99",
+      "sourceCropRgbaSha256": "cd181c28ecf044149fb5b14cd9c3de0674cff219041029eff61e1c8c0b06ea8e",
+      "decodedRgbaSha256": "cd181c28ecf044149fb5b14cd9c3de0674cff219041029eff61e1c8c0b06ea8e",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            167,
+            167,
+            335
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "51ca16b5393e1d5b7cdbecb75ad32669a7ac004a1b7f8ca422c8ca11251053af"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            167,
+            335,
+            335
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "173bf2c1fc2fbd579862443cf2dd763a8e36628093f5f5c3c3373c61c7df351c"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            167,
+            502,
+            335
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "b55f492c68c23afe61f57ee75ef66a267eaf5b6a12013c39a1772c0e3667154c"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            167,
+            670,
+            335
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "6fc236373c908f8ad99fad97dfc041e38773505e2bf4d08eaf10af451b37505f"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            167,
+            837,
+            335
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "1dae019fcf5241b178b25dfc377604b6805d585fa8d84b7c59d217b103c1bbb8"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            167,
+            1005,
+            335
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "cbfb0161446b21e6aa61365ebf97c891fec4e4a199572cd88083976bb3153834"
+        },
+        {
+          "frame": 6,
+          "atlasBox": [
+            1005,
+            167,
+            1172,
+            335
+          ],
+          "clipBox": [
+            1005,
+            0,
+            1172,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "6f473bb60377666f94a39219f332f6cf63fc1de7ebbe52abb6c9f7f6862f947d"
+        },
+        {
+          "frame": 7,
+          "atlasBox": [
+            1172,
+            167,
+            1340,
+            335
+          ],
+          "clipBox": [
+            1172,
+            0,
+            1340,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "41fea53d0cde1900aec9dc613cbd5e4d39ec5e2a502e6e51e5481baeee286493"
+        }
+      ]
+    },
+    {
+      "clipId": "listen",
+      "sourceRow": 2,
+      "frameCount": 8,
+      "sourceBox": [
+        0,
+        335,
+        1340,
+        503
+      ],
+      "width": 1340,
+      "height": 168,
+      "path": "public/assets/art/v22/a07-clips/listen.webp",
+      "bytes": 220412,
+      "sha256": "3414e25a71ff2ba5b57431118b7d85176d75d23cd96aebbeda7f275c736948ce",
+      "sourceCropRgbaSha256": "16e18e2f50f1f4889b4117906a2a5cb9c3666bfc20357231b30b01ae683a18b5",
+      "decodedRgbaSha256": "16e18e2f50f1f4889b4117906a2a5cb9c3666bfc20357231b30b01ae683a18b5",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            335,
+            167,
+            503
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "92ef6834dda0d17fe894d62b77894010d4fcf53b5e15f44f357becf303fb5946"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            335,
+            335,
+            503
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "5236b3a244287027ccead3d36aaaf211ec48e9b8ec43a50b3efcb3e71dc314a4"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            335,
+            502,
+            503
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "831e140cde911c450068143971c9d7f5db2f1d4b86a96c9e2fcb65b87fcd8070"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            335,
+            670,
+            503
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "204eddb0e6be6c30bb520ff4d31c1678034128ac53ff598161f92e5913526406"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            335,
+            837,
+            503
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "130942c8bf589c6de71be1547af7e7d0338fcccb49c2061266fa5f4f90624962"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            335,
+            1005,
+            503
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "1163129c9d085271c6136ef02ab8f6d036a29951c37bdf1ddfb31c10512d8ddc"
+        },
+        {
+          "frame": 6,
+          "atlasBox": [
+            1005,
+            335,
+            1172,
+            503
+          ],
+          "clipBox": [
+            1005,
+            0,
+            1172,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "35ba769658636e224a6ff66f419392dff5149ee3336998c5d9de50600bdd7c87"
+        },
+        {
+          "frame": 7,
+          "atlasBox": [
+            1172,
+            335,
+            1340,
+            503
+          ],
+          "clipBox": [
+            1172,
+            0,
+            1340,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "89cd85889c8ccad663f8a99d6edf9ae0c91a50d0dad4c184f4b0d29edb56b57f"
+        }
+      ]
+    },
+    {
+      "clipId": "startle",
+      "sourceRow": 3,
+      "frameCount": 8,
+      "sourceBox": [
+        0,
+        503,
+        1340,
+        670
+      ],
+      "width": 1340,
+      "height": 167,
+      "path": "public/assets/art/v22/a07-clips/startle.webp",
+      "bytes": 231554,
+      "sha256": "c667cabb50e6ee6526a5c0e9cd22d83d362886c92b4d7cc8992f3b5db5c45d3e",
+      "sourceCropRgbaSha256": "0bf0e1ae45be017481b15c9d81fa4ad91a9fc7f01989866bd3cbd611643b84ab",
+      "decodedRgbaSha256": "0bf0e1ae45be017481b15c9d81fa4ad91a9fc7f01989866bd3cbd611643b84ab",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            503,
+            167,
+            670
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "af2db43c5dbc18a24299c5e5ae80d1096b3e075a76b08b860405e35a93b86948"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            503,
+            335,
+            670
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "972ce1b599dda520459db30aea7fe2b1d88916103c274a529b34b04558bffb56"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            503,
+            502,
+            670
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "483bece24f1cf361ad54c9d1357eb89992ecec55e2621dacefe0783901b135b0"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            503,
+            670,
+            670
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "24dcac06507c4099761c21a80ef14c2cc1cbc71e4a337fea177cbfe692561b5a"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            503,
+            837,
+            670
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "2c3c1a852904ac5ac9e2702e9bee08762042392e4bf89c7b54789a606c253017"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            503,
+            1005,
+            670
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "873d79fc56cd289c904c9ee66fefbea0b45136cf7221f1eafa127f3503be329a"
+        },
+        {
+          "frame": 6,
+          "atlasBox": [
+            1005,
+            503,
+            1172,
+            670
+          ],
+          "clipBox": [
+            1005,
+            0,
+            1172,
+            167
+          ],
+          "width": 167,
+          "height": 167,
+          "rgbaSha256": "2980fdac91572e087c220e01c149c2d7803dc406f00ca7307fd68e1144ec392c"
+        },
+        {
+          "frame": 7,
+          "atlasBox": [
+            1172,
+            503,
+            1340,
+            670
+          ],
+          "clipBox": [
+            1172,
+            0,
+            1340,
+            167
+          ],
+          "width": 168,
+          "height": 167,
+          "rgbaSha256": "b6c6e4c182ec680790bbf1c53fe886698a0e61f1a142ec24a7277c9f92b1f5a5"
+        }
+      ]
+    },
+    {
+      "clipId": "sit",
+      "sourceRow": 4,
+      "frameCount": 8,
+      "sourceBox": [
+        0,
+        670,
+        1340,
+        838
+      ],
+      "width": 1340,
+      "height": 168,
+      "path": "public/assets/art/v22/a07-clips/sit.webp",
+      "bytes": 250824,
+      "sha256": "608f9bb2fe3393c54ea0b10db310419920dabfbcbdb988babec68fc2ea730c3c",
+      "sourceCropRgbaSha256": "c1c7d11a57d37e5574382b6127225d5fe6e7b7fb2a4332e6eef54a13f3ced931",
+      "decodedRgbaSha256": "c1c7d11a57d37e5574382b6127225d5fe6e7b7fb2a4332e6eef54a13f3ced931",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            670,
+            167,
+            838
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "02f9187b485d27280087d21908964d7df31842d140ac6df02c3c768841b55cd8"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            670,
+            335,
+            838
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "07a89ab1d89ee364fece9dfc3faa2ff76eb373ad5a128c76e4dcad2f3f8199fa"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            670,
+            502,
+            838
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "846d51c414b0752e5bedcad885eae38dda3e8891fdf5e0e1975bb6129812461c"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            670,
+            670,
+            838
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "a2f63ab78b533e079a1db044bb0a10f8b578ddeca02e2dc953e29f24b66253b9"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            670,
+            837,
+            838
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "5e7e606745dd7b7e5e6a44bd62347d3996f0fc72336b65fd908c9e9f96a5d22f"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            670,
+            1005,
+            838
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "43cb247b14d4fbcf929af720e80c34ea010efc823ff4840a52727a6291a6c0a8"
+        },
+        {
+          "frame": 6,
+          "atlasBox": [
+            1005,
+            670,
+            1172,
+            838
+          ],
+          "clipBox": [
+            1005,
+            0,
+            1172,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "924f16d82bb16ce55a003ed6d813c031502337e00c1f831b9e9963c705f44af2"
+        },
+        {
+          "frame": 7,
+          "atlasBox": [
+            1172,
+            670,
+            1340,
+            838
+          ],
+          "clipBox": [
+            1172,
+            0,
+            1340,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "257152979cc7e4aaa7218126bcf32f256fb23efa24f085a395297115c72ae54f"
+        }
+      ]
+    },
+    {
+      "clipId": "drink",
+      "sourceRow": 5,
+      "frameCount": 6,
+      "sourceBox": [
+        0,
+        838,
+        1340,
+        1006
+      ],
+      "width": 1340,
+      "height": 168,
+      "path": "public/assets/art/v22/a07-clips/drink.webp",
+      "bytes": 177310,
+      "sha256": "1ea64941874b1b4ba491c7edc6e0068ef80485899e525cebc9f952742c5c2e14",
+      "sourceCropRgbaSha256": "68dbb453e7e1128f99b0a323efcb4fbd07e7324a0bd039ddd924a05a15344081",
+      "decodedRgbaSha256": "68dbb453e7e1128f99b0a323efcb4fbd07e7324a0bd039ddd924a05a15344081",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            838,
+            167,
+            1006
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "bfc408645284b439a85a508755b969e4b35bd96e5f34e079ef38216b1ba9b7a2"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            838,
+            335,
+            1006
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "56d7c510c9f471c4465eb4b9b6acc88dfbb19653dae55988f115c93712822c8b"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            838,
+            502,
+            1006
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "860cd709221c8d40653ca5143a3556008ae997b7078a9c998adfe91f49d2293b"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            838,
+            670,
+            1006
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "21397115f0cedd43b65de30b5ee33ef8eaf0ff8a6d1ce631ca2e18a573c217ba"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            838,
+            837,
+            1006
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "b8aa920059418d16f40ce52cebbcf0f641218c6e388f1cf281fa7d6cdf3af487"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            838,
+            1005,
+            1006
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "62ae38ad716c2e523d86339d7861e083c1d5e3445c79154caca48cd888416dba"
+        }
+      ]
+    },
+    {
+      "clipId": "settle",
+      "sourceRow": 6,
+      "frameCount": 6,
+      "sourceBox": [
+        0,
+        1006,
+        1340,
+        1174
+      ],
+      "width": 1340,
+      "height": 168,
+      "path": "public/assets/art/v22/a07-clips/settle.webp",
+      "bytes": 160614,
+      "sha256": "06329bee1ffad155198cc3efba7084ed6ad4c75a8c205e569f767005deb28849",
+      "sourceCropRgbaSha256": "24414b985fcde56198359b0f2315d1d28db3d4cce72861bc397ce5895c5c7284",
+      "decodedRgbaSha256": "24414b985fcde56198359b0f2315d1d28db3d4cce72861bc397ce5895c5c7284",
+      "rgbaExact": true,
+      "alphaExact": true,
+      "frameBoxes": [
+        {
+          "frame": 0,
+          "atlasBox": [
+            0,
+            1006,
+            167,
+            1174
+          ],
+          "clipBox": [
+            0,
+            0,
+            167,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "98e90d999c0c2ea0d3e73ba7c8c4aa472b02a4abacc345cff27381e4a11085af"
+        },
+        {
+          "frame": 1,
+          "atlasBox": [
+            167,
+            1006,
+            335,
+            1174
+          ],
+          "clipBox": [
+            167,
+            0,
+            335,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "efc6290ce07e3af578b66fcd9bd42425a5b6d67db2ad6beb13007356ec6c7898"
+        },
+        {
+          "frame": 2,
+          "atlasBox": [
+            335,
+            1006,
+            502,
+            1174
+          ],
+          "clipBox": [
+            335,
+            0,
+            502,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "e719f54eadf75379727c4117ad2a78b0332d3875bfb99f178e629d2add312903"
+        },
+        {
+          "frame": 3,
+          "atlasBox": [
+            502,
+            1006,
+            670,
+            1174
+          ],
+          "clipBox": [
+            502,
+            0,
+            670,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "92061b8eda9485bec33e5b1a5d71447106147f0130d1c53a73936908ef65524a"
+        },
+        {
+          "frame": 4,
+          "atlasBox": [
+            670,
+            1006,
+            837,
+            1174
+          ],
+          "clipBox": [
+            670,
+            0,
+            837,
+            168
+          ],
+          "width": 167,
+          "height": 168,
+          "rgbaSha256": "926092df557dd8fdb0f9b310e1f9955c39c65ad71c729661408faf75a960f4b5"
+        },
+        {
+          "frame": 5,
+          "atlasBox": [
+            837,
+            1006,
+            1005,
+            1174
+          ],
+          "clipBox": [
+            837,
+            0,
+            1005,
+            168
+          ],
+          "width": 168,
+          "height": 168,
+          "rgbaSha256": "7611126016f245f893157eb2c46751e9353e0429db82780a7c062ebb17e94a60"
+        }
+      ]
+    }
+  ]
+}

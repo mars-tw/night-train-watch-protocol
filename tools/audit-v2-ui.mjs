@@ -41,9 +41,14 @@ async function clickAction(page, action, value) {
   const suffix = value === undefined ? "" : `[data-value="${value}"]`;
   const locator = page.locator(`[data-action="${action}"]${suffix}`).filter({ visible: true }).first();
   await locator.waitFor({ state: "visible", timeout: 10_000 });
+  const clicked = await locator.elementHandle();
   await locator.click();
-  // The controller persists before re-rendering; wait past that async boundary.
-  await page.waitForTimeout(100);
+  // Successful UI actions replace the clicked DOM node after persistence.
+  // Observe that boundary rather than assuming a save finishes in 100ms.
+  await page.waitForFunction(element => !element.isConnected, clicked, { timeout: 10_000 });
+  await clicked.dispose();
+  const destination = { menu: "menu", hub: "hub", settings: "settings", missions: "missions", profile: "missions", carriage: "carriage", route: "route" }[action];
+  if (destination) await page.waitForFunction(screen => document.querySelector("#app").dataset.gameScreen === screen, destination, { timeout: 10_000 });
 }
 
 async function readEnvelope(page) {
@@ -90,7 +95,7 @@ async function measureLayout(page, viewport, textScale) {
     const dock = document.querySelector(".carriage-dock")?.getBoundingClientRect();
     const sceneHeight = Math.max(0, (toast?.top ?? 0) - (selector?.bottom ?? 0));
     const newButtons = [...document.querySelectorAll(
-      ".quest-ribbon, .scene-hotspots button, .crop-scene-plot, .crop-quick-picker button, .carriage-dock button",
+      ".quest-ribbon, .onboarding-cue button, .scene-hotspots button, .crop-scene-plot, .crop-quick-picker button, .carriage-dock button",
     )].filter(visible);
     const hitResults = newButtons.map((button) => {
       const rect = button.getBoundingClientRect();

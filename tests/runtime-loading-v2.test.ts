@@ -7,6 +7,7 @@ import { chromium } from "playwright";
 import { BoundedLoadQueue } from "../src/game/scene-loader";
 import {
   A07_ATLAS,
+  A07_CLIP_ATLASES,
   CARRIAGE_SCENES,
   EFFECT_ATLAS,
   EQUIPMENT_ATLAS,
@@ -243,6 +244,7 @@ describe("v2 lossless runtime loading", () => {
     }
     expect(A07_ATLAS.source).toMatch(/\.webp$/);
     expect(A07_ATLAS.pngSource).toMatch(/\.png$/);
+    expect(Object.values(A07_CLIP_ATLASES).every((clip) => clip.source.endsWith(".webp"))).toBe(true);
     expect(EQUIPMENT_ATLAS.source).toMatch(/\.webp$/);
     expect(EQUIPMENT_ATLAS.pngSource).toMatch(/\.png$/);
     for (const threat of Object.values(THREAT_ATLASES)) {
@@ -254,7 +256,7 @@ describe("v2 lossless runtime loading", () => {
   it("keeps first menu to the sleep room and A-07, then prioritizes only relevant neighbors and threats", () => {
     expect(sceneAssetPriority({ screen: "menu", activeCarriageId: "greenhouse" })).toEqual([
       "v2-carriage-sleep",
-      "a07-atlas",
+      "a07-clip-sleep",
     ]);
     const greenhouse = sceneAssetPriority({ screen: "carriage", activeCarriageId: "greenhouse" });
     expect(greenhouse[0]).toBe("v2-carriage-greenhouse");
@@ -265,7 +267,7 @@ describe("v2 lossless runtime loading", () => {
       "effect-atlas",
       "v2-carriage-workshop",
       "v2-carriage-kitchen",
-      "a07-atlas",
+      "a07-clip-sleep",
     ]);
     const contact = sceneAssetPriority({
       screen: "carriage",
@@ -279,6 +281,18 @@ describe("v2 lossless runtime loading", () => {
       "v2-threat-clinger",
     ]);
     expect(contact.filter((key) => key.startsWith("v2-threat-"))).toHaveLength(2);
+
+    const animated = sceneAssetPriority({
+      screen: "carriage",
+      activeCarriageId: "sleep",
+      a07ClipId: "listen",
+      a07NextClipId: "startle",
+    });
+    expect(animated.filter((key) => key.startsWith("a07-clip-"))).toEqual([
+      "a07-clip-listen",
+      "a07-clip-startle",
+    ]);
+    expect(animated).not.toContain("a07-atlas");
   });
 
   it("maps the v21 prop and natural-effect atlases in authored frame order", () => {

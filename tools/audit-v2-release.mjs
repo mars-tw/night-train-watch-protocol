@@ -28,14 +28,14 @@ try {
     assert(cache.count>20 && cache.missing.length===0, `${viewport.width}: coherent precache has every manifest asset`);
     await page.locator('[data-action="new-game"][data-value="R01"]').click();
     await page.waitForSelector('[data-action="select-carriage"]');
-    await page.locator('[data-action="select-carriage"][data-value="sleep"]').click();
+    await page.locator('.carriage-selector [data-action="select-carriage"][data-value="sleep"]').click();
     const save = await page.evaluate(() => JSON.parse(localStorage.getItem("ntwp.v2.current")));
     assert(save.run.schemaVersion===6 && save.run.runId && save.profile.profileId, `${viewport.width}: a real new game saves the complete v6 envelope`);
     await context.setOffline(true);
     await page.reload({waitUntil:"domcontentloaded"});
     await page.locator('[data-action="continue"]').click();
     await page.waitForSelector('[data-action="select-carriage"]');
-    await page.locator('[data-action="select-carriage"][data-value="sleep"]').click();
+    await page.locator('.carriage-selector [data-action="select-carriage"][data-value="sleep"]').click();
     await page.waitForFunction(() => [...document.images].filter(i=>i.offsetParent!==null).every(i=>i.complete&&i.naturalWidth>0));
     const offline = await page.evaluate(() => ({
       images:[...document.images].filter(i=>i.offsetParent!==null).every(i=>i.complete&&i.naturalWidth>0),

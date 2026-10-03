@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const base = process.env.GAME_URL ?? "http://127.0.0.1:4177";
-const output = "docs/evidence/v21";
+const output = process.env.EVIDENCE_DIR ?? "docs/evidence/v21";
 await mkdir(`${output}/screenshots`, { recursive: true });
 const { version } = JSON.parse(await readFile("package.json", "utf8"));
 const browser = await chromium.launch({ headless: true });
@@ -32,7 +32,7 @@ try {
     await page.locator('[data-action="new-game"][data-value="R01"]').click();
     await page.waitForSelector('[data-action="select-carriage"]');
     for(const carriage of ["sleep","defense","workshop","greenhouse","kitchen"]){
-      await page.locator(`[data-action="select-carriage"][data-value="${carriage}"]`).click();
+      await page.locator(`.carriage-selector [data-action="select-carriage"][data-value="${carriage}"]`).click();
       await page.waitForTimeout(450);
       const path=`${output}/screenshots/${viewport.width}-${carriage}.png`;
       await page.screenshot({path});report.screenshots.push(path);

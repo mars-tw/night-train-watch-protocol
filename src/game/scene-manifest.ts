@@ -137,6 +137,29 @@ export const A07_ATLAS = {
 export const A07_FRAME_CELLS: readonly { row: number; column: number }[] = A07_ATLAS.occupancyByRow
   .flatMap((count, row) => Array.from({ length: count }, (_, column) => ({ row, column })));
 
+export interface A07ClipSourceManifest extends A07ClipManifest {
+  source: string;
+  sourceRow: number;
+  width: 1340;
+  height: number;
+  columns: 8;
+}
+
+export const A07_CLIP_ATLASES: Readonly<Record<A07ClipId, A07ClipSourceManifest>> = {
+  sleep: { ...A07_ATLAS.clips.sleep, source: "./assets/art/v22/a07-clips/sleep.webp", sourceRow: 0, width: 1340, height: 167, columns: 8 },
+  turn: { ...A07_ATLAS.clips.turn, source: "./assets/art/v22/a07-clips/turn.webp", sourceRow: 1, width: 1340, height: 168, columns: 8 },
+  listen: { ...A07_ATLAS.clips.listen, source: "./assets/art/v22/a07-clips/listen.webp", sourceRow: 2, width: 1340, height: 168, columns: 8 },
+  startle: { ...A07_ATLAS.clips.startle, source: "./assets/art/v22/a07-clips/startle.webp", sourceRow: 3, width: 1340, height: 167, columns: 8 },
+  sit: { ...A07_ATLAS.clips.sit, source: "./assets/art/v22/a07-clips/sit.webp", sourceRow: 4, width: 1340, height: 168, columns: 8 },
+  drink: { ...A07_ATLAS.clips.drink, source: "./assets/art/v22/a07-clips/drink.webp", sourceRow: 5, width: 1340, height: 168, columns: 8 },
+  settle: { ...A07_ATLAS.clips.settle, source: "./assets/art/v22/a07-clips/settle.webp", sourceRow: 6, width: 1340, height: 168, columns: 8 },
+};
+
+export function nextA07ClipId(clipId: A07ClipId): A07ClipId {
+  const order: readonly A07ClipId[] = ["sleep", "turn", "listen", "startle", "sit", "drink", "settle"];
+  return order[(order.indexOf(clipId) + 1) % order.length]!;
+}
+
 export interface FacilityVisual {
   facilityId: string;
   upgradeId: string;
@@ -289,7 +312,7 @@ export const THREAT_ATLASES: Readonly<Record<ThreatFamilyId, ThreatAtlasManifest
 export type SceneAssetKey =
   | `v2-carriage-${CarriageId}`
   | `v2-threat-${ThreatFamilyId}`
-  | "a07-atlas"
+  | `a07-clip-${A07ClipId}`
   | "equipment-atlas"
   | "prop-atlas"
   | "effect-atlas";
@@ -301,10 +324,12 @@ export interface SceneAssetPriorityInput {
   activeCarriageId: CarriageId;
   activeThreatDefinitionId?: string;
   retreatFamily?: ThreatFamilyId;
+  a07ClipId?: A07ClipId;
+  a07NextClipId?: A07ClipId;
 }
 
 export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKey[] {
-  if (input.screen === "menu") return ["v2-carriage-sleep", "a07-atlas"];
+  if (input.screen === "menu") return ["v2-carriage-sleep", "a07-clip-sleep"];
   const carriageId = input.screen === "result" ? "sleep" : input.activeCarriageId;
   const result: SceneAssetKey[] = [`v2-carriage-${carriageId}`];
   const activeFamily = input.activeThreatDefinitionId
@@ -314,14 +339,16 @@ export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKe
   if (input.retreatFamily && input.retreatFamily !== activeFamily) {
     result.push(`v2-threat-${input.retreatFamily}`);
   }
-  if (carriageId === "sleep") result.push("a07-atlas");
+  const currentClip = input.a07ClipId ?? "sleep";
+  if (carriageId === "sleep") result.push(`a07-clip-${currentClip}`);
   result.push("prop-atlas", "equipment-atlas", "effect-atlas");
   const index = CARRIAGE_LOAD_ORDER.indexOf(carriageId);
   for (const neighborIndex of [index - 1, index + 1]) {
     const neighbor = CARRIAGE_LOAD_ORDER[neighborIndex];
     if (neighbor) result.push(`v2-carriage-${neighbor}`);
   }
-  if (!result.includes("a07-atlas")) result.push("a07-atlas");
+  if (!result.includes(`a07-clip-${currentClip}`)) result.push(`a07-clip-${currentClip}`);
+  if (input.a07NextClipId && input.a07NextClipId !== currentClip) result.push(`a07-clip-${input.a07NextClipId}`);
   return [...new Set(result)];
 }
 
@@ -476,6 +503,11 @@ export function a07PlaybackForRun(run: RunState): A07Playback {
     return { clipId: "turn", animationKey: `turn:${run.day}:${run.phase}` };
   }
   return { clipId: "sleep", animationKey: `sleep:${run.day}:${run.phase}` };
+}
+
+export function a07PlaybackForScene(screen: ScreenId, run?: RunState): A07Playback {
+  if (screen === "menu" || !run) return { clipId: "sleep", animationKey: "menu:sleep" };
+  return a07PlaybackForRun(run);
 }
 
 export function a07ClipForRun(run: RunState): A07ClipId {
