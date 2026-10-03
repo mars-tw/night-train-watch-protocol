@@ -63,6 +63,7 @@ import {
 import { escapeText, formatSigned } from "./dom";
 import { iconMarkup, icons } from "./icons";
 import { CARRIAGE_SCENES } from "../game/scene-manifest";
+import { deriveOnboardingCue } from "./onboarding";
 
 type ActionHandler = (action: string, value?: string) => void;
 
@@ -964,14 +965,24 @@ function missionsScreen(state: AppState): string {
   </section>`;
 }
 
+function renderOnboardingCue(state: AppState): string {
+  const cue = deriveOnboardingCue(state);
+  if (!cue) return "";
+  const prep = cue.showMissions ?? state.run?.phase !== "night";
+  return `<aside class="onboarding-cue ${prep ? "is-prep-cue" : "is-night-cue"}" aria-label="新玩家下一步" aria-description="${escapeText(cue.detail)}"><span>${escapeText(cue.eyebrow)}</span><strong>${escapeText(cue.title)}</strong><small>${escapeText(cue.detail)}</small><div class="onboarding-cue__actions"><button type="button" data-action="${escapeText(cue.action)}" ${cue.value ? `data-value="${escapeText(cue.value)}"` : ""}>${escapeText(cue.label)}<b aria-hidden="true">→</b></button>${prep ? `<button class="onboarding-cue__missions" type="button" data-action="missions" aria-label="打開任務日誌">${iconMarkup(icons.quest, "任務")}<b>任務</b></button>` : ""}</div></aside>`;
+}
+
 function trackedQuestRibbon(state: AppState): string {
   const run = state.run;
   if (!run) return "";
   const tracked = listRunQuests(run, state.profile).filter(
     (quest) => quest.tracked,
   );
-  if (!tracked.length)
+  if (!tracked.length) {
+    const cue = renderOnboardingCue(state);
+    if (cue) return cue;
     return `<button class="quest-ribbon is-empty" data-action="missions"><span>任務</span><strong>釘選今日目標</strong></button>`;
+  }
   return `<button class="quest-ribbon" data-action="missions"><span>${tracked.length}/2 任務</span><strong>${escapeText(tracked[0]!.definition.title)}</strong><small>${escapeText(questNextStep(tracked[0]!))}</small></button>`;
 }
 
@@ -1937,7 +1948,7 @@ function carriageScreen(state: AppState): string {
     ${compactHeader(run, night ? `夜間守望・${activeCarriage.name}` : activeCarriage.name, night ? `${routeLabel(run.routeId)}・22:${String(34 + run.day * 2).padStart(2, "0")}・耗電 ${run.nightPowerDemand} E` : `${greenRoute ? "綠潮線・循環檢疫" : frostRoute ? "白霜線" : activeCarriage.role}・剩餘 ${run.actionPoints} AP`)}
     ${night ? `<button class="speed-control" type="button" data-action="pause" ${state.settings.noCountdown ? "disabled" : ""} aria-label="${state.settings.noCountdown ? "設定已停用守夜倒數" : state.nightPaused ? "繼續守夜倒數" : "暫停守夜倒數"}"><span aria-hidden="true">${state.settings.noCountdown ? "∞" : iconMarkup(state.nightPaused ? icons.play : icons.pause)}</span><small>${state.settings.noCountdown ? "無倒數" : state.nightPaused ? "繼續" : "暫停"}</small></button>` : `<div class="prep-ap-dial" style="--ap:${Math.min(1, run.actionPoints / 5)}turn" aria-label="整備階段，剩餘 ${run.actionPoints} 行動點"><strong>${run.actionPoints}</strong><span>AP</span><small>整備</small></div>`}
     ${environmentPanel(run)}${survivorPanel(run)}${!night ? carriageSelector(state) : ""}
-    ${!night ? trackedQuestRibbon(state) : ""}
+    ${night ? renderOnboardingCue(state) : trackedQuestRibbon(state)}
     ${!night && !run.flags.includes("carriage-nav-seen") ? `<p class="carriage-swipe-hint" aria-hidden="true"><b>←</b> 滑動車廂 <b>→</b></p>` : ""}
     ${decorationLayer(state, run, night)}
     ${frostRoute ? frostBranchOverlay(run, state.activeCarriageId) : ""}

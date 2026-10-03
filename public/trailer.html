@@ -73,6 +73,9 @@
       }
 
       .brand {
+        display:grid;
+        min-height:44px;
+        align-content:center;
         text-decoration: none;
       }
 
@@ -91,6 +94,9 @@
       }
 
       .repo-link {
+        display:inline-flex;
+        min-height:44px;
+        align-items:center;
         color: var(--mist);
         font-size: 0.86rem;
         text-underline-offset: 0.3em;
@@ -126,6 +132,18 @@
         background: #080b0d;
         object-fit: contain;
       }
+
+      .media-toolbar { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+      .format-picker { display:flex; gap:4px; }
+      .format-picker button,
+      .chapter-picker { min-height:48px; border:1px solid var(--line); color:var(--paper); background:#22302d; font:inherit; font-size:0.86rem; border-radius:6px; }
+      .format-picker button { min-width:54px; padding:8px; cursor:pointer; }
+      .format-picker button[aria-pressed="true"] { color:var(--ink); background:var(--paper); border-color:var(--paper); }
+      .chapter-picker { min-width:0; flex:1; padding:8px; }
+      .chapter-picker option { color:var(--paper); background:var(--night); }
+      .media-toolbar :focus-visible { outline:3px solid #f1c27d; outline-offset:2px; }
+      .screen[data-format="portrait"] video { width:auto; height:max(240px,calc(100svh - 320px)); max-height:640px; max-width:100%; aspect-ratio:9 / 16; margin-inline:auto; }
+      .player-status { min-height:1.1em; margin:6px 0 0; color:var(--mist); font-size:0.78rem; }
 
       .platform-label {
         display: flex;
@@ -218,6 +236,9 @@
       }
 
       .download a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
         text-underline-offset: 0.28em;
       }
 
@@ -316,6 +337,25 @@
           transition-duration: 0.01ms !important;
         }
       }
+
+      @media (max-width:760px) {
+        main { padding:12px 0; gap:8px; }
+        .media-toolbar { margin-bottom:8px; }
+        .site-header,
+        .site-header .page-shell { min-height:54px; }
+        .screen[data-format="portrait"] video { height:max(180px,calc(100svh - 372px)); }
+        .platform-label { margin-top:6px; font-size:0.65rem; letter-spacing:0.03em; }
+        .intro { padding:0; }
+        .intro .eyebrow,
+        .intro .lede,
+        .intro h1 { display:none; }
+        h1 { font-size:1.2rem; line-height:1.2; }
+        .actions { margin-top:8px; gap:8px; }
+        .action { min-height:48px; padding:9px 12px; }
+        .download { margin:6px 0 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+        .download a { display:inline-flex; min-height:44px; align-items:center; }
+        .player-status:empty { min-height:0; margin:0; }
+      }
     </style>
   </head>
   <body>
@@ -333,6 +373,21 @@
 
     <main class="page-shell">
       <section class="screen" aria-label="遊戲宣傳片">
+        <div class="media-toolbar">
+          <div class="format-picker" role="group" aria-label="影片畫面方向">
+            <button type="button" data-format="landscape" aria-pressed="true">橫式</button>
+            <button type="button" data-format="portrait" aria-pressed="false">直式</button>
+          </div>
+          <select class="chapter-picker" aria-label="選擇要看的玩法片段">
+            <option value="">快速看玩法</option>
+            <option value="0">開場與車廂</option>
+            <option value="10.179">五廂巡覽</option>
+            <option value="23.352">料理熱食</option>
+            <option value="27.797">任務成果</option>
+            <option value="34.397">守夜反制</option>
+            <option value="42.266">停站探索</option>
+          </select>
+        </div>
         <video
           controls
           playsinline
@@ -350,7 +405,8 @@
           />
           你的瀏覽器無法播放這段影片。你可以直接下載 MP4 觀看。
         </video>
-        <p class="platform-label">v2.1 gameplay film · 16:9</p>
+        <p class="player-status" role="status" aria-live="polite"></p>
+        <p class="platform-label">v2.1 實際遊玩錄影 · 可切換畫面方向</p>
       </section>
 
       <section class="intro">
@@ -373,5 +429,54 @@
         </p>
       </section>
     </main>
+    <script type="module">
+      const player=document.querySelector('video');
+      const source=player.querySelector('source');
+      const screen=document.querySelector('.screen');
+      const status=document.querySelector('.player-status');
+      const formats={landscape:{src:'./assets/video/night-train-promo-v211.mp4',poster:'./assets/video/night-train-promo-v211-cover.jpg'},portrait:{src:'./assets/video/night-train-promo-v211-portrait.mp4',poster:'./assets/video/night-train-promo-v211-portrait-cover.jpg'}};
+      let selected='landscape';
+      let revision=0;
+      let desiredTime=0;
+      let desiredPlaying=false;
+      let metadataHandler;
+      const isFormat=value=>value==='landscape'||value==='portrait';
+      const startPlayback=()=>player.play().catch(()=>{status.textContent='按播放鍵觀看這個片段。';});
+      function selectFormat(format,initial=false){
+        if(!isFormat(format))return;
+        if(format===selected&&!initial)return;
+        desiredPlaying=initial?false:player.readyState>=1?!player.paused:desiredPlaying;
+        desiredTime=initial?0:player.readyState>=1?player.currentTime||0:desiredTime;
+        const current=++revision;
+        selected=format;
+        screen.dataset.format=format;
+        document.querySelectorAll('.format-picker button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.format===format)));
+        player.poster=formats[format].poster;
+        source.src=formats[format].src;
+        if(metadataHandler)player.removeEventListener('loadedmetadata',metadataHandler);
+        metadataHandler=()=>{
+          if(current!==revision)return;
+          player.currentTime=Math.min(desiredTime,Math.max(0,player.duration-0.1));
+          status.textContent='';
+          if(desiredPlaying)startPlayback();
+        };
+        player.addEventListener('loadedmetadata',metadataHandler,{once:true});
+        player.load();
+        try{localStorage.setItem('ntwp.trailer.format',format);}catch{}
+      }
+      let preferred;
+      try{preferred=localStorage.getItem('ntwp.trailer.format');}catch{}
+      selectFormat(isFormat(preferred)?preferred:matchMedia('(max-width:600px)').matches?'portrait':'landscape',true);
+      document.querySelectorAll('.format-picker button').forEach(button=>button.addEventListener('click',()=>selectFormat(button.dataset.format)));
+      document.querySelector('.chapter-picker').addEventListener('change',event=>{
+        if(event.target.value==='')return;
+        desiredTime=Number(event.target.value);
+        desiredPlaying=true;
+        if(player.readyState>=1){player.currentTime=desiredTime;startPlayback();}
+        else player.addEventListener('loadedmetadata',()=>{player.currentTime=desiredTime;startPlayback();},{once:true});
+        status.textContent='';
+      });
+      player.addEventListener('error',()=>{status.textContent='影片暫時無法載入，可以使用下方下載連結。';});
+    </script>
   </body>
 </html>

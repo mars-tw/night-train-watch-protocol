@@ -1,0 +1,480 @@
+{
+  "status": "PASS",
+  "assertions": [
+    "320: chooses portrait for fresh viewer",
+    "320: format switch keeps playback position and pause",
+    "320: immediate chapter-to-format switch preserves playing state and position",
+    "320: every custom control has 44px hit area and is reachable without scrolling",
+    "320: no horizontal overflow",
+    "320: ignores malformed saved preference",
+    "360: chooses portrait for fresh viewer",
+    "360: format switch keeps playback position and pause",
+    "360: immediate chapter-to-format switch preserves playing state and position",
+    "360: every custom control has 44px hit area and is reachable without scrolling",
+    "360: no horizontal overflow",
+    "360: ignores malformed saved preference",
+    "390: chooses portrait for fresh viewer",
+    "390: format switch keeps playback position and pause",
+    "390: immediate chapter-to-format switch preserves playing state and position",
+    "390: every custom control has 44px hit area and is reachable without scrolling",
+    "390: no horizontal overflow",
+    "390: ignores malformed saved preference",
+    "1280: chooses landscape for fresh viewer",
+    "1280: format switch keeps playback position and pause",
+    "1280: immediate chapter-to-format switch preserves playing state and position",
+    "1280: every custom control has 44px hit area and is reachable without scrolling",
+    "1280: no horizontal overflow",
+    "1280: ignores malformed saved preference",
+    "1366: chooses landscape for fresh viewer",
+    "1366: format switch keeps playback position and pause",
+    "1366: immediate chapter-to-format switch preserves playing state and position",
+    "1366: every custom control has 44px hit area and is reachable without scrolling",
+    "1366: no horizontal overflow",
+    "1366: ignores malformed saved preference",
+    "no trailer JavaScript runtime errors"
+  ],
+  "failures": [],
+  "errors": [],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "initial": {
+        "format": "portrait",
+        "src": "http://127.0.0.1:4177/assets/video/night-train-promo-v211-portrait.mp4"
+      },
+      "before": 34.397,
+      "after": {
+        "time": 34.397,
+        "paused": true
+      },
+      "playingSwitch": {
+        "time": 10.183421,
+        "paused": false
+      },
+      "layout": {
+        "height": 568,
+        "documentWidth": 320,
+        "controls": [
+          {
+            "label": "夜行列車：守夜協定\n          Night Train Watch Protocol",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "開源專案",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "橫式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "快速看玩法\n            開場與車廂\n            五廂巡覽\n            料理熱食\n            任務成果\n            守夜反制\n            停站探索",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直接遊玩",
+            "height": 48,
+            "top": 354,
+            "bottom": 402,
+            "reachable": true
+          },
+          {
+            "label": "查看 GitHub",
+            "height": 48,
+            "top": 354,
+            "bottom": 402,
+            "reachable": true
+          },
+          {
+            "label": "下載 MP4",
+            "height": 44,
+            "top": 408,
+            "bottom": 452,
+            "reachable": true
+          },
+          {
+            "label": "手機直式版",
+            "height": 44,
+            "top": 408,
+            "bottom": 452,
+            "reachable": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "initial": {
+        "format": "portrait",
+        "src": "http://127.0.0.1:4177/assets/video/night-train-promo-v211-portrait.mp4"
+      },
+      "before": 34.397,
+      "after": {
+        "time": 34.397,
+        "paused": true
+      },
+      "playingSwitch": {
+        "time": 10.179,
+        "paused": false
+      },
+      "layout": {
+        "height": 640,
+        "documentWidth": 360,
+        "controls": [
+          {
+            "label": "夜行列車：守夜協定\n          Night Train Watch Protocol",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "開源專案",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "橫式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "快速看玩法\n            開場與車廂\n            五廂巡覽\n            料理熱食\n            任務成果\n            守夜反制\n            停站探索",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直接遊玩",
+            "height": 48,
+            "top": 426,
+            "bottom": 474,
+            "reachable": true
+          },
+          {
+            "label": "查看 GitHub",
+            "height": 48,
+            "top": 426,
+            "bottom": 474,
+            "reachable": true
+          },
+          {
+            "label": "下載 MP4",
+            "height": 44,
+            "top": 480,
+            "bottom": 524,
+            "reachable": true
+          },
+          {
+            "label": "手機直式版",
+            "height": 44,
+            "top": 480,
+            "bottom": 524,
+            "reachable": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "initial": {
+        "format": "portrait",
+        "src": "http://127.0.0.1:4177/assets/video/night-train-promo-v211-portrait.mp4"
+      },
+      "before": 34.397,
+      "after": {
+        "time": 34.397,
+        "paused": true
+      },
+      "playingSwitch": {
+        "time": 10.179,
+        "paused": false
+      },
+      "layout": {
+        "height": 844,
+        "documentWidth": 390,
+        "controls": [
+          {
+            "label": "夜行列車：守夜協定\n          Night Train Watch Protocol",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "開源專案",
+            "height": 44,
+            "top": 5,
+            "bottom": 49,
+            "reachable": true
+          },
+          {
+            "label": "橫式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直式",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "快速看玩法\n            開場與車廂\n            五廂巡覽\n            料理熱食\n            任務成果\n            守夜反制\n            停站探索",
+            "height": 48,
+            "top": 67,
+            "bottom": 115,
+            "reachable": true
+          },
+          {
+            "label": "直接遊玩",
+            "height": 48,
+            "top": 630,
+            "bottom": 678,
+            "reachable": true
+          },
+          {
+            "label": "查看 GitHub",
+            "height": 48,
+            "top": 630,
+            "bottom": 678,
+            "reachable": true
+          },
+          {
+            "label": "下載 MP4",
+            "height": 44,
+            "top": 684,
+            "bottom": 728,
+            "reachable": true
+          },
+          {
+            "label": "手機直式版",
+            "height": 44,
+            "top": 684,
+            "bottom": 728,
+            "reachable": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "initial": {
+        "format": "landscape",
+        "src": "http://127.0.0.1:4177/assets/video/night-train-promo-v211.mp4"
+      },
+      "before": 34.397,
+      "after": {
+        "time": 34.397,
+        "paused": true
+      },
+      "playingSwitch": {
+        "time": 10.180944,
+        "paused": false
+      },
+      "layout": {
+        "height": 640,
+        "documentWidth": 1280,
+        "controls": [
+          {
+            "label": "夜行列車：守夜協定\n          Night Train Watch Protocol",
+            "height": 44,
+            "top": 14,
+            "bottom": 58,
+            "reachable": true
+          },
+          {
+            "label": "開源專案",
+            "height": 44,
+            "top": 14,
+            "bottom": 58,
+            "reachable": true
+          },
+          {
+            "label": "橫式",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "直式",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "快速看玩法\n            開場與車廂\n            五廂巡覽\n            料理熱食\n            任務成果\n            守夜反制\n            停站探索",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "直接遊玩",
+            "height": 48,
+            "top": 437.078125,
+            "bottom": 485.078125,
+            "reachable": true
+          },
+          {
+            "label": "查看 GitHub",
+            "height": 48,
+            "top": 437.078125,
+            "bottom": 485.078125,
+            "reachable": true
+          },
+          {
+            "label": "下載 MP4",
+            "height": 44,
+            "top": 499.078125,
+            "bottom": 543.078125,
+            "reachable": true
+          },
+          {
+            "label": "手機直式版",
+            "height": 44,
+            "top": 499.078125,
+            "bottom": 543.078125,
+            "reachable": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "initial": {
+        "format": "landscape",
+        "src": "http://127.0.0.1:4177/assets/video/night-train-promo-v211.mp4"
+      },
+      "before": 34.397,
+      "after": {
+        "time": 34.397,
+        "paused": true
+      },
+      "playingSwitch": {
+        "time": 10.179,
+        "paused": false
+      },
+      "layout": {
+        "height": 600,
+        "documentWidth": 1366,
+        "controls": [
+          {
+            "label": "夜行列車：守夜協定\n          Night Train Watch Protocol",
+            "height": 44,
+            "top": 14,
+            "bottom": 58,
+            "reachable": true
+          },
+          {
+            "label": "開源專案",
+            "height": 44,
+            "top": 14,
+            "bottom": 58,
+            "reachable": true
+          },
+          {
+            "label": "橫式",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "直式",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "快速看玩法\n            開場與車廂\n            五廂巡覽\n            料理熱食\n            任務成果\n            守夜反制\n            停站探索",
+            "height": 48,
+            "top": 95,
+            "bottom": 143,
+            "reachable": true
+          },
+          {
+            "label": "直接遊玩",
+            "height": 48,
+            "top": 439.765625,
+            "bottom": 487.765625,
+            "reachable": true
+          },
+          {
+            "label": "查看 GitHub",
+            "height": 48,
+            "top": 439.765625,
+            "bottom": 487.765625,
+            "reachable": true
+          },
+          {
+            "label": "下載 MP4",
+            "height": 44,
+            "top": 501.765625,
+            "bottom": 545.765625,
+            "reachable": true
+          },
+          {
+            "label": "手機直式版",
+            "height": 44,
+            "top": 501.765625,
+            "bottom": 545.765625,
+            "reachable": true
+          }
+        ]
+      }
+    }
+  ]
+}

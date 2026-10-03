@@ -18,7 +18,8 @@ const files = (await collect(root)).filter(file =>
   ["index.html", "manifest.webmanifest"].includes(file)
   || /^icons\/.*\.png$/.test(file)
   || /^assets\/[^/]+\.(js|css)$/.test(file)
-  || /^assets\/art\/v2\/(characters|equipment|threats)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v2\/(equipment|threats)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v22\/a07-clips\/(sleep|turn|listen|startle|sit|drink|settle)\.webp$/.test(file)
   || /^assets\/art\/v21\/(carriages|ui|props|effects)\/.*\.webp$/.test(file)
   || /^assets\/art\/v21\/ui\/app-icon-(192|512)\.png$/.test(file)
   || /^assets\/art\/(crops|decor)\/.*\.png$/.test(file),

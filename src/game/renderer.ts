@@ -2,7 +2,7 @@ import type { AppState, CarriageId, ThreatContact } from "./types";
 import { BoundedLoadQueue } from "./scene-loader";
 import {
   A07_ATLAS,
-  A07_FRAME_CELLS,
+  A07_CLIP_ATLASES,
   CARRIAGE_SCENES,
   COSMETIC_VISUALS,
   EFFECT_ATLAS,
@@ -11,8 +11,9 @@ import {
   SCENE_STATE_EQUIPMENT,
   THREAT_ATLASES,
   THREAT_RETREAT_DURATION_MS,
-  a07PlaybackForRun,
+  a07PlaybackForScene,
   installedFacilityVisuals,
+  nextA07ClipId,
   sceneVisualState,
   sceneAssetPriority,
   threatFamilyForId,
@@ -26,6 +27,7 @@ import {
   type ThreatRetreatVisual,
   type ThreatVisualLifecycle,
   type SceneAssetKey,
+  type A07ClipId,
 } from "./scene-manifest";
 
 type CarriageArtKey = `v2-carriage-${CarriageId}`;
@@ -38,7 +40,13 @@ const ART_SOURCES: Record<ArtKey, string> = {
   "v2-carriage-workshop": CARRIAGE_SCENES.workshop.source,
   "v2-carriage-greenhouse": CARRIAGE_SCENES.greenhouse.source,
   "v2-carriage-kitchen": CARRIAGE_SCENES.kitchen.source,
-  "a07-atlas": A07_ATLAS.source,
+  "a07-clip-sleep": A07_CLIP_ATLASES.sleep.source,
+  "a07-clip-turn": A07_CLIP_ATLASES.turn.source,
+  "a07-clip-listen": A07_CLIP_ATLASES.listen.source,
+  "a07-clip-startle": A07_CLIP_ATLASES.startle.source,
+  "a07-clip-sit": A07_CLIP_ATLASES.sit.source,
+  "a07-clip-drink": A07_CLIP_ATLASES.drink.source,
+  "a07-clip-settle": A07_CLIP_ATLASES.settle.source,
   "equipment-atlas": EQUIPMENT_ATLAS.source,
   "prop-atlas": PROP_ATLAS.source,
   "effect-atlas": EFFECT_ATLAS.source,
@@ -198,11 +206,14 @@ export class SceneRenderer {
   }
 
   private updateAssetPriority(state: AppState | null): void {
+    const a07ClipId = a07PlaybackForScene(state?.screen ?? "menu", state?.run ?? undefined).clipId;
     const priority = sceneAssetPriority({
       screen: state?.screen ?? "menu",
       activeCarriageId: state?.activeCarriageId ?? "sleep",
       activeThreatDefinitionId: state?.run?.activeContact?.definitionId,
       retreatFamily: this.threatVisualLifecycle.retreat?.family,
+      a07ClipId,
+      a07NextClipId: nextA07ClipId(a07ClipId),
     });
     const signature = priority.join("|");
     this.pinnedAssets = new Set(priority);
@@ -412,14 +423,12 @@ export class SceneRenderer {
   }
 
   private drawA07Passenger(time: number, reducedMotion: boolean): void {
-    const run = this.state?.run;
-    const image = this.touchImage("a07-atlas");
-    if (!image) return;
-    const playback = run
-      ? a07PlaybackForRun(run)
-      : { clipId: "sleep" as const, animationKey: "menu:sleep" };
+    const playback = a07PlaybackForScene(this.state?.screen ?? "menu", this.state?.run ?? undefined);
     const clipId = playback.clipId;
-    const clip = A07_ATLAS.clips[clipId];
+    const clip = A07_CLIP_ATLASES[clipId];
+    const key: `a07-clip-${A07ClipId}` = `a07-clip-${clipId}`;
+    const image = this.touchImage(key);
+    if (!image) return;
     if (playback.animationKey !== this.a07AnimationKey) {
       this.a07AnimationKey = playback.animationKey;
       this.a07AnimationStartedAt = time;
@@ -433,13 +442,10 @@ export class SceneRenderer {
         : clip.loop
           ? elapsedFrame % clip.frames
           : Math.min(clip.frames - 1, elapsedFrame);
-    const frameIndex = clip.start + offset;
-    const cell = A07_FRAME_CELLS[frameIndex];
-    if (!cell) return;
-    const sourceX = Math.floor(cell.column * image.naturalWidth / A07_ATLAS.columns);
-    const sourceRight = Math.floor((cell.column + 1) * image.naturalWidth / A07_ATLAS.columns);
-    const sourceY = Math.floor(cell.row * image.naturalHeight / A07_ATLAS.rows);
-    const sourceBottom = Math.floor((cell.row + 1) * image.naturalHeight / A07_ATLAS.rows);
+    const sourceX = Math.floor(offset * A07_ATLAS.width / A07_ATLAS.columns);
+    const sourceRight = Math.floor((offset + 1) * A07_ATLAS.width / A07_ATLAS.columns);
+    const sourceY = 0;
+    const sourceBottom = image.naturalHeight;
     const destination = A07_ATLAS.destination;
     this.context.save();
     this.context.drawImage(

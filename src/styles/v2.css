@@ -234,6 +234,57 @@
 .quest-ribbon small { color: var(--blanket-cream); font-size: 8px; }
 .quest-ribbon.is-empty { width: 134px; }
 
+.screen--carriage .onboarding-cue {
+  position: absolute;
+  z-index: 44;
+  top: 194px;
+  left: 50%;
+  display: grid;
+  width: min(58%, 228px);
+  gap: 2px;
+  padding: 7px 8px;
+  border: 1px solid rgba(242, 189, 103, 0.78);
+  border-left: 4px solid var(--lamp-amber);
+  border-radius: 6px 12px 12px 6px;
+  background: rgba(35, 29, 25, 0.94);
+  color: var(--paper-warm);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+  transform: translateX(-50%);
+}
+
+.onboarding-cue > span { color: var(--lamp-amber); font: 750 9px/1.2 var(--font-data); letter-spacing: 0.06em; }
+.onboarding-cue > strong { font-size: 12px; line-height: 1.25; }
+.onboarding-cue > small { color: var(--blanket-cream); font-size: 9px; line-height: 1.35; }
+.onboarding-cue__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 5px;
+  margin-top: 2px;
+}
+.onboarding-cue.is-night-cue .onboarding-cue__actions { grid-template-columns: 1fr; }
+.onboarding-cue__actions > button {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border: 1px solid var(--lamp-amber);
+  border-radius: 8px;
+  background: rgba(242, 189, 103, 0.14);
+  color: var(--paper-warm);
+  font-weight: 800;
+}
+.onboarding-cue__actions > button b { color: var(--lamp-amber); font-size: 16px; }
+.onboarding-cue__actions > .onboarding-cue__missions {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 2px;
+  padding-inline: 5px;
+  border-color: rgba(125, 146, 151, 0.68);
+  background: rgba(20, 27, 30, 0.72);
+}
+.onboarding-cue__missions .ui-icon { width: 24px; height: 24px; border-radius: 6px; }
+.onboarding-cue__actions > .onboarding-cue__missions b { color: var(--blanket-cream); font-size: 9px; }
 /* Mission ledger */
 .screen--missions {
   background:
@@ -697,6 +748,15 @@
   .screen--carriage .carriage-dock button { min-height: 54px; }
   .screen--carriage.is-prep .toast-message { bottom: 70px; min-height: 28px; padding-block: 4px; }
   .screen--carriage .quest-ribbon { top: 156px; }
+  .screen--carriage .onboarding-cue { top: 156px; width: min(66%, 228px); padding: 6px 7px; }
+  .screen--carriage .onboarding-cue.is-prep-cue > small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .carriage-swipe-hint { top: 156px; }
   .journal-mode-tabs { top: 98px; }
   .mission-book,
@@ -723,6 +783,7 @@
   .screen--carriage .carriage-dock button { min-height: 52px; }
   .screen--carriage.is-prep .toast-message { bottom: 62px; min-height: 28px; padding-block: 4px; }
   .screen--carriage .quest-ribbon,
+  .screen--carriage .onboarding-cue,
   .carriage-swipe-hint { top: 152px; }
 }
 

@@ -4,6 +4,7 @@ const VERSION = "__NTWP_VERSION__";
 const CACHE = `night-train-v2-${BUILD}`;
 const SCOPE = self.registration.scope;
 const localUrl = (path) => new URL(path, SCOPE).href;
+const READY_MARKER = localUrl(".ntwp-offline-ready");
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
@@ -16,6 +17,8 @@ self.addEventListener("install", (event) => {
     const cache = await caches.open(CACHE);
     // addAll is atomic: a missing asset does not install a half-updated game.
     await cache.addAll(urls.map(url => new Request(url, { cache: "reload" })));
+    // This marker is written only after the complete atomic batch succeeds.
+    await cache.put(READY_MARKER, new Response(BUILD));
     await self.skipWaiting();
   })());
 });
@@ -59,4 +62,13 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === "NTWP_BUILD") event.source?.postMessage({ type: "NTWP_BUILD", build: BUILD, version: VERSION });
+  if (event.data?.type === "NTWP_OFFLINE_STATUS") {
+    event.waitUntil((async () => {
+      const cache = await caches.open(CACHE);
+      const complete = Boolean(await cache.match(READY_MARKER));
+      const message = { type: "NTWP_OFFLINE_STATUS", state: complete ? "ready" : "installing", build: BUILD, version: VERSION };
+      if (event.ports?.[0]) event.ports[0].postMessage(message);
+      else event.source?.postMessage(message);
+    })());
+  }
 });

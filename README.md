@@ -1,4 +1,4 @@
-# 夜行列車：守夜協定 v2.1.1
+# 夜行列車：守夜協定 v2.2.0
 
 [![觀看遊戲宣傳片](public/assets/video/night-train-promo-v211-cover.jpg)](https://mars-tw.github.io/night-train-watch-protocol/trailer.html)
 
@@ -10,9 +10,16 @@
 
 固定 9:16，手機瀏覽器與桌機皆可操作，支援離線保存。每一條故事線是一段完整七夜旅程，可逐夜保存、失敗重試。
 
-![v2.1 圖片動畫實際畫面](docs/evidence/v21/screenshots/390-sleep.png)
+![v2.2 圖片動畫與首夜指引實際畫面](docs/evidence/v22/screenshots/390-sleep.png)
 
 ## 這次更新
+
+- **首夜下一步**：R01 前兩日依實際任務進度，提示免費觀察、配電、配餐、播種、選路與夜間反制。播種仍先預覽成本；夜間按鈕標明反制名稱與成本。任務入口保留，釘選自己的目標後，指引就會讓位。
+- **看得見的離線準備**：主選單顯示下載中、完成、失敗重試與更新狀態。完整快取成功才顯示可離線；下載失敗保留上一版與存檔，遊玩中不強制重載。
+- **原畫質分段載入**：A-07 的 52 格真姿勢改為七段無損 WebP，依目前動作載入。首畫面必要場景與角色圖片由 1,730,562 降至 430,790 bytes，減少 75.11%；這是首畫面圖片重量，完整離線快取仍約 13.57 MiB。原始圖集保留；有損壓縮未通過細節門檻，沒有用於正式角色。
+- **宣傳頁更好操作**：手機首次開啟預設直式影片，可切換橫式並保留播放位置與暫停狀態，也能直接跳到料理、任務、守夜及探索章節。首頁仍使用實際遊玩錄製的宣傳片。
+
+## 遊戲內容
 
 - **五廂畫質重製**：從原始手繪圖片重新輸出，移除粗重顆粒與量化；暖木作、毛毯、金屬、食物與冷窗保留細節，夜景也降低黑色遮罩。A-07 只在唯一主床。
 - **圖片介面與物件**：32 格手繪儀表圖示、16 個道具、紙本路線／科技圖和 PNG app icon。主要場景熱區、工具、車廂列與地圖使用圖片，實際瀏覽器驗證沒有 SVG 元素或請求。
@@ -26,7 +33,7 @@
 - **守夜與補救**：觀察、判斷、工具與處置。攀附者可用燃料加速或消耗一個零件切離扣具；缺少作者證據仍可明示保留疑問，繼續主線。
 - **手機操作**：先看車廂、再叫工具；成本預覽可取消，面板可關，拖曳有點選替代。文字 100／120／140%、減少動態、無倒數、慢速與靜音皆保留。
 - **存檔與更新**：schema 1–5 匯入 schema 6，舊 key 與備份保留。run、Profile、任務及領獎憑據一起保存，損壞時恢復備份；PWA 以 build manifest 安裝整份資產，避免半套更新。
-- **圖片載入**：按目前車廂載入，離線快取只收目前需要的 38 個檔案，合計 13.60 MiB。新圖片採 quality 92 WebP，透明 alpha 完整保留於編碼；原始 PNG、處理檔與製作紀錄仍保留供開源使用。
+- **圖片載入**：按目前車廂與角色動作載入，完整遊戲素材另由 PWA 準備離線快取。五廂與介面沿用 v2.1 圖片；角色、威脅和設備使用無損 WebP。原始 PNG、處理檔與製作紀錄仍保留供開源使用。
 
 ## 三條七夜故事
 
@@ -67,6 +74,9 @@ npm run audit:v2
 npm run audit:journeys
 npm run audit:release
 npm run audit:raster
+npm run audit:trailer
+npm run audit:loading
+npm run audit:onboarding
 npm run simulate:balance
 ```
 
@@ -74,6 +84,15 @@ npm run simulate:balance
 
 ## 驗證證據
 
+- [v2.2 首夜指引：五項教學實際完成與保存](docs/evidence/v22/onboarding-qa.json)
+- [v2.2 手機操作與 15 組視口／字級矩陣](docs/evidence/v22/ui-qa.json)
+- [v2.2 無損分段、首畫面請求與離線檔案量](docs/evidence/v22/loading-qa.json)
+- [v2.2 角色逐格無損驗證與被拒絕的有損實驗](docs/reboot-v22/ATLAS_RUNTIME_V22.md)
+- [v2.2 圖片、真畫格與零 SVG 驗收](docs/evidence/v22/raster-qa.json)
+- [v2.2 宣傳頁橫直式切換與播放狀態](docs/evidence/v22/trailer-experience-qa.json)
+- [v2.2 已安裝 PWA 的影片與斷網返回](docs/evidence/v22/installed-navigation-qa.json)
+- [v2.2 正式版離線與效能](docs/evidence/v22/release-qa.json)
+- [v2.2 更新驗收](docs/CODEX_RESPONSE_V22.md)
 - [v2.1 圖片、真畫格與零 SVG 驗收](docs/evidence/v21/raster-qa.json)
 - [v2.1 手機操作與 15 組視口／字級矩陣](docs/evidence/v21/ui-qa.json)
 - [v2.1 正式版離線與效能](docs/evidence/v21/release-qa.json)
