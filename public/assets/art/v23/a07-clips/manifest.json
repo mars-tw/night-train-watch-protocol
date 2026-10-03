@@ -1,0 +1,2407 @@
+{
+  "schemaVersion": 1,
+  "source": "source/a07-atlas-source.png",
+  "sourceSha256": "5b37f5b6c2a1836ba01494c21fa2a3f289303cea389e58e576b93b35322dc397",
+  "sourceDimensions": [
+    1340,
+    1174
+  ],
+  "sourceTool": "image_gen",
+  "sourceModelIdentifier": null,
+  "grid": [
+    8,
+    7
+  ],
+  "rowBoundaryFormula": "floor(row * 1174 / 7)",
+  "columnBoundaryFormula": "floor(column * 1340 / 8)",
+  "trueFrameCount": 52,
+  "allTrueFrameHashesUnique": true,
+  "unusedCells": [46, 47, 54, 55],
+  "frameDimensions": [
+    192,
+    192
+  ],
+  "clipDimensions": [
+    1536,
+    192
+  ],
+  "sheetDimensions": [
+    1536,
+    1344
+  ],
+  "pivot": [
+    0.5,
+    1.0
+  ],
+  "bedAnchorPixels": [
+    96,
+    192
+  ],
+  "order": "row-major",
+  "spillRemoval": {
+    "method": "Blender image-datablock sRGB predicate baked to alpha, then transparent/emission material",
+    "pureRedPredicate": "R > 0.85 && G < 0.25 && B < 0.20",
+    "lemonYellowPredicate": "R > 0.75 && G > 0.75 && B < 0.18",
+    "pureRedPixelsRemoved": 14353,
+    "lemonYellowPixelsRemoved": 20637,
+    "totalPixelsRemoved": 34990,
+    "visibleSpillPixelsAfter": 0
+  },
+  "headMeasurement": {
+    "method": "largest connected HSV component inside per-frame upper ROI; sleep face uses skin HSV, all frames also store dark-hair head component",
+    "sleepCommonFaceAnchorPixels": [
+      101,
+      63
+    ],
+    "sleepCommonFaceAnchorNormalized": [
+      0.52604167,
+      0.328125
+    ],
+    "sleepFaceVarianceBefore": [
+      1.786038,
+      2.603526
+    ],
+    "sleepFaceVarianceAfter": [
+      0.047788,
+      0.06141
+    ],
+    "alignmentScope": "sleep clip only"
+  },
+  "clips": [
+    {
+      "clipId": "sleep",
+      "sourceRow": 0,
+      "frameCount": 8,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/sleep.png",
+      "processedPngSha256": "69caad8ce8aa341d933989261bcb4693b47a801cc39c3471d0159e0d7f313f2a",
+      "runtime": "a07-clips/sleep.webp",
+      "runtimeSha256": "d57db2e3d4f23cf75de7f30d67d97c8561d28a3307ae587ace25ffc6a59e51f7",
+      "runtimeBytes": 360948,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            0,
+            167,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4217,
+            "centroid": [
+              87.0341,
+              53.6747
+            ],
+            "bounds": [
+              44,
+              18,
+              133,
+              96
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1435,
+            "centroid": [
+              107.639,
+              48.5324
+            ],
+            "bounds": [
+              58,
+              18,
+              135,
+              81
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            1,
+            1
+          ],
+          "processedRgbaSha256": "6f4cbf7c947385650ff55e77e81e72c0849f1108945432b8c42cc8d4a2b16a2b"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            0,
+            335,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4195,
+            "centroid": [
+              87.8002,
+              54.8703
+            ],
+            "bounds": [
+              45,
+              19,
+              134,
+              96
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1071,
+            "centroid": [
+              117.9981,
+              55.8123
+            ],
+            "bounds": [
+              99,
+              30,
+              136,
+              81
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            1,
+            0
+          ],
+          "processedRgbaSha256": "2eff9bb30c9bfc14e73f134833a0a56bbd97af2d657be7d67dcd62107c6b31f1"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            0,
+            502,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4176,
+            "centroid": [
+              86.2076,
+              55.7828
+            ],
+            "bounds": [
+              44,
+              21,
+              134,
+              97
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1111,
+            "centroid": [
+              116.1197,
+              54.6985
+            ],
+            "bounds": [
+              96,
+              25,
+              135,
+              82
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            2,
+            -1
+          ],
+          "processedRgbaSha256": "0f7b2bb4d483564f2a335a4b76dd9cac8183b466aad4dbe54503f43525e65e89"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            0,
+            670,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4227,
+            "centroid": [
+              88.255,
+              56.1623
+            ],
+            "bounds": [
+              45,
+              20,
+              136,
+              97
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1459,
+            "centroid": [
+              106.7827,
+              48.7498
+            ],
+            "bounds": [
+              57,
+              20,
+              136,
+              81
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            -2
+          ],
+          "processedRgbaSha256": "5add20c3ec334da0b883cdc49d0211c79a15652bc78821aa1a104b5385c3719b"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            0,
+            837,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4241,
+            "centroid": [
+              90.0604,
+              54.9161
+            ],
+            "bounds": [
+              47,
+              19,
+              138,
+              96
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1060,
+            "centroid": [
+              119.4132,
+              55.5726
+            ],
+            "bounds": [
+              95,
+              27,
+              138,
+              81
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            -3,
+            0
+          ],
+          "processedRgbaSha256": "beaf2a5cff1b12bbc4799d297201c8a1eae5fcb8e315682fbc390e811addd44c"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            0,
+            1005,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3802,
+            "centroid": [
+              87.4708,
+              51.3112
+            ],
+            "bounds": [
+              47,
+              19,
+              135,
+              86
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1336,
+            "centroid": [
+              107.5389,
+              49.4499
+            ],
+            "bounds": [
+              49,
+              19,
+              136,
+              80
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            1,
+            4
+          ],
+          "processedRgbaSha256": "c974136666d38d9913d9c6d0db53c8acba4aae9a97b7cb8c383ec3dde7ef5fc3"
+        },
+        {
+          "frame": 6,
+          "sourceBox": [
+            1005,
+            0,
+            1172,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4254,
+            "centroid": [
+              86.8968,
+              55.4027
+            ],
+            "bounds": [
+              44,
+              19,
+              135,
+              103
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1531,
+            "centroid": [
+              105.6538,
+              48.8243
+            ],
+            "bounds": [
+              46,
+              19,
+              136,
+              81
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            1,
+            -1
+          ],
+          "processedRgbaSha256": "b932130542f46ecc443db45a03aaa152e9e8a05b86500b997d01bad4b9a22c8e"
+        },
+        {
+          "frame": 7,
+          "sourceBox": [
+            1172,
+            0,
+            1340,
+            167
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4190,
+            "centroid": [
+              89.3413,
+              54.3258
+            ],
+            "bounds": [
+              47,
+              19,
+              137,
+              97
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1364,
+            "centroid": [
+              108.7786,
+              48.5117
+            ],
+            "bounds": [
+              53,
+              19,
+              137,
+              81
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            -1,
+            0
+          ],
+          "processedRgbaSha256": "2637f18e6ba7953f2f9ede7912e096f85ab5e475ed5c893fa8e10e9692801931"
+        }
+      ]
+    },
+    {
+      "clipId": "turn",
+      "sourceRow": 1,
+      "frameCount": 8,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/turn.png",
+      "processedPngSha256": "de083ca9af6063ca125b014dfff1e951c5ab3a8d66847c8265a89fbd83fb9b6c",
+      "runtime": "a07-clips/turn.webp",
+      "runtimeSha256": "df5dc972da682797ee03e128dac0020fa2f6eb6714ebd413510f237a6c3e6044",
+      "runtimeBytes": 367328,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            167,
+            167,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4128,
+            "centroid": [
+              86.03,
+              44.3338
+            ],
+            "bounds": [
+              44,
+              9,
+              136,
+              88
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1166,
+            "centroid": [
+              115.0223,
+              51.5557
+            ],
+            "bounds": [
+              91,
+              23,
+              137,
+              75
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "b20b65239c7dca6767a5d6a7ce9a825e3310ce9210d82218c748c55a39e10e7c"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            167,
+            335,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3515,
+            "centroid": [
+              89.8296,
+              40.4236
+            ],
+            "bounds": [
+              48,
+              9,
+              132,
+              73
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 965,
+            "centroid": [
+              68.1772,
+              53.3503
+            ],
+            "bounds": [
+              47,
+              16,
+              95,
+              74
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "bf78c5b2bef149ee599e9a27b3885e500b821d60c42627b1d91b3062fa287c2b"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            167,
+            502,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4180,
+            "centroid": [
+              87.3536,
+              44.6938
+            ],
+            "bounds": [
+              45,
+              10,
+              136,
+              88
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1195,
+            "centroid": [
+              108.1423,
+              39.9423
+            ],
+            "bounds": [
+              59,
+              9,
+              137,
+              72
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "40bca548177a934c47f76acdb79ccac7bcaf84aae38bea3b88bedf5f5f9196e2"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            167,
+            670,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4322,
+            "centroid": [
+              88.5666,
+              46.8593
+            ],
+            "bounds": [
+              43,
+              10,
+              136,
+              89
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 972,
+            "centroid": [
+              117.0761,
+              48.358
+            ],
+            "bounds": [
+              95,
+              15,
+              136,
+              72
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "ade147e4ecf1c1a5ff566b77de0ea5be033572407feb34cd5bfd478691e96ae8"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            167,
+            837,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3724,
+            "centroid": [
+              97.8034,
+              38.5387
+            ],
+            "bounds": [
+              51,
+              7,
+              143,
+              79
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1706,
+            "centroid": [
+              92.8611,
+              49.7392
+            ],
+            "bounds": [
+              51,
+              18,
+              135,
+              69
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "99b35b11ee8abeb2c560dbd7285538979b6c220dd267c931d827e0bfac80b8a3"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            167,
+            1005,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4000,
+            "centroid": [
+              91.922,
+              42.8218
+            ],
+            "bounds": [
+              47,
+              9,
+              143,
+              77
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1106,
+            "centroid": [
+              71.557,
+              59.6004
+            ],
+            "bounds": [
+              48,
+              23,
+              113,
+              77
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "357724aff7197339aa86eba91a873c405f981f3335b34bb201bc6a393b3a7e6e"
+        },
+        {
+          "frame": 6,
+          "sourceBox": [
+            1005,
+            167,
+            1172,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3762,
+            "centroid": [
+              83.8729,
+              44.4503
+            ],
+            "bounds": [
+              46,
+              11,
+              134,
+              88
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1009,
+            "centroid": [
+              114.0367,
+              42.3409
+            ],
+            "bounds": [
+              89,
+              13,
+              134,
+              70
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "21ecebdeabbd6bcd90b150679b9de3201a8bab30d6b966999d083a07627645e0"
+        },
+        {
+          "frame": 7,
+          "sourceBox": [
+            1172,
+            167,
+            1340,
+            335
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3954,
+            "centroid": [
+              88.1222,
+              46.5531
+            ],
+            "bounds": [
+              51,
+              13,
+              138,
+              89
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 862,
+            "centroid": [
+              120.5267,
+              45.8086
+            ],
+            "bounds": [
+              98,
+              17,
+              138,
+              69
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "f39a2cb507b7c80e85736a1913b744ca126c4425c9062bd179384bf8f3906c06"
+        }
+      ]
+    },
+    {
+      "clipId": "listen",
+      "sourceRow": 2,
+      "frameCount": 8,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/listen.png",
+      "processedPngSha256": "d40e324a2e3be4c1ed51a07dce7ceb825ab75baa84458a11d3007ada9910690b",
+      "runtime": "a07-clips/listen.webp",
+      "runtimeSha256": "b1ad8a9de0fa1f95ece248ea2b55313a69563021ec8c722f9f2666f2be30b43b",
+      "runtimeBytes": 378608,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            335,
+            167,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4219,
+            "centroid": [
+              85.5449,
+              38.2989
+            ],
+            "bounds": [
+              44,
+              5,
+              135,
+              83
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 777,
+            "centroid": [
+              120.1647,
+              42.9189
+            ],
+            "bounds": [
+              99,
+              14,
+              136,
+              65
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "4f328e077d5cc37430fb31f3100176316536540b586c15a548af93d7cc1d49b9"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            335,
+            335,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4382,
+            "centroid": [
+              87.7344,
+              40.1819
+            ],
+            "bounds": [
+              44,
+              5,
+              134,
+              83
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 935,
+            "centroid": [
+              118.4973,
+              43.2064
+            ],
+            "bounds": [
+              98,
+              10,
+              136,
+              66
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "aa88f9f4d07675e14827c2b2ff678918a5cd6152cb2b069810d4cb018ba0cf0f"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            335,
+            502,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4173,
+            "centroid": [
+              82.3861,
+              40.2581
+            ],
+            "bounds": [
+              42,
+              5,
+              128,
+              85
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 622,
+            "centroid": [
+              117.2379,
+              39.4662
+            ],
+            "bounds": [
+              106,
+              11,
+              130,
+              61
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "87015f2665ca4798b99c9582e30950b00430c66556c89358221fca02fd546489"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            335,
+            670,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3893,
+            "centroid": [
+              80.7678,
+              38.8926
+            ],
+            "bounds": [
+              41,
+              5,
+              129,
+              85
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 607,
+            "centroid": [
+              57.7463,
+              56.7496
+            ],
+            "bounds": [
+              40,
+              19,
+              85,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "4eee1590288afeeae2b89a52e67d6d7ad1a6ad8e39467eba0eef158edd05396d"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            335,
+            837,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3687,
+            "centroid": [
+              86.025,
+              37.3122
+            ],
+            "bounds": [
+              45,
+              5,
+              130,
+              84
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 715,
+            "centroid": [
+              60.558,
+              48.8741
+            ],
+            "bounds": [
+              44,
+              17,
+              84,
+              68
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "aae70da71a043bab9d598f8fb1f00e3564b8b5c5f37df5b31e3f911ff79b425f"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            335,
+            1005,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4201,
+            "centroid": [
+              83.1283,
+              40.2576
+            ],
+            "bounds": [
+              44,
+              5,
+              130,
+              84
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 741,
+            "centroid": [
+              107.8785,
+              29.1795
+            ],
+            "bounds": [
+              69,
+              5,
+              130,
+              60
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "5fd79929ab9c4755cff557179bef7eff35f7bdf0ad9faa9d718cdde832631dc5"
+        },
+        {
+          "frame": 6,
+          "sourceBox": [
+            1005,
+            335,
+            1172,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4059,
+            "centroid": [
+              86.6536,
+              39.3612
+            ],
+            "bounds": [
+              44,
+              5,
+              132,
+              84
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 636,
+            "centroid": [
+              60.7201,
+              56.0881
+            ],
+            "bounds": [
+              44,
+              29,
+              86,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "9d7d315500a1f736646eddf6c8367c1456e4f95bdd134d4df376f0d8040626be"
+        },
+        {
+          "frame": 7,
+          "sourceBox": [
+            1172,
+            335,
+            1340,
+            503
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4175,
+            "centroid": [
+              89.2273,
+              38.9811
+            ],
+            "bounds": [
+              47,
+              5,
+              138,
+              83
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 894,
+            "centroid": [
+              120.0738,
+              41.1331
+            ],
+            "bounds": [
+              101,
+              8,
+              138,
+              66
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "95481956e6627e3a744ca94f0e54caadfbb0958cda94cbad305056752169e439"
+        }
+      ]
+    },
+    {
+      "clipId": "startle",
+      "sourceRow": 3,
+      "frameCount": 8,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/startle.png",
+      "processedPngSha256": "bf7c356efa52c852faa128ef1951a5e4187f56057142054a797f00a048859b3c",
+      "runtime": "a07-clips/startle.webp",
+      "runtimeSha256": "ffc0ef97d5c44db45b0243b2f3f8cf32513c2e6245f0a0c09a634718a94c2a0b",
+      "runtimeBytes": 396134,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            503,
+            167,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4094,
+            "centroid": [
+              85.287,
+              38.7196
+            ],
+            "bounds": [
+              43,
+              5,
+              130,
+              89
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 591,
+            "centroid": [
+              62.3993,
+              57.1624
+            ],
+            "bounds": [
+              44,
+              32,
+              86,
+              70
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "0f192932a9a5fd56db6af5ff64aba2a717da5de198adbbdc183a59fbf9f1317b"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            503,
+            335,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4116,
+            "centroid": [
+              94.5379,
+              35.4845
+            ],
+            "bounds": [
+              53,
+              5,
+              140,
+              81
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 707,
+            "centroid": [
+              70.761,
+              51.9448
+            ],
+            "bounds": [
+              53,
+              23,
+              96,
+              68
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "08e76115e4e49feb50a80c015e667325ae2b87674155fc7de86ec9707b96ad8c"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            503,
+            502,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4141,
+            "centroid": [
+              92.3934,
+              36.3468
+            ],
+            "bounds": [
+              50,
+              5,
+              139,
+              81
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 806,
+            "centroid": [
+              66.799,
+              47.1514
+            ],
+            "bounds": [
+              49,
+              8,
+              93,
+              68
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "e84f85f4979b50bad8758817f8a485236fc0577bf9396c24249b4a3be015300a"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            503,
+            670,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4064,
+            "centroid": [
+              85.6555,
+              38.7717
+            ],
+            "bounds": [
+              43,
+              5,
+              131,
+              87
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 720,
+            "centroid": [
+              60.0194,
+              53.7694
+            ],
+            "bounds": [
+              43,
+              17,
+              86,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "be1543b2fe3a86cbc6a980f8c45ef87d8f6f34e1684abfa5df6185c8e36b9163"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            503,
+            837,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3984,
+            "centroid": [
+              89.0203,
+              34.7944
+            ],
+            "bounds": [
+              46,
+              5,
+              134,
+              79
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 557,
+            "centroid": [
+              65.2136,
+              51.325
+            ],
+            "bounds": [
+              46,
+              29,
+              87,
+              65
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "a9453076ef4ddb1051626ba72baada0410db399649ced8da24f92e012b9aed92"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            503,
+            1005,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4090,
+            "centroid": [
+              88.8007,
+              35.5237
+            ],
+            "bounds": [
+              47,
+              5,
+              136,
+              84
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 619,
+            "centroid": [
+              125.1648,
+              39.5816
+            ],
+            "bounds": [
+              112,
+              17,
+              138,
+              62
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "c3a9d5cc5bab2c054c8e998302093f81ecaf514465b865d4271448d113f4b01a"
+        },
+        {
+          "frame": 6,
+          "sourceBox": [
+            1005,
+            503,
+            1172,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3688,
+            "centroid": [
+              87.6472,
+              34.4222
+            ],
+            "bounds": [
+              48,
+              5,
+              133,
+              68
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 719,
+            "centroid": [
+              119.7135,
+              40.2615
+            ],
+            "bounds": [
+              105,
+              7,
+              135,
+              64
+            ]
+          },
+          "scale": 1.1497006,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "d0d7bd3268493aae3187b30238a80435ef46009c0a8198112946c3c7139322ba"
+        },
+        {
+          "frame": 7,
+          "sourceBox": [
+            1172,
+            503,
+            1340,
+            670
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4347,
+            "centroid": [
+              89.8265,
+              37.9535
+            ],
+            "bounds": [
+              46,
+              5,
+              138,
+              84
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1032,
+            "centroid": [
+              119.6114,
+              37.6793
+            ],
+            "bounds": [
+              100,
+              5,
+              138,
+              65
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "fdc3092486d7544d26ca9c0bb791e0024b34bb71c78b2976eef3a30bc499f0d7"
+        }
+      ]
+    },
+    {
+      "clipId": "sit",
+      "sourceRow": 4,
+      "frameCount": 8,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/sit.png",
+      "processedPngSha256": "eb7dee3828842fdf26433bea080cb6345cc7c821fdbb37bd258753e1c48b2bda",
+      "runtime": "a07-clips/sit.webp",
+      "runtimeSha256": "e3ca67be00748544b97554f61c4d740bbe16c8c1c5e29e32a19a1189d0717fee",
+      "runtimeBytes": 411048,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            670,
+            167,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4325,
+            "centroid": [
+              91.9242,
+              39.8911
+            ],
+            "bounds": [
+              50,
+              5,
+              138,
+              93
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 769,
+            "centroid": [
+              122.9766,
+              44.7945
+            ],
+            "bounds": [
+              107,
+              14,
+              139,
+              69
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "c85dd80b44c4550ab9ee52108ab4e9e5436dc5290ff28aad52e932cf84a4b736"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            670,
+            335,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4174,
+            "centroid": [
+              94.5218,
+              36.7619
+            ],
+            "bounds": [
+              51,
+              5,
+              139,
+              88
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 876,
+            "centroid": [
+              122.8973,
+              44.3037
+            ],
+            "bounds": [
+              105,
+              16,
+              139,
+              66
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "d3107b72f92284b4b1f487129b24d826f3e24adcdbd9dd0caefacfaa63f78624"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            670,
+            502,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3239,
+            "centroid": [
+              88.6172,
+              31.9775
+            ],
+            "bounds": [
+              51,
+              5,
+              133,
+              69
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 497,
+            "centroid": [
+              71.2294,
+              58.4185
+            ],
+            "bounds": [
+              54,
+              44,
+              89,
+              71
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "39b60ac41228fc8dac243f2d60fb67454446f91b58962604c1ce5515a254ab13"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            670,
+            670,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4340,
+            "centroid": [
+              81.3892,
+              39.2726
+            ],
+            "bounds": [
+              38,
+              5,
+              126,
+              89
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 670,
+            "centroid": [
+              54.7463,
+              54.6687
+            ],
+            "bounds": [
+              38,
+              24,
+              79,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "7d00b960775139c8bd530883490cc4df9567c8c11f9e3df83e8ec46ab9e84076"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            670,
+            837,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4185,
+            "centroid": [
+              85.8067,
+              38.7517
+            ],
+            "bounds": [
+              44,
+              5,
+              131,
+              92
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 832,
+            "centroid": [
+              58.3401,
+              49.0601
+            ],
+            "bounds": [
+              42,
+              5,
+              85,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "146c5caef0200b839bc610d1cd4398a0bc859f2bad87a56263235f5bc62e6292"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            670,
+            1005,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3987,
+            "centroid": [
+              78.2827,
+              36.704
+            ],
+            "bounds": [
+              37,
+              5,
+              124,
+              73
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1188,
+            "centroid": [
+              59.2205,
+              41.7988
+            ],
+            "bounds": [
+              37,
+              5,
+              97,
+              74
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "611b4429390e2cad79e726b7a0efa74ad500eeefb1f47c6430ce674fbaa043ef"
+        },
+        {
+          "frame": 6,
+          "sourceBox": [
+            1005,
+            670,
+            1172,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4034,
+            "centroid": [
+              78.2712,
+              37.6339
+            ],
+            "bounds": [
+              37,
+              5,
+              125,
+              74
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1060,
+            "centroid": [
+              59.6698,
+              42.216
+            ],
+            "bounds": [
+              37,
+              5,
+              98,
+              76
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "cee75d8eec237fac67e61a1e53962e91c051a29562eb3d624d85cc44600c4428"
+        },
+        {
+          "frame": 7,
+          "sourceBox": [
+            1172,
+            670,
+            1340,
+            838
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4242,
+            "centroid": [
+              88.4715,
+              45.6438
+            ],
+            "bounds": [
+              48,
+              10,
+              136,
+              92
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 939,
+            "centroid": [
+              118.2481,
+              46.8477
+            ],
+            "bounds": [
+              95,
+              15,
+              136,
+              73
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "dd0d6eaa4500dd15efe28c5a8009514436f402e3c41490181fe119e46be859f1"
+        }
+      ]
+    },
+    {
+      "clipId": "drink",
+      "sourceRow": 5,
+      "frameCount": 6,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/drink.png",
+      "processedPngSha256": "5a6ef46a8e3625d1e7b1267d4a0fd81747788e1f49c7a52887de6e6e95b89284",
+      "runtime": "a07-clips/drink.webp",
+      "runtimeSha256": "b29ed64688459ce557e520c2046137f6b1c822d019960965cef0399b6daeb0d0",
+      "runtimeBytes": 296144,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [
+        6,
+        7
+      ],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            838,
+            167,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4262,
+            "centroid": [
+              89.0565,
+              44.0746
+            ],
+            "bounds": [
+              47,
+              7,
+              135,
+              94
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 695,
+            "centroid": [
+              67.4547,
+              59.705
+            ],
+            "bounds": [
+              46,
+              33,
+              87,
+              78
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "9af93d667f3433b9ef4f85b12b10be393b4e160a3d09075bf33220fe38353766"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            838,
+            335,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4109,
+            "centroid": [
+              88.2078,
+              43.4539
+            ],
+            "bounds": [
+              46,
+              6,
+              134,
+              94
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 853,
+            "centroid": [
+              63.3552,
+              55.9894
+            ],
+            "bounds": [
+              46,
+              12,
+              86,
+              78
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "d5b4a21b8b575bb58a205f12e923f14b93a9c74bb6f557164ab961b4ba0fa29d"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            838,
+            502,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4351,
+            "centroid": [
+              83.006,
+              44.7081
+            ],
+            "bounds": [
+              40,
+              6,
+              135,
+              95
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 856,
+            "centroid": [
+              56.5678,
+              55.785
+            ],
+            "bounds": [
+              40,
+              19,
+              80,
+              79
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "71f5a3925b7c2e059a15d560f12f12e1edd400ee19936f133a6361f6c94f6cb4"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            838,
+            670,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3989,
+            "centroid": [
+              86.5437,
+              40.4575
+            ],
+            "bounds": [
+              44,
+              6,
+              134,
+              76
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 720,
+            "centroid": [
+              59.2736,
+              57.7125
+            ],
+            "bounds": [
+              45,
+              19,
+              83,
+              77
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "ec53c12e5b4f22973ea0923296919e2b751389b7bccb632bdf9affcf4fbec7f3"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            838,
+            837,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4314,
+            "centroid": [
+              91.2072,
+              44.3051
+            ],
+            "bounds": [
+              49,
+              7,
+              137,
+              91
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 624,
+            "centroid": [
+              66.1266,
+              60.0016
+            ],
+            "bounds": [
+              49,
+              34,
+              88,
+              75
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "f37cd66c622f9c87009d17f276a1d3a78a8e76d4fdd5d125536fdede30915da9"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            838,
+            1005,
+            1006
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4326,
+            "centroid": [
+              87.9667,
+              44.0622
+            ],
+            "bounds": [
+              45,
+              6,
+              134,
+              91
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 796,
+            "centroid": [
+              63.3555,
+              57.6985
+            ],
+            "bounds": [
+              45,
+              34,
+              86,
+              77
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "d59214e6a7486596653d5b8fdc80e2f1465437c3e06d4edc5bc4016947e5629a"
+        }
+      ]
+    },
+    {
+      "clipId": "settle",
+      "sourceRow": 6,
+      "frameCount": 6,
+      "columns": 8,
+      "frameDimensions": [
+        192,
+        192
+      ],
+      "dimensions": [
+        1536,
+        192
+      ],
+      "processedPng": "processed/a07-clips/settle.png",
+      "processedPngSha256": "6e77e84115017de02737af2490efbe3b25d967bac352d1443530dcc394fa217c",
+      "runtime": "a07-clips/settle.webp",
+      "runtimeSha256": "ce3ec0c8d6aab22e6ae539c6eb128ffd5e9c02296d36584520ba369be7ef1e71",
+      "runtimeBytes": 289298,
+      "decodedPixelsExact": true,
+      "visibleSpill": {
+        "pureRedVisiblePixels": 0,
+        "lemonYellowVisiblePixels": 0,
+        "totalVisibleSpillPixels": 0
+      },
+      "unusedTransparentColumns": [
+        6,
+        7
+      ],
+      "frames": [
+        {
+          "frame": 0,
+          "sourceBox": [
+            0,
+            1006,
+            167,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3895,
+            "centroid": [
+              87.6028,
+              39.9019
+            ],
+            "bounds": [
+              45,
+              5,
+              135,
+              83
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 995,
+            "centroid": [
+              116.7156,
+              39.8251
+            ],
+            "bounds": [
+              98,
+              8,
+              137,
+              65
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "ce3deb336ae87543067b0c27afdd92510994a96d19ab9305f146320a64afa2bc"
+        },
+        {
+          "frame": 1,
+          "sourceBox": [
+            167,
+            1006,
+            335,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4121,
+            "centroid": [
+              78.0757,
+              42.1956
+            ],
+            "bounds": [
+              40,
+              5,
+              124,
+              94
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1165,
+            "centroid": [
+              98.0918,
+              30.9039
+            ],
+            "bounds": [
+              53,
+              5,
+              127,
+              61
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "72346f8ac725ca0b8d2c57a63728ee0597597f61a9836680f5130cc3d3a2dc28"
+        },
+        {
+          "frame": 2,
+          "sourceBox": [
+            335,
+            1006,
+            502,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4105,
+            "centroid": [
+              87.9525,
+              39.0979
+            ],
+            "bounds": [
+              44,
+              5,
+              135,
+              82
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 892,
+            "centroid": [
+              118.5325,
+              40.6401
+            ],
+            "bounds": [
+              99,
+              10,
+              137,
+              65
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "719c3b33e5aba30c008305025642cbf5c762eb1985886b8af898355289c85be5"
+        },
+        {
+          "frame": 3,
+          "sourceBox": [
+            502,
+            1006,
+            670,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4116,
+            "centroid": [
+              83.0991,
+              41.1283
+            ],
+            "bounds": [
+              42,
+              7,
+              129,
+              83
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 792,
+            "centroid": [
+              113.3573,
+              42.0947
+            ],
+            "bounds": [
+              95,
+              13,
+              131,
+              66
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "6151a33dfa3ba32e7c25fbfdc403c1034f3552a26f65f99b8dc79c63361e290b"
+        },
+        {
+          "frame": 4,
+          "sourceBox": [
+            670,
+            1006,
+            837,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 4086,
+            "centroid": [
+              87.688,
+              41.1072
+            ],
+            "bounds": [
+              45,
+              7,
+              134,
+              82
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1046,
+            "centroid": [
+              115.8757,
+              43.8174
+            ],
+            "bounds": [
+              98,
+              17,
+              136,
+              67
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "8c1afb9fdec3a3c68141783eaace00a3000f696b37fe9b607cf11c5a615c81d3"
+        },
+        {
+          "frame": 5,
+          "sourceBox": [
+            837,
+            1006,
+            1005,
+            1174
+          ],
+          "sourceFaceAnchor": {
+            "pixels": 3956,
+            "centroid": [
+              87.7849,
+              39.7058
+            ],
+            "bounds": [
+              46,
+              6,
+              134,
+              81
+            ]
+          },
+          "sourceHeadAnchor": {
+            "pixels": 1011,
+            "centroid": [
+              117.0524,
+              41.0445
+            ],
+            "bounds": [
+              97,
+              16,
+              136,
+              65
+            ]
+          },
+          "scale": 1.14285714,
+          "pixelTranslation": [
+            0,
+            0
+          ],
+          "processedRgbaSha256": "50ed41ecb49c1df81dacbd22265616976d041dd30fb911d97a9e53dd2447ecc2"
+        }
+      ]
+    }
+  ],
+  "runtimeBytes": 2499508
+}

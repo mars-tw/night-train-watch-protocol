@@ -7,6 +7,7 @@ import {
   COSMETIC_VISUALS,
   EFFECT_ATLAS,
   EQUIPMENT_ATLAS,
+  MENU_HERO,
   PROP_ATLAS,
   SCENE_STATE_EQUIPMENT,
   THREAT_ATLASES,
@@ -35,6 +36,7 @@ type ThreatArtKey = `v2-threat-${ThreatFamilyId}`;
 type ArtKey = SceneAssetKey;
 
 const ART_SOURCES: Record<ArtKey, string> = {
+  "menu-hero": MENU_HERO.source,
   "v2-carriage-sleep": CARRIAGE_SCENES.sleep.source,
   "v2-carriage-defense": CARRIAGE_SCENES.defense.source,
   "v2-carriage-workshop": CARRIAGE_SCENES.workshop.source,
@@ -102,8 +104,7 @@ export class SceneRenderer {
     this.context = context;
     this.canvas.width = 720;
     this.canvas.height = 1280;
-    this.context.imageSmoothingEnabled = true;
-    this.context.imageSmoothingQuality = "high";
+    this.context.imageSmoothingEnabled = false;
     this.loadQueue = new BoundedLoadQueue(
       (key, attempt) => this.loadImage(key, attempt),
       {
@@ -156,6 +157,10 @@ export class SceneRenderer {
       }
     }
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (!state || state.screen === "menu") {
+      if (!this.drawMenuHero()) this.drawFallback("menu-hero", time);
+      return;
+    }
     const phase = state?.run?.phase;
     const contact = state?.run?.activeContact;
     this.threatVisualLifecycle = updateThreatVisualLifecycle(
@@ -167,9 +172,9 @@ export class SceneRenderer {
     const whiteFrost = state?.run?.routeId === "R02";
     const greenTide = state?.run?.routeId === "R03";
     const reducedMotion = this.motionIsReduced();
-    const carriageId: CarriageId = state?.screen === "menu" || state?.screen === "result"
+    const carriageId: CarriageId = state.screen === "result"
       ? "sleep"
-      : state?.activeCarriageId ?? "greenhouse";
+      : state.activeCarriageId ?? "greenhouse";
     const carriageArtKey: CarriageArtKey = `v2-carriage-${carriageId}`;
     const artKey: ArtKey = carriageArtKey;
 
@@ -358,6 +363,16 @@ export class SceneRenderer {
     return true;
   }
 
+  private drawMenuHero(): boolean {
+    const image = this.touchImage("menu-hero");
+    if (!image) return false;
+    // The menu plate already includes A-07 and every environmental layer. Draw
+    // the whole source at a fixed destination so no runtime animation can make
+    // its character, props, window, or lighting jump between frames.
+    this.context.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight, 0, 0, 720, 1280);
+    return true;
+  }
+
   private drawFallback(_key: ArtKey, _time: number, night = false): void {
     const ctx = this.context;
     const gradient = ctx.createLinearGradient(0, 0, 0, 1280);
@@ -442,8 +457,8 @@ export class SceneRenderer {
         : clip.loop
           ? elapsedFrame % clip.frames
           : Math.min(clip.frames - 1, elapsedFrame);
-    const sourceX = Math.floor(offset * A07_ATLAS.width / A07_ATLAS.columns);
-    const sourceRight = Math.floor((offset + 1) * A07_ATLAS.width / A07_ATLAS.columns);
+    const sourceX = Math.floor(offset * clip.width / clip.columns);
+    const sourceRight = Math.floor((offset + 1) * clip.width / clip.columns);
     const sourceY = 0;
     const sourceBottom = image.naturalHeight;
     const destination = A07_ATLAS.destination;
@@ -529,6 +544,9 @@ export class SceneRenderer {
   }
 
   private drawSceneStateEquipment(carriageId: CarriageId, visualState: SceneVisualState): void {
+    // The authored greenhouse and crop layers already own its trays and pump.
+    // Adding the old default tray would create a third, mismatched planter.
+    if (carriageId === "greenhouse") return;
     const placement = SCENE_STATE_EQUIPMENT[carriageId][visualState];
     if (!placement) return;
     this.drawEquipmentFrame(

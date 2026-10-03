@@ -2,12 +2,20 @@ export class AudioService {
   private context: AudioContext | null = null;
 
   public async enable(): Promise<void> {
-    if (!this.context) this.context = new AudioContext();
-    if (this.context.state === "suspended") await this.context.resume();
+    const AudioCtor = globalThis.AudioContext ?? (globalThis as typeof globalThis & {
+      webkitAudioContext?: typeof AudioContext;
+    }).webkitAudioContext;
+    if (!AudioCtor) return;
+    try {
+      if (!this.context) this.context = new AudioCtor();
+      if (this.context.state === "suspended") await this.context.resume();
+    } catch {
+      // Sound is optional; a browser restriction must not block a game action.
+    }
   }
 
   public cue(kind: "tap" | "safe" | "warning" | "breach"): void {
-    if (!this.context) return;
+    if (!this.context || this.context.state !== "running") return;
     const now = this.context.currentTime;
     const oscillator = this.context.createOscillator();
     const gain = this.context.createGain();

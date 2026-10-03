@@ -26,75 +26,79 @@ export interface CarriageSceneManifest {
   weatherWindows: readonly NormalizedBounds[];
 }
 
+export const MENU_HERO = {
+  source: "./assets/art/v23/menu/hero.webp",
+} as const;
+
 export const CARRIAGE_SCENES: Readonly<Record<CarriageId, CarriageSceneManifest>> = {
   sleep: {
-    source: "./assets/art/v21/carriages/sleep.webp",
-    pngSource: "./assets/art/v21/processed/carriages/sleep.png",
+    source: "./assets/art/v23/carriages/sleep.webp",
+    pngSource: "./assets/art/v23/processed/carriages/sleep.png",
     states: ["unprepared", "secure", "disturbed", "restored"],
     hotspots: [
-      { id: "sleep-bed", label: "主床與 A-07", bounds: { x: 0.55, y: 0.38, width: 0.43, height: 0.44 } },
-      { id: "sleep-lamp", label: "書桌燈", bounds: { x: 0.02, y: 0.39, width: 0.25, height: 0.22 } },
-      { id: "sleep-note", label: "私人筆記", bounds: { x: 0.05, y: 0.55, width: 0.32, height: 0.18 } },
+      { id: "sleep-bed", label: "主床與 A-07", bounds: { x: 0.25, y: 0.32, width: 0.72, height: 0.37 } },
+      { id: "sleep-lamp", label: "書桌燈", bounds: { x: 0.02, y: 0.43, width: 0.48, height: 0.27 } },
+      { id: "sleep-note", label: "私人筆記", bounds: { x: 0.03, y: 0.56, width: 0.42, height: 0.12 } },
     ],
     weatherWindows: [
-      { x: 0.36, y: 0.12, width: 0.25, height: 0.27 },
-      { x: 0.78, y: 0.13, width: 0.22, height: 0.25 },
+      { x: 0.37, y: 0.1, width: 0.3, height: 0.18 },
+      { x: 0.92, y: 0.13, width: 0.08, height: 0.29 },
     ],
   },
   defense: {
-    source: "./assets/art/v21/carriages/defense.webp",
-    pngSource: "./assets/art/v21/processed/carriages/defense.png",
+    source: "./assets/art/v23/carriages/defense.webp",
+    pngSource: "./assets/art/v23/processed/carriages/defense.png",
     states: ["unprepared", "secure", "breached", "restored"],
     hotspots: [
-      { id: "defense-window", label: "觀察窗", bounds: { x: 0.24, y: 0.16, width: 0.43, height: 0.28 } },
-      { id: "defense-latch", label: "門窗扣具", bounds: { x: 0.53, y: 0.35, width: 0.23, height: 0.19 } },
-      { id: "defense-kit", label: "反制工具架", bounds: { x: 0.03, y: 0.36, width: 0.32, height: 0.34 } },
+      { id: "defense-window", label: "觀察窗", bounds: { x: 0.35, y: 0.1, width: 0.34, height: 0.27 } },
+      { id: "defense-latch", label: "門窗扣具", bounds: { x: 0.56, y: 0.34, width: 0.17, height: 0.15 } },
+      { id: "defense-kit", label: "反制工具架", bounds: { x: 0, y: 0.05, width: 0.3, height: 0.42 } },
     ],
     weatherWindows: [
-      { x: 0.26, y: 0.18, width: 0.25, height: 0.25 },
-      { x: 0.74, y: 0.16, width: 0.26, height: 0.27 },
+      { x: 0.36, y: 0.1, width: 0.32, height: 0.26 },
+      { x: 0.91, y: 0.14, width: 0.09, height: 0.29 },
     ],
   },
   workshop: {
-    source: "./assets/art/v21/carriages/workshop.webp",
-    pngSource: "./assets/art/v21/processed/carriages/workshop.png",
+    source: "./assets/art/v23/carriages/workshop.webp",
+    pngSource: "./assets/art/v23/processed/carriages/workshop.png",
     states: ["unprepared", "active", "overloaded", "restored"],
     hotspots: [
-      { id: "workbench", label: "工作桌", bounds: { x: 0.02, y: 0.36, width: 0.46, height: 0.36 } },
-      { id: "workshop-radio", label: "收音機", bounds: { x: 0.6, y: 0.3, width: 0.34, height: 0.24 } },
-      { id: "workshop-board", label: "線路圖", bounds: { x: 0.61, y: 0.15, width: 0.27, height: 0.22 } },
+      { id: "workbench", label: "工作桌", bounds: { x: 0, y: 0.4, width: 0.55, height: 0.3 } },
+      { id: "workshop-radio", label: "收音機", bounds: { x: 0.63, y: 0.38, width: 0.16, height: 0.15 } },
+      { id: "workshop-board", label: "線路圖", bounds: { x: 0.72, y: 0.13, width: 0.18, height: 0.18 } },
     ],
     weatherWindows: [
-      { x: 0.43, y: 0.15, width: 0.2, height: 0.22 },
-      { x: 0.83, y: 0.13, width: 0.17, height: 0.24 },
+      { x: 0.36, y: 0.1, width: 0.32, height: 0.18 },
+      { x: 0.92, y: 0.13, width: 0.08, height: 0.29 },
     ],
   },
   greenhouse: {
-    source: "./assets/art/v21/carriages/greenhouse.webp",
-    pngSource: "./assets/art/v21/processed/carriages/greenhouse.png",
+    source: "./assets/art/v23/carriages/greenhouse.webp",
+    pngSource: "./assets/art/v23/processed/carriages/greenhouse.png",
     states: ["unprepared", "productive", "contaminated", "restored"],
     hotspots: [
-      { id: "greenhouse-a", label: "上植床", bounds: { x: 0.01, y: 0.27, width: 0.39, height: 0.19 } },
-      { id: "greenhouse-b", label: "下植床", bounds: { x: 0.01, y: 0.43, width: 0.42, height: 0.22 } },
-      { id: "greenhouse-loop", label: "水循環箱", bounds: { x: 0.01, y: 0.54, width: 0.3, height: 0.24 } },
+      { id: "greenhouse-a", label: "上植床", bounds: { x: 0, y: 0.11, width: 0.42, height: 0.28 } },
+      { id: "greenhouse-b", label: "下植床", bounds: { x: 0, y: 0.27, width: 0.42, height: 0.29 } },
+      { id: "greenhouse-loop", label: "水循環箱", bounds: { x: 0, y: 0.48, width: 0.38, height: 0.24 } },
     ],
     weatherWindows: [
-      { x: 0.43, y: 0.14, width: 0.18, height: 0.2 },
-      { x: 0.76, y: 0.11, width: 0.24, height: 0.27 },
+      { x: 0.42, y: 0.11, width: 0.25, height: 0.22 },
+      { x: 0.9, y: 0.13, width: 0.1, height: 0.29 },
     ],
   },
   kitchen: {
-    source: "./assets/art/v21/carriages/kitchen.webp",
-    pngSource: "./assets/art/v21/processed/carriages/kitchen.png",
+    source: "./assets/art/v23/carriages/kitchen.webp",
+    pngSource: "./assets/art/v23/processed/carriages/kitchen.png",
     states: ["sparse", "prepared", "spoiled", "restored"],
     hotspots: [
-      { id: "kitchen-stove", label: "爐具", bounds: { x: 0.02, y: 0.32, width: 0.4, height: 0.25 } },
-      { id: "kitchen-pantry", label: "儲藏架", bounds: { x: 0.01, y: 0.04, width: 0.34, height: 0.28 } },
-      { id: "kitchen-meal", label: "餐盒與折桌", bounds: { x: 0.61, y: 0.31, width: 0.37, height: 0.28 } },
+      { id: "kitchen-stove", label: "爐具", bounds: { x: 0, y: 0.32, width: 0.5, height: 0.3 } },
+      { id: "kitchen-pantry", label: "儲藏架", bounds: { x: 0.33, y: 0.06, width: 0.45, height: 0.25 } },
+      { id: "kitchen-meal", label: "餐盒與折桌", bounds: { x: 0.62, y: 0.42, width: 0.35, height: 0.17 } },
     ],
     weatherWindows: [
-      { x: 0.4, y: 0.15, width: 0.2, height: 0.22 },
-      { x: 0.83, y: 0.1, width: 0.17, height: 0.24 },
+      { x: 0.04, y: 0.17, width: 0.27, height: 0.19 },
+      { x: 0.81, y: 0.14, width: 0.18, height: 0.29 },
     ],
   },
 };
@@ -121,8 +125,10 @@ export const A07_ATLAS = {
   rows: 7,
   frameCount: 52,
   occupancyByRow: [8, 8, 8, 8, 8, 6, 6] as const,
-  destination: { x: 0.43, y: 0.31, width: 0.5, height: 0.29 },
-  headAnchor: { x: 0.6, y: 0.38 },
+  // 360x360 keeps the square authored cells undistorted. The measured sleep
+  // face anchor (101,63 in 192px) lands at the bed's (.58,.34) face position.
+  destination: { x: 228 / 720, y: 318 / 1280, width: 360 / 720, height: 360 / 1280 },
+  headAnchor: { x: 0.58, y: 0.34 },
   clips: {
     sleep: { start: 0, frames: 8, fps: 4, loop: true, keyFrame: 0 },
     turn: { start: 8, frames: 8, fps: 6, loop: true, keyFrame: 4 },
@@ -140,19 +146,19 @@ export const A07_FRAME_CELLS: readonly { row: number; column: number }[] = A07_A
 export interface A07ClipSourceManifest extends A07ClipManifest {
   source: string;
   sourceRow: number;
-  width: 1340;
-  height: number;
+  width: 1536;
+  height: 192;
   columns: 8;
 }
 
 export const A07_CLIP_ATLASES: Readonly<Record<A07ClipId, A07ClipSourceManifest>> = {
-  sleep: { ...A07_ATLAS.clips.sleep, source: "./assets/art/v22/a07-clips/sleep.webp", sourceRow: 0, width: 1340, height: 167, columns: 8 },
-  turn: { ...A07_ATLAS.clips.turn, source: "./assets/art/v22/a07-clips/turn.webp", sourceRow: 1, width: 1340, height: 168, columns: 8 },
-  listen: { ...A07_ATLAS.clips.listen, source: "./assets/art/v22/a07-clips/listen.webp", sourceRow: 2, width: 1340, height: 168, columns: 8 },
-  startle: { ...A07_ATLAS.clips.startle, source: "./assets/art/v22/a07-clips/startle.webp", sourceRow: 3, width: 1340, height: 167, columns: 8 },
-  sit: { ...A07_ATLAS.clips.sit, source: "./assets/art/v22/a07-clips/sit.webp", sourceRow: 4, width: 1340, height: 168, columns: 8 },
-  drink: { ...A07_ATLAS.clips.drink, source: "./assets/art/v22/a07-clips/drink.webp", sourceRow: 5, width: 1340, height: 168, columns: 8 },
-  settle: { ...A07_ATLAS.clips.settle, source: "./assets/art/v22/a07-clips/settle.webp", sourceRow: 6, width: 1340, height: 168, columns: 8 },
+  sleep: { ...A07_ATLAS.clips.sleep, source: "./assets/art/v23/a07-clips/sleep.webp", sourceRow: 0, width: 1536, height: 192, columns: 8 },
+  turn: { ...A07_ATLAS.clips.turn, source: "./assets/art/v23/a07-clips/turn.webp", sourceRow: 1, width: 1536, height: 192, columns: 8 },
+  listen: { ...A07_ATLAS.clips.listen, source: "./assets/art/v23/a07-clips/listen.webp", sourceRow: 2, width: 1536, height: 192, columns: 8 },
+  startle: { ...A07_ATLAS.clips.startle, source: "./assets/art/v23/a07-clips/startle.webp", sourceRow: 3, width: 1536, height: 192, columns: 8 },
+  sit: { ...A07_ATLAS.clips.sit, source: "./assets/art/v23/a07-clips/sit.webp", sourceRow: 4, width: 1536, height: 192, columns: 8 },
+  drink: { ...A07_ATLAS.clips.drink, source: "./assets/art/v23/a07-clips/drink.webp", sourceRow: 5, width: 1536, height: 192, columns: 8 },
+  settle: { ...A07_ATLAS.clips.settle, source: "./assets/art/v23/a07-clips/settle.webp", sourceRow: 6, width: 1536, height: 192, columns: 8 },
 };
 
 export function nextA07ClipId(clipId: A07ClipId): A07ClipId {
@@ -310,6 +316,7 @@ export const THREAT_ATLASES: Readonly<Record<ThreatFamilyId, ThreatAtlasManifest
 };
 
 export type SceneAssetKey =
+  | "menu-hero"
   | `v2-carriage-${CarriageId}`
   | `v2-threat-${ThreatFamilyId}`
   | `a07-clip-${A07ClipId}`
@@ -329,7 +336,7 @@ export interface SceneAssetPriorityInput {
 }
 
 export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKey[] {
-  if (input.screen === "menu") return ["v2-carriage-sleep", "a07-clip-sleep"];
+  if (input.screen === "menu") return ["menu-hero"];
   const carriageId = input.screen === "result" ? "sleep" : input.activeCarriageId;
   const result: SceneAssetKey[] = [`v2-carriage-${carriageId}`];
   const activeFamily = input.activeThreatDefinitionId

@@ -253,10 +253,9 @@ describe("v2 lossless runtime loading", () => {
     }
   });
 
-  it("keeps first menu to the sleep room and A-07, then prioritizes only relevant neighbors and threats", () => {
+  it("keeps first menu to one complete static plate, then prioritizes only relevant neighbors and threats", () => {
     expect(sceneAssetPriority({ screen: "menu", activeCarriageId: "greenhouse" })).toEqual([
-      "v2-carriage-sleep",
-      "a07-clip-sleep",
+      "menu-hero",
     ]);
     const greenhouse = sceneAssetPriority({ screen: "carriage", activeCarriageId: "greenhouse" });
     expect(greenhouse[0]).toBe("v2-carriage-greenhouse");
@@ -308,7 +307,8 @@ describe("v2 lossless runtime loading", () => {
       flame: { start: 8, frames: 4 },
       leaf: { start: 12, frames: 4 },
     });
-    expect(renderer).toContain('imageSmoothingQuality = "high"');
+    expect(renderer).toContain("imageSmoothingEnabled = false");
+    expect(renderer).not.toContain("imageSmoothingQuality");
     expect(renderer).not.toContain("drawGreenBranchEquipmentFallback");
   });
 

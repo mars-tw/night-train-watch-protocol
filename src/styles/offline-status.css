@@ -1,74 +1,40 @@
-.offline-status {
-  position: fixed;
-  z-index: 1000;
-  left: 50%;
-  display: flex;
-  width: min(calc(100vw - 24px), 406px);
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 8px 6px 14px;
-  transform: translateX(-50%);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: rgba(9, 18, 23, 0.96);
-  box-shadow: var(--shadow-panel);
-  color: var(--color-text);
-  font-size: var(--font-utility);
-  line-height: 1.25;
+.menu-status-slot {
+  position: absolute;
+  z-index: 3;
+  top: auto;
+  bottom: var(--safe-bottom);
+  right: var(--safe-right);
+  left: calc(50% + 3px);
+  display: grid;
+  min-height: 44px;
+  place-items: center;
   pointer-events: none;
 }
 
-.offline-status[hidden] {
-  display: none;
+.offline-status {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(9, 18, 23, 0.92);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-text);
+  font-size: var(--font-utility);
+  line-height: 1.2;
+  pointer-events: none;
 }
 
-.screen--menu.has-offline-status,
-.screen--main-menu.has-offline-status,
-[data-screen^="SCR-MM-"].has-offline-status,
-[data-screen="main-menu"].has-offline-status {
-  min-height: calc(max(var(--viewport-design-height), 100svh) + var(--offline-status-height, 48px) + 8px);
-}
-
-:is(
-  .screen--menu,
-  .screen--main-menu,
-  [data-screen^="SCR-MM-"],
-  [data-screen="main-menu"]
-).has-offline-status :is(.brand-lockup, .save-status, .menu-footer) {
-  translate: 0 calc(var(--offline-status-height, 48px) + 8px);
-}
-
-:is(
-  .screen--menu,
-  .screen--main-menu,
-  [data-screen^="SCR-MM-"],
-  [data-screen="main-menu"]
-).has-offline-status .menu-actions {
-  position: fixed;
-  right: auto;
-  bottom: max(40px, env(safe-area-inset-bottom));
-  left: 50%;
-  width: min(calc(100vw - 36px), 394px);
-  translate: -50% 0;
-}
-
+.offline-status[hidden] { display: none; }
 .offline-status[data-state="ready"],
-.offline-status[data-state="update-ready"] {
-  border-color: var(--color-safe);
-}
-
+.offline-status[data-state="update-ready"] { border-color: var(--color-safe); }
 .offline-status[data-state="failed"],
-.offline-status[data-state="unavailable"] {
-  border-color: var(--color-danger);
-}
-
-.offline-status__label {
-  min-width: 0;
-  text-align: center;
-}
-
+.offline-status[data-state="unavailable"] { border-color: var(--color-danger); }
+.offline-status__label { min-width: 0; text-align: center; }
 .offline-status__retry {
   min-width: 96px;
   min-height: 48px;
@@ -81,8 +47,25 @@
   pointer-events: auto;
 }
 
-@media (max-width: 390px) {
-  .offline-status {
-    width: calc(100vw - 16px);
+:root:is([data-offline-status="failed"], [data-offline-status="unavailable"]) .screen--menu .save-status {
+  display: none;
+}
+
+:root:is([data-offline-status="failed"], [data-offline-status="unavailable"]) .menu-status-slot {
+  right: var(--safe-right);
+  left: var(--safe-left);
+}
+
+:root:is([data-offline-status="failed"], [data-offline-status="unavailable"]) .screen--menu .menu-actions {
+  bottom: calc(var(--safe-bottom) + 72px);
+}
+
+@media (min-height: 701px) {
+  .menu-status-slot { top: auto; }
+}
+
+@media (max-height: 700px) {
+  .screen--menu .brand-lockup h1 {
+    font-size: calc(32px * var(--text-scale, 1));
   }
 }

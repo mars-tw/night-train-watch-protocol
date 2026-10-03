@@ -1,0 +1,81 @@
+{
+  "url": "https://mars-tw.github.io/night-train-watch-protocol/",
+  "viewport": [
+    320,
+    568
+  ],
+  "document": [
+    320,
+    640
+  ],
+  "shell": {
+    "top": 0,
+    "bottom": 640,
+    "left": 0,
+    "right": 320,
+    "width": 320,
+    "height": 640
+  },
+  "brand": {
+    "top": 81.59375,
+    "bottom": 193.59375,
+    "left": 19.203125,
+    "right": 300.796875,
+    "width": 281.59375,
+    "height": 112
+  },
+  "actions": {
+    "top": 321,
+    "bottom": 528,
+    "left": 18,
+    "right": 302,
+    "width": 284,
+    "height": 207
+  },
+  "footer": {
+    "top": 661.5,
+    "bottom": 678,
+    "left": 18,
+    "right": 302,
+    "width": 284,
+    "height": 16.5
+  },
+  "controls": [
+    {
+      "label": "R01・灰霧線\n    R01・灰霧線新手入口・訊號辨識・感染與封鎖\n    ›",
+      "top": 321,
+      "bottom": 389,
+      "left": 18,
+      "right": 157,
+      "width": 139,
+      "height": 68
+    },
+    {
+      "label": "R02・白霜線（預覽）\n    R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖\n    ›",
+      "top": 321,
+      "bottom": 389,
+      "left": 18,
+      "right": 157,
+      "width": 139,
+      "height": 68
+    },
+    {
+      "label": "R03・綠潮線（預覽）\n    R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖\n    ›",
+      "top": 321,
+      "bottom": 389,
+      "left": 18,
+      "right": 157,
+      "width": 139,
+      "height": 68
+    },
+    {
+      "label": "設定與無障礙\n    設定與無障礙\n    ›",
+      "top": 321,
+      "bottom": 389,
+      "left": 18,
+      "right": 157,
+      "width": 139,
+      "height": 68
+    }
+  ]
+}

@@ -1,8 +1,8 @@
-# 夜行列車：守夜協定 v2.2.0
+# 夜行列車：守夜協定 v2.3.0
 
-[![觀看遊戲宣傳片](public/assets/video/night-train-promo-v211-cover.jpg)](https://mars-tw.github.io/night-train-watch-protocol/trailer.html)
+[![v2.3 細緻像素首頁](docs/evidence/v23/pixel/menu-390.png)](https://mars-tw.github.io/night-train-watch-protocol/)
 
-[觀看遊戲宣傳片](https://mars-tw.github.io/night-train-watch-protocol/trailer.html) · [直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/)
+[直接遊玩](https://mars-tw.github.io/night-train-watch-protocol/) · [觀看 v2.1 實錄宣傳片](https://mars-tw.github.io/night-train-watch-protocol/trailer.html)
 
 你是列車的守護系統。白天照顧乘客 A-07、修理設備、種植與停站探索；夜裡觀察窗外的線索，選擇反制與資源取捨，讓這個移動的小家繼續前進。
 
@@ -10,14 +10,15 @@
 
 固定 9:16，手機瀏覽器與桌機皆可操作，支援離線保存。每一條故事線是一段完整七夜旅程，可逐夜保存、失敗重試。
 
-![v2.2 圖片動畫與首夜指引實際畫面](docs/evidence/v22/screenshots/390-sleep.png)
+![v2.3 細緻像素臥室實際畫面](docs/evidence/v23/pixel/sleep-390.png)
 
 ## 這次更新
 
-- **首夜下一步**：R01 前兩日依實際任務進度，提示免費觀察、配電、配餐、播種、選路與夜間反制。播種仍先預覽成本；夜間按鈕標明反制名稱與成本。任務入口保留，釘選自己的目標後，指引就會讓位。
-- **看得見的離線準備**：主選單顯示下載中、完成、失敗重試與更新狀態。完整快取成功才顯示可離線；下載失敗保留上一版與存檔，遊玩中不強制重載。
-- **原畫質分段載入**：A-07 的 52 格真姿勢改為七段無損 WebP，依目前動作載入。首畫面必要場景與角色圖片由 1,730,562 降至 430,790 bytes，減少 75.11%；這是首畫面圖片重量，完整離線快取仍約 13.57 MiB。原始圖集保留；有損壓縮未通過細節門檻，沒有用於正式角色。
-- **宣傳頁更好操作**：手機首次開啟預設直式影片，可切換橫式並保留播放位置與暫停狀態，也能直接跳到料理、任務、守夜及探索章節。首頁仍使用實際遊玩錄製的宣傳片。
+- **重做細緻像素美術**：首頁與五車廂改為新的像素圖片，重現暖燈、毛毯、木作、瓶罐與冷窗的層次；A-07 的 52 格姿勢及 12 張作物生長圖也重製。原始生成圖、Blender 處理檔、輸出與紀錄均保留。
+- **安定的啟動首頁**：使用人物與床一體的固定場景，不再播放角色姿勢、列車搖晃或舊旅程的威脅；標題與按鈕也不滑入。實際 Canvas 在等待前後完全相同。
+- **手機高度與圖片比例**：移除 640px 最小高度，依可視 viewport 與旋轉更新。主畫布維持 9:16，熱區共用同一矩形；長手機不再把人物拉長，放大頁面也不會把整頁縮窄重排。
+- **不互擋的控制**：存檔與離線資訊放到固定底列，錯誤重試保留 48px。新手提示避開整個頭部與播種控制；所有既有存檔、任務及資源規則保留。
+- **按需載入與完整離線**：首頁只需一張 1,282,512-byte 圖片；角色按動作載入，完整遊戲快取為 45 個檔案、約 20.39 MiB。宣傳頁仍保留已接受的 v2.1 實際錄影，並明示版本。
 
 ## 遊戲內容
 
@@ -77,6 +78,8 @@ npm run audit:raster
 npm run audit:trailer
 npm run audit:loading
 npm run audit:onboarding
+npm run audit:pixel
+npm run audit:mobile
 npm run simulate:balance
 ```
 
@@ -84,6 +87,13 @@ npm run simulate:balance
 
 ## 驗證證據
 
+- [v2.3 手機 Chromium：24 組尺寸／實際字級設定與旋轉](docs/evidence/v23/after-mobile-layout.json)
+- [v2.3 WebKit：24 組尺寸／實際設定，無音效模擬](docs/evidence/v23/after-webkit-layout.json)
+- [v2.3 安定首頁、完整頭部、真畫格與作物來源](docs/evidence/v23/pixel-qa.json)
+- [v2.3 手機遊戲控制與自然兩夜流程](docs/evidence/v23/ui-qa.json)
+- [v2.3 新像素美術與 Blender 管線](docs/reboot-v23/ASSET_PIPELINE.md)
+- [v2.3 正式版離線與效能](docs/evidence/v23/release-qa.json)
+- [v2.3 更新驗收](docs/CODEX_RESPONSE_V23.md)
 - [v2.2 首夜指引：五項教學實際完成與保存](docs/evidence/v22/onboarding-qa.json)
 - [v2.2 手機操作與 15 組視口／字級矩陣](docs/evidence/v22/ui-qa.json)
 - [v2.2 無損分段、首畫面請求與離線檔案量](docs/evidence/v22/loading-qa.json)

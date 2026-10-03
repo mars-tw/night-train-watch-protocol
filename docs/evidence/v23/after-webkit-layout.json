@@ -1,0 +1,2619 @@
+{
+  "phase": "after",
+  "browser": "webkit",
+  "browserVersion": "26.5",
+  "harness": {
+    "audioContextStub": false
+  },
+  "status": "PASS",
+  "failures": [],
+  "samples": [
+    {
+      "requested": {
+        "width": 320,
+        "height": 568
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "visualViewport": {
+        "width": 320,
+        "height": 568
+      },
+      "appHeightVar": "568px",
+      "documentWidth": 320,
+      "documentHeight": 568,
+      "shell": {
+        "top": 0,
+        "right": 320,
+        "bottom": 568,
+        "left": 0,
+        "width": 320,
+        "height": 568
+      },
+      "canvas": {
+        "top": 0,
+        "right": 319.75,
+        "bottom": 568,
+        "left": 0.25,
+        "width": 319.5,
+        "height": 568,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 300.59375,
+        "bottom": 112,
+        "left": 19,
+        "width": 281.59375,
+        "height": 104
+      },
+      "save": {
+        "top": 498,
+        "right": 157,
+        "bottom": 542,
+        "left": 12,
+        "width": 145,
+        "height": 44
+      },
+      "actions": {
+        "top": 356,
+        "right": 302,
+        "bottom": 486,
+        "left": 18,
+        "width": 284,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.65625,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 430,
+          "bottom": 486,
+          "width": 284,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 320,
+        "height": 568
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "visualViewport": {
+        "width": 320,
+        "height": 568
+      },
+      "appHeightVar": "568px",
+      "documentWidth": 320,
+      "documentHeight": 568,
+      "shell": {
+        "top": 0,
+        "right": 320,
+        "bottom": 568,
+        "left": 0,
+        "width": 320,
+        "height": 568
+      },
+      "canvas": {
+        "top": 0,
+        "right": 319.75,
+        "bottom": 568,
+        "left": 0.25,
+        "width": 319.5,
+        "height": 568,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 300.59375,
+        "bottom": 118.390625,
+        "left": 19,
+        "width": 281.59375,
+        "height": 110.390625
+      },
+      "save": {
+        "top": 498,
+        "right": 157,
+        "bottom": 542,
+        "left": 12,
+        "width": 145,
+        "height": 44
+      },
+      "actions": {
+        "top": 356,
+        "right": 302,
+        "bottom": 486,
+        "left": 18,
+        "width": 284,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.65625,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 430,
+          "bottom": 486,
+          "width": 284,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 320,
+        "height": 568
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "visualViewport": {
+        "width": 320,
+        "height": 568
+      },
+      "appHeightVar": "568px",
+      "documentWidth": 320,
+      "documentHeight": 568,
+      "shell": {
+        "top": 0,
+        "right": 320,
+        "bottom": 568,
+        "left": 0,
+        "width": 320,
+        "height": 568
+      },
+      "canvas": {
+        "top": 0,
+        "right": 319.75,
+        "bottom": 568,
+        "left": 0.25,
+        "width": 319.5,
+        "height": 568,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 300.59375,
+        "bottom": 124.796875,
+        "left": 19,
+        "width": 281.59375,
+        "height": 116.796875
+      },
+      "save": {
+        "top": 498,
+        "right": 157,
+        "bottom": 542,
+        "left": 12,
+        "width": 145,
+        "height": 44
+      },
+      "actions": {
+        "top": 356,
+        "right": 302,
+        "bottom": 486,
+        "left": 18,
+        "width": 284,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.65625,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 356,
+          "bottom": 424,
+          "width": 90.671875,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 430,
+          "bottom": 486,
+          "width": 284,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 360,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 360,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 338.296875,
+        "bottom": 112,
+        "left": 21.5,
+        "width": 316.796875,
+        "height": 104
+      },
+      "save": {
+        "top": 570,
+        "right": 177,
+        "bottom": 614,
+        "left": 12,
+        "width": 165,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 342,
+        "bottom": 558,
+        "left": 18,
+        "width": 324,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 324,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 360,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 360,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 338.296875,
+        "bottom": 118.390625,
+        "left": 21.5,
+        "width": 316.796875,
+        "height": 110.390625
+      },
+      "save": {
+        "top": 570,
+        "right": 177,
+        "bottom": 614,
+        "left": 12,
+        "width": 165,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 342,
+        "bottom": 558,
+        "left": 18,
+        "width": 324,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 324,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 360,
+        "height": 640
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 360,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 360,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 338.296875,
+        "bottom": 124.796875,
+        "left": 21.5,
+        "width": 316.796875,
+        "height": 116.796875
+      },
+      "save": {
+        "top": 570,
+        "right": 177,
+        "bottom": 614,
+        "left": 12,
+        "width": 165,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 342,
+        "bottom": 558,
+        "left": 18,
+        "width": 324,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 104,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 324,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 375,
+        "height": 667
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visualViewport": {
+        "width": 375,
+        "height": 667
+      },
+      "appHeightVar": "667px",
+      "documentWidth": 375,
+      "documentHeight": 667,
+      "shell": {
+        "top": 0,
+        "right": 375,
+        "bottom": 667,
+        "left": 0,
+        "width": 375,
+        "height": 667
+      },
+      "canvas": {
+        "top": 0.15625,
+        "right": 375,
+        "bottom": 666.8125,
+        "left": 0,
+        "width": 375,
+        "height": 666.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 352.5,
+        "bottom": 112,
+        "left": 22.5,
+        "width": 330,
+        "height": 104
+      },
+      "save": {
+        "top": 597,
+        "right": 184.5,
+        "bottom": 641,
+        "left": 12,
+        "width": 172.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 455,
+        "right": 357,
+        "bottom": 585,
+        "left": 18,
+        "width": 339,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 529,
+          "bottom": 585,
+          "width": 339,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 375,
+        "height": 667
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visualViewport": {
+        "width": 375,
+        "height": 667
+      },
+      "appHeightVar": "667px",
+      "documentWidth": 375,
+      "documentHeight": 667,
+      "shell": {
+        "top": 0,
+        "right": 375,
+        "bottom": 667,
+        "left": 0,
+        "width": 375,
+        "height": 667
+      },
+      "canvas": {
+        "top": 0.15625,
+        "right": 375,
+        "bottom": 666.8125,
+        "left": 0,
+        "width": 375,
+        "height": 666.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 352.5,
+        "bottom": 118.390625,
+        "left": 22.5,
+        "width": 330,
+        "height": 110.390625
+      },
+      "save": {
+        "top": 597,
+        "right": 184.5,
+        "bottom": 641,
+        "left": 12,
+        "width": 172.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 455,
+        "right": 357,
+        "bottom": 585,
+        "left": 18,
+        "width": 339,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 529,
+          "bottom": 585,
+          "width": 339,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 375,
+        "height": 667
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "visualViewport": {
+        "width": 375,
+        "height": 667
+      },
+      "appHeightVar": "667px",
+      "documentWidth": 375,
+      "documentHeight": 667,
+      "shell": {
+        "top": 0,
+        "right": 375,
+        "bottom": 667,
+        "left": 0,
+        "width": 375,
+        "height": 667
+      },
+      "canvas": {
+        "top": 0.15625,
+        "right": 375,
+        "bottom": 666.8125,
+        "left": 0,
+        "width": 375,
+        "height": 666.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 352.5,
+        "bottom": 124.796875,
+        "left": 22.5,
+        "width": 330,
+        "height": 116.796875
+      },
+      "save": {
+        "top": 597,
+        "right": 184.5,
+        "bottom": 641,
+        "left": 12,
+        "width": 172.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 455,
+        "right": 357,
+        "bottom": 585,
+        "left": 18,
+        "width": 339,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 455,
+          "bottom": 523,
+          "width": 109,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 529,
+          "bottom": 585,
+          "width": 339,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appHeightVar": "844px",
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "shell": {
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "left": 0,
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "top": 75.328125,
+        "right": 390,
+        "bottom": 768.65625,
+        "left": 0,
+        "width": 390,
+        "height": 693.328125,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 366.6875,
+        "bottom": 142,
+        "left": 23.5,
+        "width": 343.1875,
+        "height": 112
+      },
+      "save": {
+        "top": 774,
+        "right": 192,
+        "bottom": 818,
+        "left": 12,
+        "width": 180,
+        "height": 44
+      },
+      "actions": {
+        "top": 644,
+        "right": 372,
+        "bottom": 762,
+        "left": 18,
+        "width": 354,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 706,
+          "bottom": 762,
+          "width": 354,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appHeightVar": "844px",
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "shell": {
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "left": 0,
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "top": 75.328125,
+        "right": 390,
+        "bottom": 768.65625,
+        "left": 0,
+        "width": 390,
+        "height": 693.328125,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 366.6875,
+        "bottom": 150,
+        "left": 23.5,
+        "width": 343.1875,
+        "height": 120
+      },
+      "save": {
+        "top": 774,
+        "right": 192,
+        "bottom": 818,
+        "left": 12,
+        "width": 180,
+        "height": 44
+      },
+      "actions": {
+        "top": 644,
+        "right": 372,
+        "bottom": 762,
+        "left": 18,
+        "width": 354,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 706,
+          "bottom": 762,
+          "width": 354,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 390,
+        "height": 844
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "visualViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "appHeightVar": "844px",
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "shell": {
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "left": 0,
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "top": 75.328125,
+        "right": 390,
+        "bottom": 768.65625,
+        "left": 0,
+        "width": 390,
+        "height": 693.328125,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 366.6875,
+        "bottom": 158,
+        "left": 23.5,
+        "width": 343.1875,
+        "height": 128
+      },
+      "save": {
+        "top": 774,
+        "right": 192,
+        "bottom": 818,
+        "left": 12,
+        "width": 180,
+        "height": 44
+      },
+      "actions": {
+        "top": 644,
+        "right": 372,
+        "bottom": 762,
+        "left": 18,
+        "width": 354,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 644,
+          "bottom": 700,
+          "width": 114,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 706,
+          "bottom": 762,
+          "width": 354,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 393,
+        "height": 852
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "visualViewport": {
+        "width": 393,
+        "height": 852
+      },
+      "appHeightVar": "852px",
+      "documentWidth": 393,
+      "documentHeight": 852,
+      "shell": {
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0,
+        "width": 393,
+        "height": 852
+      },
+      "canvas": {
+        "top": 76.65625,
+        "right": 393,
+        "bottom": 775.3125,
+        "left": 0,
+        "width": 393,
+        "height": 698.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 369.328125,
+        "bottom": 142,
+        "left": 23.5,
+        "width": 345.828125,
+        "height": 112
+      },
+      "save": {
+        "top": 782,
+        "right": 193.5,
+        "bottom": 826,
+        "left": 12,
+        "width": 181.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 652,
+        "right": 375,
+        "bottom": 770,
+        "left": 18,
+        "width": 357,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 714,
+          "bottom": 770,
+          "width": 357,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 393,
+        "height": 852
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "visualViewport": {
+        "width": 393,
+        "height": 852
+      },
+      "appHeightVar": "852px",
+      "documentWidth": 393,
+      "documentHeight": 852,
+      "shell": {
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0,
+        "width": 393,
+        "height": 852
+      },
+      "canvas": {
+        "top": 76.65625,
+        "right": 393,
+        "bottom": 775.3125,
+        "left": 0,
+        "width": 393,
+        "height": 698.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 369.328125,
+        "bottom": 150,
+        "left": 23.5,
+        "width": 345.828125,
+        "height": 120
+      },
+      "save": {
+        "top": 782,
+        "right": 193.5,
+        "bottom": 826,
+        "left": 12,
+        "width": 181.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 652,
+        "right": 375,
+        "bottom": 770,
+        "left": 18,
+        "width": 357,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 714,
+          "bottom": 770,
+          "width": 357,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 393,
+        "height": 852
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "visualViewport": {
+        "width": 393,
+        "height": 852
+      },
+      "appHeightVar": "852px",
+      "documentWidth": 393,
+      "documentHeight": 852,
+      "shell": {
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0,
+        "width": 393,
+        "height": 852
+      },
+      "canvas": {
+        "top": 76.65625,
+        "right": 393,
+        "bottom": 775.3125,
+        "left": 0,
+        "width": 393,
+        "height": 698.65625,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 369.328125,
+        "bottom": 158,
+        "left": 23.5,
+        "width": 345.828125,
+        "height": 128
+      },
+      "save": {
+        "top": 782,
+        "right": 193.5,
+        "bottom": 826,
+        "left": 12,
+        "width": 181.5,
+        "height": 44
+      },
+      "actions": {
+        "top": 652,
+        "right": 375,
+        "bottom": 770,
+        "left": 18,
+        "width": 357,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 652,
+          "bottom": 708,
+          "width": 115,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 714,
+          "bottom": 770,
+          "width": 357,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "visualViewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appHeightVar": "932px",
+      "documentWidth": 430,
+      "documentHeight": 932,
+      "shell": {
+        "top": 0,
+        "right": 430,
+        "bottom": 932,
+        "left": 0,
+        "width": 430,
+        "height": 932
+      },
+      "canvas": {
+        "top": 83.765625,
+        "right": 430,
+        "bottom": 848.203125,
+        "left": 0,
+        "width": 430,
+        "height": 764.4375,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 404.390625,
+        "bottom": 142,
+        "left": 26,
+        "width": 378.390625,
+        "height": 112
+      },
+      "save": {
+        "top": 862,
+        "right": 212,
+        "bottom": 906,
+        "left": 12,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 732,
+        "right": 412,
+        "bottom": 850,
+        "left": 18,
+        "width": 394,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 794,
+          "bottom": 850,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "visualViewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appHeightVar": "932px",
+      "documentWidth": 430,
+      "documentHeight": 932,
+      "shell": {
+        "top": 0,
+        "right": 430,
+        "bottom": 932,
+        "left": 0,
+        "width": 430,
+        "height": 932
+      },
+      "canvas": {
+        "top": 83.765625,
+        "right": 430,
+        "bottom": 848.203125,
+        "left": 0,
+        "width": 430,
+        "height": 764.4375,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 404.390625,
+        "bottom": 150,
+        "left": 26,
+        "width": 378.390625,
+        "height": 120
+      },
+      "save": {
+        "top": 862,
+        "right": 212,
+        "bottom": 906,
+        "left": 12,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 732,
+        "right": 412,
+        "bottom": 850,
+        "left": 18,
+        "width": 394,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 794,
+          "bottom": 850,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 430,
+        "height": 932
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "visualViewport": {
+        "width": 430,
+        "height": 932
+      },
+      "appHeightVar": "932px",
+      "documentWidth": 430,
+      "documentHeight": 932,
+      "shell": {
+        "top": 0,
+        "right": 430,
+        "bottom": 932,
+        "left": 0,
+        "width": 430,
+        "height": 932
+      },
+      "canvas": {
+        "top": 83.765625,
+        "right": 430,
+        "bottom": 848.203125,
+        "left": 0,
+        "width": 430,
+        "height": 764.4375,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 30,
+        "right": 404.390625,
+        "bottom": 158,
+        "left": 26,
+        "width": 378.390625,
+        "height": 128
+      },
+      "save": {
+        "top": 862,
+        "right": 212,
+        "bottom": 906,
+        "left": 12,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 732,
+        "right": 412,
+        "bottom": 850,
+        "left": 18,
+        "width": 394,
+        "height": 118
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 732,
+          "bottom": 788,
+          "width": 127.328125,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 794,
+          "bottom": 850,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 1280,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 855,
+        "bottom": 640,
+        "left": 425,
+        "width": 430,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 820,
+        "bottom": 640,
+        "left": 460,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 829.390625,
+        "bottom": 112,
+        "left": 451,
+        "width": 378.390625,
+        "height": 104
+      },
+      "save": {
+        "top": 570,
+        "right": 637,
+        "bottom": 614,
+        "left": 437,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 837,
+        "bottom": 558,
+        "left": 443,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 1280,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 855,
+        "bottom": 640,
+        "left": 425,
+        "width": 430,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 820,
+        "bottom": 640,
+        "left": 460,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 829.390625,
+        "bottom": 118.390625,
+        "left": 451,
+        "width": 378.390625,
+        "height": 110.390625
+      },
+      "save": {
+        "top": 570,
+        "right": 637,
+        "bottom": 614,
+        "left": 437,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 837,
+        "bottom": 558,
+        "left": 443,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1280,
+        "height": 640
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "visualViewport": {
+        "width": 1280,
+        "height": 640
+      },
+      "appHeightVar": "640px",
+      "documentWidth": 1280,
+      "documentHeight": 640,
+      "shell": {
+        "top": 0,
+        "right": 855,
+        "bottom": 640,
+        "left": 425,
+        "width": 430,
+        "height": 640
+      },
+      "canvas": {
+        "top": 0,
+        "right": 820,
+        "bottom": 640,
+        "left": 460,
+        "width": 360,
+        "height": 640,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 829.390625,
+        "bottom": 124.796875,
+        "left": 451,
+        "width": 378.390625,
+        "height": 116.796875
+      },
+      "save": {
+        "top": 570,
+        "right": 637,
+        "bottom": 614,
+        "left": 437,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 428,
+        "right": 837,
+        "bottom": 558,
+        "left": 443,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 428,
+          "bottom": 496,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 502,
+          "bottom": 558,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 100,
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "visualViewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "appHeightVar": "600px",
+      "documentWidth": 1366,
+      "documentHeight": 600,
+      "shell": {
+        "top": 0,
+        "right": 898,
+        "bottom": 600,
+        "left": 468,
+        "width": 430,
+        "height": 600
+      },
+      "canvas": {
+        "top": 0,
+        "right": 851.75,
+        "bottom": 600,
+        "left": 514.25,
+        "width": 337.5,
+        "height": 600,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 872.390625,
+        "bottom": 112,
+        "left": 494,
+        "width": 378.390625,
+        "height": 104
+      },
+      "save": {
+        "top": 530,
+        "right": 680,
+        "bottom": 574,
+        "left": 480,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 388,
+        "right": 880,
+        "bottom": 518,
+        "left": 486,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 462,
+          "bottom": 518,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 120,
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "visualViewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "appHeightVar": "600px",
+      "documentWidth": 1366,
+      "documentHeight": 600,
+      "shell": {
+        "top": 0,
+        "right": 898,
+        "bottom": 600,
+        "left": 468,
+        "width": 430,
+        "height": 600
+      },
+      "canvas": {
+        "top": 0,
+        "right": 851.75,
+        "bottom": 600,
+        "left": 514.25,
+        "width": 337.5,
+        "height": 600,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 872.390625,
+        "bottom": 118.390625,
+        "left": 494,
+        "width": 378.390625,
+        "height": 110.390625
+      },
+      "save": {
+        "top": 530,
+        "right": 680,
+        "bottom": 574,
+        "left": 480,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 388,
+        "right": 880,
+        "bottom": 518,
+        "left": 486,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 462,
+          "bottom": 518,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    },
+    {
+      "requested": {
+        "width": 1366,
+        "height": 600
+      },
+      "textScale": 140,
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "visualViewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "appHeightVar": "600px",
+      "documentWidth": 1366,
+      "documentHeight": 600,
+      "shell": {
+        "top": 0,
+        "right": 898,
+        "bottom": 600,
+        "left": 468,
+        "width": 430,
+        "height": 600
+      },
+      "canvas": {
+        "top": 0,
+        "right": 851.75,
+        "bottom": 600,
+        "left": 514.25,
+        "width": 337.5,
+        "height": 600,
+        "intrinsicWidth": 720,
+        "intrinsicHeight": 1280
+      },
+      "brand": {
+        "top": 8,
+        "right": 872.390625,
+        "bottom": 124.796875,
+        "left": 494,
+        "width": 378.390625,
+        "height": 116.796875
+      },
+      "save": {
+        "top": 530,
+        "right": 680,
+        "bottom": 574,
+        "left": 480,
+        "width": 200,
+        "height": 44
+      },
+      "actions": {
+        "top": 388,
+        "right": 880,
+        "bottom": 518,
+        "left": 486,
+        "width": 394,
+        "height": 130
+      },
+      "footer": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0,
+        "width": 0,
+        "height": 0
+      },
+      "controls": [
+        {
+          "label": "R01・灰霧線 R01・灰霧線新手入口・訊號辨識・感染與封鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R02・白霜線（預覽） R02・白霜線（預覽）可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "R03・綠潮線（預覽） R03・綠潮線（預覽）可玩預覽・完成 5 項教學與任一七夜後正式解鎖 ›",
+          "top": 388,
+          "bottom": 456,
+          "width": 127.328125,
+          "height": 68,
+          "visible": true,
+          "centerHit": true
+        },
+        {
+          "label": "設定與無障礙 設定與無障礙 ›",
+          "top": 462,
+          "bottom": 518,
+          "width": 394,
+          "height": 56,
+          "visible": true,
+          "centerHit": true
+        }
+      ]
+    }
+  ],
+  "sceneMapping": {
+    "canvas": {
+      "top": 75.328125,
+      "left": 0,
+      "width": 390,
+      "height": 693.328125
+    },
+    "decor": {
+      "top": 75.328125,
+      "left": 0,
+      "width": 390,
+      "height": 693.328125
+    },
+    "crop": {
+      "top": 75.328125,
+      "left": 0,
+      "width": 390,
+      "height": 693.328125
+    },
+    "hotspots": null
+  },
+  "savedWorstCase": {
+    "appHeightVar": "568px",
+    "actionsTop": 349,
+    "controls": [
+      {
+        "height": 68,
+        "top": 349,
+        "bottom": 417,
+        "centerHit": true
+      },
+      {
+        "height": 68,
+        "top": 349,
+        "bottom": 417,
+        "centerHit": true
+      },
+      {
+        "height": 68,
+        "top": 349,
+        "bottom": 417,
+        "centerHit": true
+      },
+      {
+        "height": 63,
+        "top": 423,
+        "bottom": 486,
+        "centerHit": true
+      },
+      {
+        "height": 63,
+        "top": 423,
+        "bottom": 486,
+        "centerHit": true
+      },
+      {
+        "height": 63,
+        "top": 423,
+        "bottom": 486,
+        "centerHit": true
+      }
+    ]
+  }
+}

@@ -19,10 +19,13 @@ const files = (await collect(root)).filter(file =>
   || /^icons\/.*\.png$/.test(file)
   || /^assets\/[^/]+\.(js|css)$/.test(file)
   || /^assets\/art\/v2\/(equipment|threats)\/.*\.webp$/.test(file)
-  || /^assets\/art\/v22\/a07-clips\/(sleep|turn|listen|startle|sit|drink|settle)\.webp$/.test(file)
-  || /^assets\/art\/v21\/(carriages|ui|props|effects)\/.*\.webp$/.test(file)
+  || /^assets\/art\/v23\/a07-clips\/(sleep|turn|listen|startle|sit|drink|settle)\.webp$/.test(file)
+  || /^assets\/art\/v23\/menu\/hero\.webp$/.test(file)
+  || /^assets\/art\/v23\/carriages\/(sleep|defense|workshop|greenhouse|kitchen)\.webp$/.test(file)
+  || /^assets\/art\/v21\/(ui|props|effects)\/.*\.webp$/.test(file)
   || /^assets\/art\/v21\/ui\/app-icon-(192|512)\.png$/.test(file)
-  || /^assets\/art\/(crops|decor)\/.*\.png$/.test(file),
+  || /^assets\/art\/v23\/crops\/(lettuce|tomato|herb)-stage[0-3]\.webp$/.test(file)
+  || /^assets\/art\/decor\/.*\.png$/.test(file),
 ).sort();
 const digest = createHash("sha256");
 digest.update(version);

@@ -1,9 +1,9 @@
 {
   "name": "night-train-watch-protocol",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": false,
   "type": "module",
-  "description": "夜行列車：守夜協定－手繪圖片動畫、56項任務與離線七夜生存旅程",
+  "description": "夜行列車：守夜協定－細緻像素圖片、56項任務與離線七夜生存旅程",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build && node tools/write-precache.mjs",
@@ -26,7 +26,9 @@
     "audit:raster": "node tools/audit-raster-v21.mjs",
     "audit:promo": "node tools/audit-promo-navigation.mjs",
     "audit:trailer": "node tools/audit-trailer-experience.mjs",
-    "audit:loading": "node tools/audit-loading-v22.mjs",
+    "audit:loading": "node tools/audit-loading-v23.mjs",
+    "audit:pixel": "node tools/audit-pixel-v23.mjs",
+    "audit:mobile": "node tools/audit-mobile-layout-r6.mjs",
     "audit:onboarding": "node tools/audit-onboarding-v22.mjs",
     "simulate:balance": "vite-node tools/simulate-v2-balance.ts",
     "validate:design": "node tools/validate-reboot-design.mjs"
