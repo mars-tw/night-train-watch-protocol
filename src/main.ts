@@ -9,6 +9,9 @@ import "./styles/offline-status.css";
 import { NightTrainApp } from "./app";
 import { initializeRasterIcons } from "./ui/icons";
 import { startOfflineStatus } from "./ui/offline-status";
+import { installAppViewport } from "./ui/viewport";
+
+installAppViewport();
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Missing #app root");

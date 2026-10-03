@@ -790,3 +790,64 @@
 @media (prefers-reduced-motion: reduce) {
   .object-preview-backdrop { backdrop-filter: none; }
 }
+
+/* One 9:16 world rectangle maps the 720×1280 canvas and every world-space layer. */
+.screen--carriage :is(.carriage-decor-layer, .crop-scene-layer, .scene-hotspots, .vine-scene-targets) {
+  inset: var(--scene-top, 0) auto auto var(--scene-left, 0) !important;
+  width: var(--scene-width, 100%);
+  height: var(--scene-height, 100%);
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue {
+  left: 8px;
+  width: min(40%, 132px);
+  transform: none;
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue__actions > button:first-child > b {
+  display: none;
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue__actions {
+  grid-template-columns: minmax(0, 1fr) 48px;
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue__actions > button:first-child {
+  padding-inline: 5px;
+  font-size: calc(12px * var(--text-scale, 1));
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue.is-night-cue .onboarding-cue__actions {
+  grid-template-columns: 1fr;
+}
+
+.screen--carriage[data-carriage="sleep"] .onboarding-cue__actions > .onboarding-cue__missions {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.screen--carriage.is-prep[data-carriage="greenhouse"] .onboarding-cue {
+  top: calc(var(--scene-top, 0px) + var(--scene-height, 100vh) * 0.55);
+  left: calc(var(--scene-left, 0px) + var(--scene-width, 100vw) * 0.19 + 52px);
+  width: min(200px, calc(100% - var(--scene-left, 0px) - var(--scene-width, 100vw) * 0.19 - 144px));
+  padding-inline: 5px;
+  transform: none;
+}
+
+.screen--carriage.is-prep[data-carriage="greenhouse"] .onboarding-cue__actions {
+  grid-template-columns: minmax(0, 1fr) 48px;
+}
+
+.screen--carriage.is-prep[data-carriage="greenhouse"] .onboarding-cue__actions > button:first-child {
+  padding-inline: 5px;
+  font-size: calc(12px * var(--text-scale, 1));
+}
+
+.screen--carriage.is-prep[data-carriage="greenhouse"] .onboarding-cue__actions > button:first-child > b {
+  display: none;
+}
+
+.screen--carriage.is-prep[data-carriage="greenhouse"] .onboarding-cue__missions {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}

@@ -746,15 +746,18 @@ function menuScreen(state: AppState, hasSave: boolean): string {
       <h1>夜行列車</h1><p>守 夜 協 定</p>
     </div>
     ${statusPill({ ...state, saveStatus: hasSave ? (state.saveStatus === "recovered" ? "recovered" : "saved") : "none" })}
+    <div class="menu-status-slot" aria-label="離線狀態"></div>
     <nav class="menu-actions" aria-label="主選單">
-      ${hasSave ? button("continue", "繼續守夜", { primary: true, icon: icons.play, detail: "載入本機保存的路線與操作進度" }) : ""}
       <div class="route-launch-grid" aria-label="選擇七夜故事路線">
         ${button("new-game", "R01・灰霧線", { value: "R01", primary: !hasSave, icon: icons.scan, detail: "新手入口・訊號辨識・感染與封鎖", className: "route-launch-card" })}
         ${button("new-game", frostUnlocked ? "R02・白霜線" : "R02・白霜線（預覽）", { value: "R02", icon: icons.temperature, detail: frostUnlocked ? "已正式解鎖・熱力分流與暴風雪" : "可玩預覽・存活三夜後結束旅程／完成任一七夜即正式解鎖", className: "route-launch-card route-launch-card--frost" })}
         ${button("new-game", greenUnlocked ? "R03・綠潮線" : "R03・綠潮線（預覽）", { value: "R03", icon: icons.greenhouse, detail: greenUnlocked ? "已正式解鎖・封閉循環與檢疫" : "可玩預覽・完成 5 項教學與任一七夜後正式解鎖", className: "route-launch-card route-launch-card--green" })}
       </div>
-      ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}
-      ${button("settings", "設定與無障礙", { icon: icons.settings })}
+      <div class="menu-secondary-actions">
+        ${hasSave ? button("continue", "繼續守夜", { primary: true, icon: icons.play, detail: "載入本機保存的路線與操作進度" }) : ""}
+        ${hasSave ? button("hub", "局外中心", { icon: icons.hub }) : ""}
+        ${button("settings", "設定與無障礙", { icon: icons.settings })}
+      </div>
     </nav>
     <footer class="menu-footer"><span>● 離線可玩</span><span>此裝置自動保存</span></footer>
   </section>`;
@@ -1078,7 +1081,7 @@ function survivorPanel(run: RunState): string {
 }
 
 function cropAsset(cropId: string, stage: number): string {
-  return `./assets/art/crops/${cropId}-${Math.min(3, Math.max(0, stage))}.png`;
+  return `./assets/art/v23/crops/${cropId}-stage${Math.min(3, Math.max(0, stage))}.webp`;
 }
 
 function cropQuickPicker(state: AppState, run: RunState): string {

@@ -53,43 +53,19 @@ function createDomView(doc: Document): OfflineView {
   doc.body.append(root);
 
   let currentState: OfflineState = "hidden";
-  let reservedMenu: HTMLElement | null = null;
   const app = doc.querySelector("#app");
   const mainMenu = () => app?.querySelector<HTMLElement>(".screen--menu, .screen--main-menu, [data-screen^=\"SCR-MM-\"], [data-screen=\"main-menu\"]") ?? null;
-  const placeInOpenSpace = (menu: HTMLElement) => {
-    root.style.top = "4px";
-    const height = root.getBoundingClientRect().height;
-    menu.classList.add("has-offline-status");
-    menu.style.setProperty("--offline-status-height", `${height}px`);
-    reservedMenu = menu;
-    const viewportHeight = doc.defaultView?.innerHeight ?? doc.documentElement.clientHeight;
-    const occupied = [...menu.querySelectorAll<HTMLElement>(".brand-lockup, .save-status, .menu-actions button, .menu-footer")]
-      .map(element => element.getBoundingClientRect())
-      .filter(rect => rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < viewportHeight)
-      .map(rect => ({ top: Math.max(0, rect.top), bottom: Math.min(viewportHeight, rect.bottom) }))
-      .sort((left, right) => left.top - right.top);
-    let cursor = 4;
-    for (const rect of occupied) {
-      if (rect.top - cursor >= height + 8) break;
-      cursor = Math.max(cursor, rect.bottom + 4);
-    }
-    root.style.top = `${Math.min(cursor, Math.max(4, viewportHeight - height - 4))}px`;
-  };
   const syncVisibility = () => {
     const menu = mainMenu();
     root.hidden = currentState === "hidden" || !menu;
-    if (reservedMenu && (root.hidden || reservedMenu !== menu)) {
-      reservedMenu.classList.remove("has-offline-status");
-      reservedMenu.style.removeProperty("--offline-status-height");
-      reservedMenu = null;
-    }
-    if (menu && !root.hidden) placeInOpenSpace(menu);
+    const slot = menu?.querySelector<HTMLElement>(".menu-status-slot");
+    if (slot && root.parentElement !== slot) slot.append(root);
+    if (!menu && root.parentElement !== doc.body) doc.body.append(root);
   };
   const Observer = doc.defaultView?.MutationObserver;
   if (app && Observer) {
     new Observer(mutations => {
       if (mutations.every(mutation => root.contains(mutation.target))) return;
-      if (mutations.every(mutation => mutation.target === reservedMenu && mutation.attributeName === "class" && reservedMenu?.classList.contains("has-offline-status"))) return;
       syncVisibility();
     }).observe(app, {
       childList: true,
@@ -98,8 +74,6 @@ function createDomView(doc: Document): OfflineView {
       attributeFilter: ["class", "data-screen"],
     });
   }
-  doc.defaultView?.addEventListener("resize", syncVisibility);
-
   return {
     show(state, message, retry) {
       currentState = state;

@@ -1,0 +1,58 @@
+[
+  {
+    "viewport": {
+      "width": 320,
+      "height": 568
+    },
+    "screen": "screen screen--carriage is-prep is-observation-mode contact-stage-idle screen-enter",
+    "canvas": {
+      "top": 0,
+      "bottom": 568,
+      "left": 0.25,
+      "right": 319.75,
+      "width": 319.5,
+      "height": 568
+    },
+    "cue": {
+      "top": 156,
+      "bottom": 249.796875,
+      "left": 54.40625,
+      "right": 265.59375,
+      "width": 211.1875,
+      "height": 93.796875
+    },
+    "quest": null,
+    "face": {
+      "x": 185.55999999999997,
+      "y": 193.12
+    }
+  },
+  {
+    "viewport": {
+      "width": 360,
+      "height": 640
+    },
+    "screen": "screen screen--carriage is-prep is-observation-mode contact-stage-idle screen-enter",
+    "canvas": {
+      "top": 0,
+      "bottom": 640,
+      "left": 0,
+      "right": 360,
+      "width": 360,
+      "height": 640
+    },
+    "cue": {
+      "top": 156,
+      "bottom": 249.796875,
+      "left": 66,
+      "right": 294,
+      "width": 228,
+      "height": 93.796875
+    },
+    "quest": null,
+    "face": {
+      "x": 208.79999999999998,
+      "y": 217.60000000000002
+    }
+  }
+]

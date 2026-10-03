@@ -67,19 +67,27 @@ describe("production offline lifecycle", () => {
   }, 30_000);
   afterAll(() => server.close());
 
-  it("precaches all 44 runtime files with seven A-07 clips and no full character atlas", () => {
-    expect(baseManifest.files).toHaveLength(44);
-    const a07Files = baseManifest.files.filter((file) => file.startsWith("assets/art/v22/a07-clips/"));
+  it("precaches all 45 runtime files with seven v2.3 A-07 clips and no full character atlas", () => {
+    expect(baseManifest.files).toHaveLength(45);
+    const a07Files = baseManifest.files.filter((file) => file.startsWith("assets/art/v23/a07-clips/"));
     expect(a07Files).toEqual([
-      "assets/art/v22/a07-clips/drink.webp",
-      "assets/art/v22/a07-clips/listen.webp",
-      "assets/art/v22/a07-clips/settle.webp",
-      "assets/art/v22/a07-clips/sit.webp",
-      "assets/art/v22/a07-clips/sleep.webp",
-      "assets/art/v22/a07-clips/startle.webp",
-      "assets/art/v22/a07-clips/turn.webp",
+      "assets/art/v23/a07-clips/drink.webp",
+      "assets/art/v23/a07-clips/listen.webp",
+      "assets/art/v23/a07-clips/settle.webp",
+      "assets/art/v23/a07-clips/sit.webp",
+      "assets/art/v23/a07-clips/sleep.webp",
+      "assets/art/v23/a07-clips/startle.webp",
+      "assets/art/v23/a07-clips/turn.webp",
     ]);
     expect(baseManifest.files).not.toContain("assets/art/v2/characters/a07/atlas.webp");
+    const crops = baseManifest.files.filter(file => file.startsWith("assets/art/v23/crops/"));
+    expect(crops).toHaveLength(12);
+    for (const crop of ["lettuce", "tomato", "herb"]) {
+      for (let stage = 0; stage < 4; stage++) {
+        expect(crops).toContain(`assets/art/v23/crops/${crop}-stage${stage}.webp`);
+      }
+    }
+    expect(baseManifest.files.some(file => file.startsWith("assets/art/crops/"))).toBe(false);
   });
 
   it("keeps the playable version through a failed update and announces the repaired update", async () => {
@@ -102,6 +110,7 @@ describe("production offline lifecycle", () => {
         for (const viewport of viewports) {
           await page.setViewportSize(viewport);
           await page.evaluate(() => window.scrollTo(0, 0));
+          await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
           const layout = await page.evaluate(() => {
             const status = document.querySelector(".offline-status")?.getBoundingClientRect();
             if (!status) return { inViewport: false, overlaps: true, scrollY: window.scrollY, invalidControls: ["missing status"] };
@@ -155,6 +164,7 @@ describe("production offline lifecycle", () => {
       for (const viewport of viewports) {
         await page.setViewportSize(viewport);
         await page.evaluate(() => window.scrollTo(0, 0));
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
         const retryLayout = await page.evaluate(() => {
           const status = document.querySelector(".offline-status")!.getBoundingClientRect();
           const retry = document.querySelector(".offline-status__retry")!.getBoundingClientRect();

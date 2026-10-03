@@ -1,0 +1,500 @@
+{
+  "status": "PASS",
+  "authority": "fresh browser; visible UI; actual Canvas sources/pixels; no game-state injection",
+  "checks": [
+    "320: menu Canvas is pixel-identical after 2.5 seconds",
+    "320: menu requests no separate character animation",
+    "320: the preparation guide does not cover A-07's face",
+    "320: all eight true sleep cells render with nearest sampling",
+    "320: the scene preserves its 9:16 aspect",
+    "320: plots and picker use the new pixel crop sprites",
+    "320: no legacy crop-box image request",
+    "320: menu stays still when an actual saved run exists",
+    "390: menu Canvas is pixel-identical after 2.5 seconds",
+    "390: menu requests no separate character animation",
+    "390: the preparation guide does not cover A-07's face",
+    "390: all eight true sleep cells render with nearest sampling",
+    "390: the scene preserves its 9:16 aspect",
+    "390: plots and picker use the new pixel crop sprites",
+    "390: no legacy crop-box image request",
+    "390: menu stays still when an actual saved run exists",
+    "1366: menu Canvas is pixel-identical after 2.5 seconds",
+    "1366: menu requests no separate character animation",
+    "1366: the preparation guide does not cover A-07's face",
+    "1366: all eight true sleep cells render with nearest sampling",
+    "1366: the scene preserves its 9:16 aspect",
+    "1366: plots and picker use the new pixel crop sprites",
+    "1366: no legacy crop-box image request",
+    "1366: menu stays still when an actual saved run exists",
+    "all inspected pixel scenes have zero JavaScript errors and SVG requests"
+  ],
+  "failures": [],
+  "errors": [],
+  "svgRequests": [],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "menuHashes": [
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776",
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776"
+      ],
+      "pose": {
+        "face": {
+          "x": 185.46015625,
+          "y": 193.53046874999998
+        },
+        "head": {
+          "left": 143.0265625,
+          "right": 231.22187499999998,
+          "top": 149.43281249999998,
+          "bottom": 220.15546874999998
+        },
+        "faceCovered": false,
+        "frames": [
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              0,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              -192,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              192,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              384,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              576,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              768,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              960,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              1152,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          }
+        ],
+        "canvas": {
+          "width": 319.5,
+          "height": 568
+        }
+      },
+      "cropSources": [
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/tomato-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/herb-stage3.webp"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menuHashes": [
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776",
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776"
+      ],
+      "pose": {
+        "face": {
+          "x": 226.078125,
+          "y": 311.560725402832
+        },
+        "head": {
+          "left": 174.28125,
+          "right": 281.9375,
+          "top": 257.7330047607422,
+          "bottom": 344.060481262207
+        },
+        "faceCovered": false,
+        "frames": [
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              0,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              192,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              384,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              576,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              768,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              960,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              1152,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              1344,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          }
+        ],
+        "canvas": {
+          "width": 390,
+          "height": 693.328125
+        }
+      },
+      "cropSources": [
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/tomato-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/herb-stage3.webp"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "menuHashes": [
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776",
+        "08298e1ba2f8e77e6cb0cf43308c37154735dfb155cc9af259063f3d3b8e2776"
+      ],
+      "pose": {
+        "face": {
+          "x": 709.89453125,
+          "y": 204.43359375
+        },
+        "head": {
+          "left": 665.0703125,
+          "right": 758.234375,
+          "top": 157.8515625,
+          "bottom": 232.55859375
+        },
+        "faceCovered": false,
+        "frames": [
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              0,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              192,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              384,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              576,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              768,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              960,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              1152,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          },
+          {
+            "source": "http://127.0.0.1:4177/assets/art/v23/a07-clips/sleep.webp",
+            "rect": [
+              1344,
+              0,
+              192,
+              192,
+              228,
+              318,
+              360,
+              360
+            ],
+            "smooth": false
+          }
+        ],
+        "canvas": {
+          "width": 337.5,
+          "height": 600
+        }
+      },
+      "cropSources": [
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage0.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/lettuce-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/tomato-stage3.webp",
+        "http://127.0.0.1:4177/assets/art/v23/crops/herb-stage3.webp"
+      ]
+    }
+  ],
+  "sleepAlignment": {
+    "method": "largest connected HSV component inside per-frame upper ROI; sleep face uses skin HSV, all frames also store dark-hair head component",
+    "sleepCommonFaceAnchorPixels": [
+      101,
+      63
+    ],
+    "sleepCommonFaceAnchorNormalized": [
+      0.52604167,
+      0.328125
+    ],
+    "sleepFaceVarianceBefore": [
+      1.786038,
+      2.603526
+    ],
+    "sleepFaceVarianceAfter": [
+      0.047788,
+      0.06141
+    ],
+    "alignmentScope": "sleep clip only"
+  }
+}

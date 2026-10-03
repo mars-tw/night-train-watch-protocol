@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "release": "2.3.0",
+  "pipeline": "Blender 5.2 native 4x3 floor-bound UV crop finishing",
+  "blenderVersion": "5.2.0 LTS",
+  "sourceTool": "image_gen",
+  "sourceModelIdentifier": null,
+  "source": "source/crops-sprite-sheet-source.png",
+  "sourceSha256": "cf693ff005966c9d50c6669f1dfd22d32569742cf2ab99cc7bc5f67783702bc8",
+  "sourceDimensions": [
+    1448,
+    1086
+  ],
+  "grid": [
+    4,
+    3
+  ],
+  "columnBoundaryFormula": "floor(column * 1448 / 4)",
+  "rowBoundaryFormula": "floor(row * 1086 / 3)",
+  "order": {
+    "rows": [
+      "lettuce",
+      "tomato",
+      "herb"
+    ],
+    "columns": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "processing": {
+    "viewTransform": "Standard",
+    "look": "None",
+    "exposure": 0,
+    "gamma": 1,
+    "sampling": "Closest",
+    "renderFilterSize": 0.01,
+    "smoothing": false,
+    "quantization": false,
+    "artificialNoise": false,
+    "paletteSpillRemoval": "none; red tomatoes and yellow-green leaf highlights are authored crop colours"
+  },
+  "heightSelection": "fixed 192",
+  "assetCount": 12,
+  "runtimeBytes": 455280,
+  "baseV23RuntimeBytes": 10456160,
+  "combinedV23RuntimeBytes": 10911440,
+  "combinedRuntimeLimitBytes": 20971520,
+  "combinedRuntimeLimitPass": true,
+  "assets": [
+    {
+      "assetId": "v23.crops.lettuce.stage0",
+      "crop": "lettuce",
+      "stage": 0,
+      "sourceCell": [
+        0,
+        0
+      ],
+      "sourceBox": [
+        0,
+        0,
+        362,
+        362
+      ],
+      "sourceAlphaBoundsInCell": [
+        17,
+        51,
+        362,
+        361
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/lettuce-stage0.png",
+      "processedPngSha256": "12e4f196bf9a99aec59839c00887d1dab431a85ef1c8a3bd5f696a47e8c9989b",
+      "runtime": "crops/lettuce-stage0.webp",
+      "runtimeSha256": "fac6075d38e5436cf1ebaa3c6c41f9b35acd61a16af6e74468e9cb363862fbab",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 24720
+    },
+    {
+      "assetId": "v23.crops.lettuce.stage1",
+      "crop": "lettuce",
+      "stage": 1,
+      "sourceCell": [
+        1,
+        0
+      ],
+      "sourceBox": [
+        362,
+        0,
+        724,
+        362
+      ],
+      "sourceAlphaBoundsInCell": [
+        1,
+        17,
+        360,
+        360
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/lettuce-stage1.png",
+      "processedPngSha256": "bbb557ed05092b420f4eb373b2e3d28d70812967b8beaf66a7c76aaf452741b3",
+      "runtime": "crops/lettuce-stage1.webp",
+      "runtimeSha256": "f2cc59d03d7d79bfb23f115f31b8873b9d90863c71600c8201959fe25b97cd6c",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 26492
+    },
+    {
+      "assetId": "v23.crops.lettuce.stage2",
+      "crop": "lettuce",
+      "stage": 2,
+      "sourceCell": [
+        2,
+        0
+      ],
+      "sourceBox": [
+        724,
+        0,
+        1086,
+        362
+      ],
+      "sourceAlphaBoundsInCell": [
+        8,
+        9,
+        354,
+        360
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/lettuce-stage2.png",
+      "processedPngSha256": "1bec7a0809769163e1989fe2c4c1d3cd306e5da98f893437a468d7d609d45381",
+      "runtime": "crops/lettuce-stage2.webp",
+      "runtimeSha256": "fa0348f0bac6f88ba386dba5d12645834fc67afd0e3ca389a694ea43ed02a71e",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 35526
+    },
+    {
+      "assetId": "v23.crops.lettuce.stage3",
+      "crop": "lettuce",
+      "stage": 3,
+      "sourceCell": [
+        3,
+        0
+      ],
+      "sourceBox": [
+        1086,
+        0,
+        1448,
+        362
+      ],
+      "sourceAlphaBoundsInCell": [
+        6,
+        17,
+        348,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/lettuce-stage3.png",
+      "processedPngSha256": "2fa1cc6d9cf13b474552da1ac4bb0e5b7e3cea2584997328ec7ce623524bc15b",
+      "runtime": "crops/lettuce-stage3.webp",
+      "runtimeSha256": "9474813914376f96ca28634b365b794fe9c8a93b238bad43990fedb1c2fbb87e",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 46396
+    },
+    {
+      "assetId": "v23.crops.tomato.stage0",
+      "crop": "tomato",
+      "stage": 0,
+      "sourceCell": [
+        0,
+        1
+      ],
+      "sourceBox": [
+        0,
+        362,
+        362,
+        724
+      ],
+      "sourceAlphaBoundsInCell": [
+        19,
+        18,
+        362,
+        353
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/tomato-stage0.png",
+      "processedPngSha256": "ba9f7efad59615f9462d0648df15dd28432125cbfeebc2fb31505bbc145e4a54",
+      "runtime": "crops/tomato-stage0.webp",
+      "runtimeSha256": "ea5529688ac32b65376bb0bfea4a63a85dc1b0f04afef044aef126ee9bbef14d",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 24954
+    },
+    {
+      "assetId": "v23.crops.tomato.stage1",
+      "crop": "tomato",
+      "stage": 1,
+      "sourceCell": [
+        1,
+        1
+      ],
+      "sourceBox": [
+        362,
+        362,
+        724,
+        724
+      ],
+      "sourceAlphaBoundsInCell": [
+        1,
+        20,
+        358,
+        353
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/tomato-stage1.png",
+      "processedPngSha256": "74ca5aef93fe4eed73a1eada9c318ab12d0a76ade2670c0428d9aa347f4fbaaa",
+      "runtime": "crops/tomato-stage1.webp",
+      "runtimeSha256": "278d5ea6459ac9a9747c57740b2ba478c04ea24eea3102845677969bcabe6bbc",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 28346
+    },
+    {
+      "assetId": "v23.crops.tomato.stage2",
+      "crop": "tomato",
+      "stage": 2,
+      "sourceCell": [
+        2,
+        1
+      ],
+      "sourceBox": [
+        724,
+        362,
+        1086,
+        724
+      ],
+      "sourceAlphaBoundsInCell": [
+        13,
+        20,
+        362,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/tomato-stage2.png",
+      "processedPngSha256": "e24a3b6ac9d21282d5d5a9a1742426c2923eaad6c93c07f6cf4ca31b29b5cbcf",
+      "runtime": "crops/tomato-stage2.webp",
+      "runtimeSha256": "ec94bbadcfbe108ef395f78ceccd4164500f331474b43c0a603a00f25b97b592",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 53322
+    },
+    {
+      "assetId": "v23.crops.tomato.stage3",
+      "crop": "tomato",
+      "stage": 3,
+      "sourceCell": [
+        3,
+        1
+      ],
+      "sourceBox": [
+        1086,
+        362,
+        1448,
+        724
+      ],
+      "sourceAlphaBoundsInCell": [
+        5,
+        0,
+        348,
+        353
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/tomato-stage3.png",
+      "processedPngSha256": "25e51f6815235851630fed8e99b08955d934aa48b6f567b5e61abcb1e9492441",
+      "runtime": "crops/tomato-stage3.webp",
+      "runtimeSha256": "3a1ed02c38a0974ef4fb567604e5015af98772c45ca9c8b17ccba78a6d3e8bb5",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 66534
+    },
+    {
+      "assetId": "v23.crops.herb.stage0",
+      "crop": "herb",
+      "stage": 0,
+      "sourceCell": [
+        0,
+        2
+      ],
+      "sourceBox": [
+        0,
+        724,
+        362,
+        1086
+      ],
+      "sourceAlphaBoundsInCell": [
+        0,
+        6,
+        362,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/herb-stage0.png",
+      "processedPngSha256": "a03479cc31c770d97f69bed267728ae575002b806be870f8136cd459e768b143",
+      "runtime": "crops/herb-stage0.webp",
+      "runtimeSha256": "50affed27ac9d806118432b9660dff74935a9f3b9d18ce533bf35e821b4fe530",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 25388
+    },
+    {
+      "assetId": "v23.crops.herb.stage1",
+      "crop": "herb",
+      "stage": 1,
+      "sourceCell": [
+        1,
+        2
+      ],
+      "sourceBox": [
+        362,
+        724,
+        724,
+        1086
+      ],
+      "sourceAlphaBoundsInCell": [
+        5,
+        14,
+        362,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/herb-stage1.png",
+      "processedPngSha256": "fa0299cba585b00d2068a32cb3bb3a694a942ff47d7c29c804f56f601d1e465a",
+      "runtime": "crops/herb-stage1.webp",
+      "runtimeSha256": "526978b4b040072c2928e309318b6d655d0cf8e5b00852b867bf440992219105",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 27598
+    },
+    {
+      "assetId": "v23.crops.herb.stage2",
+      "crop": "herb",
+      "stage": 2,
+      "sourceCell": [
+        2,
+        2
+      ],
+      "sourceBox": [
+        724,
+        724,
+        1086,
+        1086
+      ],
+      "sourceAlphaBoundsInCell": [
+        1,
+        0,
+        358,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/herb-stage2.png",
+      "processedPngSha256": "cc5b2ba3e1e2d72de58c4efab69121f7f874ac0aceaf3d12edc54f0d036575e5",
+      "runtime": "crops/herb-stage2.webp",
+      "runtimeSha256": "75d0fe5bd5c002c58d0aaa3b4607868d5151246ac51c6c590cf28fe82a467d79",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 43534
+    },
+    {
+      "assetId": "v23.crops.herb.stage3",
+      "crop": "herb",
+      "stage": 3,
+      "sourceCell": [
+        3,
+        2
+      ],
+      "sourceBox": [
+        1086,
+        724,
+        1448,
+        1086
+      ],
+      "sourceAlphaBoundsInCell": [
+        7,
+        8,
+        348,
+        362
+      ],
+      "sourceCellDimensions": [
+        362,
+        362
+      ],
+      "processedPng": "processed/crops/herb-stage3.png",
+      "processedPngSha256": "b429300e7fe866f7549f7d336aa2856b934e8c7b001d3c10f5ecd4343bea6fde",
+      "runtime": "crops/herb-stage3.webp",
+      "runtimeSha256": "853cc8af818afaae3b20d8f51b1be44b83025882aab3e9e56eddc8ce6b3230be",
+      "runtimeDimensions": [
+        192,
+        192
+      ],
+      "sampling": "Closest",
+      "scale": 0.53038674,
+      "decodedPixelsExact": true,
+      "runtimeBytes": 52470
+    }
+  ]
+}

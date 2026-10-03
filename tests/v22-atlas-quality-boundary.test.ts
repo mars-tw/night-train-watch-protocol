@@ -15,18 +15,16 @@ const clipManifest = JSON.parse(readFileSync(resolve(root, "public/assets/art/v2
 
 describe("v22 atlas quality boundary", () => {
   it("preserves all 52 frames with original floor boundaries in local row zero", () => {
-    const clips = Object.values(A07_CLIP_ATLASES);
-    expect(clips.map((clip) => clip.frames)).toEqual([8, 8, 8, 8, 8, 6, 6]);
-    expect(clips.reduce((total, clip) => total + clip.frames, 0)).toBe(52);
-    expect(clips.map((clip) => clip.height)).toEqual([167, 168, 168, 167, 168, 168, 168]);
     expect(clipManifest.clips.map((clip) => clip.clipId)).toEqual(Object.keys(A07_CLIP_ATLASES));
-    for (const [clipIndex, clip] of clips.entries()) {
-      const asset = clipManifest.clips[clipIndex]!;
-      expect(asset).toMatchObject({ frameCount: clip.frames, width: 1340, height: clip.height });
-      expect(Math.floor(clip.sourceRow * A07_ATLAS.height / A07_ATLAS.rows)).toBe(
-        [0, 167, 335, 503, 670, 838, 1006][clip.sourceRow],
+    expect(clipManifest.clips.map((clip) => clip.frameCount)).toEqual([8, 8, 8, 8, 8, 6, 6]);
+    expect(clipManifest.clips.reduce((total, clip) => total + clip.frameCount, 0)).toBe(52);
+    expect(clipManifest.clips.map((clip) => clip.height)).toEqual([167, 168, 168, 167, 168, 168, 168]);
+    for (const [clipIndex, asset] of clipManifest.clips.entries()) {
+      expect(asset).toMatchObject({ width: 1340 });
+      expect(Math.floor(clipIndex * A07_ATLAS.height / A07_ATLAS.rows)).toBe(
+        [0, 167, 335, 503, 670, 838, 1006][clipIndex],
       );
-      for (let column = 0; column < clip.frames; column += 1) {
+      for (let column = 0; column < asset.frameCount; column += 1) {
         const expectedColumns = [
           Math.floor(column * A07_ATLAS.width / A07_ATLAS.columns),
           Math.floor((column + 1) * A07_ATLAS.width / A07_ATLAS.columns),
@@ -35,12 +33,12 @@ describe("v22 atlas quality boundary", () => {
           [0, 167, 335, 502, 670, 837, 1005, 1172][column],
           [167, 335, 502, 670, 837, 1005, 1172, 1340][column],
         ]);
-        expect(asset.frameBoxes[column]!.clipBox).toEqual([expectedColumns[0], 0, expectedColumns[1], clip.height]);
+        expect(asset.frameBoxes[column]!.clipBox).toEqual([expectedColumns[0], 0, expectedColumns[1], asset.height]);
         expect(asset.frameBoxes[column]!.atlasBox).toEqual([
           expectedColumns[0],
-          Math.floor(clip.sourceRow * A07_ATLAS.height / A07_ATLAS.rows),
+          Math.floor(clipIndex * A07_ATLAS.height / A07_ATLAS.rows),
           expectedColumns[1],
-          Math.floor((clip.sourceRow + 1) * A07_ATLAS.height / A07_ATLAS.rows),
+          Math.floor((clipIndex + 1) * A07_ATLAS.height / A07_ATLAS.rows),
         ]);
       }
     }
@@ -58,13 +56,13 @@ describe("v22 atlas quality boundary", () => {
     }
     expect(A07_ATLAS.source).toBe("./assets/art/v2/characters/a07/atlas.webp");
     expect(Object.values(A07_CLIP_ATLASES).map((clip) => clip.source)).toEqual([
-      "./assets/art/v22/a07-clips/sleep.webp",
-      "./assets/art/v22/a07-clips/turn.webp",
-      "./assets/art/v22/a07-clips/listen.webp",
-      "./assets/art/v22/a07-clips/startle.webp",
-      "./assets/art/v22/a07-clips/sit.webp",
-      "./assets/art/v22/a07-clips/drink.webp",
-      "./assets/art/v22/a07-clips/settle.webp",
+      "./assets/art/v23/a07-clips/sleep.webp",
+      "./assets/art/v23/a07-clips/turn.webp",
+      "./assets/art/v23/a07-clips/listen.webp",
+      "./assets/art/v23/a07-clips/startle.webp",
+      "./assets/art/v23/a07-clips/sit.webp",
+      "./assets/art/v23/a07-clips/drink.webp",
+      "./assets/art/v23/a07-clips/settle.webp",
     ]);
     expect(EQUIPMENT_ATLAS.source).toBe("./assets/art/v2/equipment/atlas.webp");
     expect(Object.values(THREAT_ATLASES).every((atlas) => atlas.source.startsWith("./assets/art/v2/threats/"))).toBe(true);
@@ -73,7 +71,7 @@ describe("v22 atlas quality boundary", () => {
   it("precaches seven lossless A-07 rows and excludes the original full character atlas", () => {
     const writer = readFileSync(resolve(root, "tools/write-precache.mjs"), "utf8");
     expect(writer).toContain("art\\/v2\\/(equipment|threats)");
-    expect(writer).toContain("art\\/v22\\/a07-clips");
+    expect(writer).toContain("art\\/v23\\/a07-clips");
     expect(writer).not.toContain("art\\/v2\\/(characters|equipment|threats)");
     expect(writer).not.toContain("art\\/v22\\/atlases");
   });

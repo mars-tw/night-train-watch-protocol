@@ -20,8 +20,8 @@ html {
 
 body {
   min-width: 320px;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: var(--app-height, 100dvh);
+  min-height: 0;
   margin: 0;
   overflow-x: hidden;
   background:
@@ -112,7 +112,8 @@ ol {
 #app {
   position: relative;
   width: min(100%, var(--viewport-max-width));
-  min-height: max(var(--viewport-design-height), 100svh);
+  height: var(--app-height, 100dvh);
+  min-height: 0;
   margin-inline: auto;
   overflow: clip;
   background: var(--color-background);
@@ -126,7 +127,7 @@ ol {
   z-index: var(--z-content);
   display: grid;
   width: 100%;
-  min-height: max(var(--viewport-design-height), 100svh);
+  min-height: 100%;
   overflow: hidden;
   background: var(--color-background);
   isolation: isolate;
@@ -240,19 +241,6 @@ ol {
 
   body::before { left: 0; }
   body::after { right: 0; transform: scaleX(-1); }
-}
-
-@media (max-height: 639px) {
-  .game-shell,
-  .game-app,
-  #app,
-  .screen {
-    min-height: var(--viewport-design-height);
-  }
-
-  body {
-    overflow-y: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

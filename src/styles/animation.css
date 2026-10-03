@@ -18,6 +18,14 @@
   animation-duration: 720ms;
 }
 
+/* The title scene is a calm, fixed composition. Its controls must not slide
+   into the status row while the first offline download completes. */
+.screen--menu.screen-enter .menu-actions,
+.screen--menu.screen-enter .brand-lockup,
+.screen--menu .brand-rails i {
+  animation: none;
+}
+
 .screen-enter .event-art {
   animation: event-develop 760ms cubic-bezier(0.16, 1, 0.3, 1) both, event-drift 12s 760ms ease-in-out infinite alternate;
 }

@@ -190,7 +190,20 @@ describe("v2 art runtime contract", () => {
     expect(FACILITY_VISUALS).toHaveLength(8);
     expect(Object.values(A07_ATLAS.clips).reduce((total, clip) => total + clip.frames, 0)).toBe(52);
     expect(Object.keys(A07_ATLAS.clips)).toEqual(["sleep", "turn", "listen", "startle", "sit", "drink", "settle"]);
-    expect(A07_ATLAS.headAnchor).toEqual({ x: 0.6, y: 0.38 });
+    expect(A07_ATLAS.headAnchor).toEqual({ x: 0.58, y: 0.34 });
+    const destinationPixels = {
+      x: A07_ATLAS.destination.x * 720,
+      y: A07_ATLAS.destination.y * 1280,
+      width: A07_ATLAS.destination.width * 720,
+      height: A07_ATLAS.destination.height * 1280,
+    };
+    expect(destinationPixels).toEqual({ x: 228, y: 318, width: 360, height: 360 });
+    const sleepFaceWorld = {
+      x: (destinationPixels.x + destinationPixels.width * 101 / 192) / 720,
+      y: (destinationPixels.y + destinationPixels.height * 63 / 192) / 1280,
+    };
+    expect(sleepFaceWorld.x).toBeCloseTo(A07_ATLAS.headAnchor.x, 2);
+    expect(sleepFaceWorld.y).toBeCloseTo(A07_ATLAS.headAnchor.y, 2);
     expect(COSMETIC_VISUALS).toHaveLength(8);
     expect(COSMETIC_VISUALS.every((visual) => visual.equipmentFrame >= 0 && visual.equipmentFrame < 50)).toBe(true);
   });

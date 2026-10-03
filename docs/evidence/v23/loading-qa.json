@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "authority": "fresh production browser; service workers blocked to isolate first visual load from full offline installation",
+  "checks": {
+    "menuOnlyHero": true,
+    "all45Files": true,
+    "sevenClips": true,
+    "twelveCrops": true,
+    "noLegacyCrops": true,
+    "noLegacyCharacter": true
+  },
+  "sceneRequests": [
+    "http://127.0.0.1:4312/assets/art/v23/menu/hero.webp"
+  ],
+  "menuRequiredImageBytes": 1282512,
+  "cache": {
+    "version": "2.3.0",
+    "build": "f6c22ea3c58dd913",
+    "count": 45,
+    "bytes": 21381011,
+    "MiB": 20.39052104949951
+  }
+}
