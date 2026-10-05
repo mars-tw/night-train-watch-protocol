@@ -1,0 +1,731 @@
+{
+  "status": "PASS",
+  "engine": "chromium",
+  "checks": [
+    "menu-initial: every time sample stays in frame without residual motion",
+    "menu-initial: complete picture remains pixel-identical",
+    "partial swipe actually applied a temporary canvas transform",
+    "leaving during a partial swipe cleans inline motion immediately",
+    "menu-after-swipe: every time sample stays in frame without residual motion",
+    "menu-after-swipe: complete picture remains pixel-identical",
+    "menu-after-fast-switch: every time sample stays in frame without residual motion",
+    "menu-after-fast-switch: complete picture remains pixel-identical",
+    "navigation preserves the same run and all resources",
+    "result-day1: every time sample stays in frame without residual motion",
+    "result-day1: complete picture remains pixel-identical",
+    "result-320: every time sample stays in frame without residual motion",
+    "result-320: complete picture remains pixel-identical",
+    "result-1366: every time sample stays in frame without residual motion",
+    "result-1366: complete picture remains pixel-identical",
+    "fixed screens never draw an atlas, threat or individual pose",
+    "no runtime error during actual transitions"
+  ],
+  "failures": [],
+  "samples": [
+    {
+      "label": "menu-initial",
+      "samples": [
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    },
+    {
+      "label": "menu-after-swipe",
+      "samples": [
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    },
+    {
+      "label": "menu-after-fast-switch",
+      "samples": [
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "menu",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    },
+    {
+      "label": "result-day1",
+      "samples": [
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0,
+            75.328125,
+            390,
+            693.328125
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    },
+    {
+      "label": "result-320",
+      "samples": [
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            0.25,
+            0,
+            319.5,
+            568
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    },
+    {
+      "label": "result-1366",
+      "samples": [
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        },
+        {
+          "screen": "result",
+          "hash": 91908489,
+          "rect": [
+            514.25,
+            0,
+            337.5,
+            600
+          ],
+          "inside": true,
+          "transform": "none",
+          "animation": "none",
+          "classes": "",
+          "inline": "",
+          "opacity": ""
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "authority": "actual UI, mouse and keyboard, read-only saved run, no progress injection",
+  "unexpectedDraws": []
+}

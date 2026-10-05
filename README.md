@@ -1,4 +1,4 @@
-# 夜行列車：守夜協定 v2.3.0
+# 夜行列車：守夜協定 v2.3.1
 
 [![v2.3 細緻像素首頁](docs/evidence/v23/pixel/menu-390.png)](https://mars-tw.github.io/night-train-watch-protocol/)
 
@@ -13,6 +13,10 @@
 ![v2.3 細緻像素臥室實際畫面](docs/evidence/v23/pixel/sleep-390.png)
 
 ## 這次更新
+
+- **修正首頁影格跑出框架**：主選單與夜晚結算都使用完整固定像素圖片。保存期間，Canvas 依最後一次已提交畫面選擇場景；返回時會清除拖曳位移、過渡動畫與計時器。Chromium、WebKit 各 17 項時間序列檢查通過，含實際第一夜結算、快速切廂與未完成的拖曳。
+
+以下為 v2.3 美術與手機操作更新：
 
 - **重做細緻像素美術**：首頁與五車廂改為新的像素圖片，重現暖燈、毛毯、木作、瓶罐與冷窗的層次；A-07 的 52 格姿勢及 12 張作物生長圖也重製。原始生成圖、Blender 處理檔、輸出與紀錄均保留。
 - **安定的啟動首頁**：使用人物與床一體的固定場景，不再播放角色姿勢、列車搖晃或舊旅程的威脅；標題與按鈕也不滑入。實際 Canvas 在等待前後完全相同。
@@ -80,6 +84,7 @@ npm run audit:loading
 npm run audit:onboarding
 npm run audit:pixel
 npm run audit:mobile
+npm run audit:fixed
 npm run simulate:balance
 ```
 
@@ -87,6 +92,9 @@ npm run simulate:balance
 
 ## 驗證證據
 
+- [v2.3.1 首頁／結算頁時間序列：Chromium](docs/evidence/v231/chromium-fixed-qa.json)、[WebKit](docs/evidence/v231/webkit-fixed-qa.json)
+- [v2.3.1 正式版離線與效能](docs/evidence/v231/release-qa.json)
+- [v2.3.1 獨立程式覆核](docs/evidence/v231/independent-review.md)與[修正驗收](docs/CODEX_RESPONSE_V231.md)
 - [v2.3 手機 Chromium：24 組尺寸／實際字級設定與旋轉](docs/evidence/v23/after-mobile-layout.json)
 - [v2.3 WebKit：24 組尺寸／實際設定，無音效模擬](docs/evidence/v23/after-webkit-layout.json)
 - [v2.3 安定首頁、完整頭部、真畫格與作物來源](docs/evidence/v23/pixel-qa.json)
