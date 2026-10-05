@@ -212,6 +212,15 @@
   animation: carriage-shift-previous 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Fixed screens never inherit a carriage transition or a partial swipe. */
+#app:is([data-game-screen="menu"], [data-game-screen="result"]) #scene-canvas {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  clip-path: inset(0);
+}
+
 .screen-enter .ring-meter {
   animation: ring-arrive 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

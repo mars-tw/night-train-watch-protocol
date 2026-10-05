@@ -336,8 +336,8 @@ export interface SceneAssetPriorityInput {
 }
 
 export function sceneAssetPriority(input: SceneAssetPriorityInput): SceneAssetKey[] {
-  if (input.screen === "menu") return ["menu-hero"];
-  const carriageId = input.screen === "result" ? "sleep" : input.activeCarriageId;
+  if (input.screen === "menu" || input.screen === "result") return ["menu-hero"];
+  const carriageId = input.activeCarriageId;
   const result: SceneAssetKey[] = [`v2-carriage-${carriageId}`];
   const activeFamily = input.activeThreatDefinitionId
     ? threatFamilyForId(input.activeThreatDefinitionId)

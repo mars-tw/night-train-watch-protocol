@@ -2305,6 +2305,7 @@ export class GameView {
   private readonly uiRoot: HTMLDivElement;
   private previousScreenKey = "";
   private previousCarriageId?: CarriageId;
+  private carriageShiftTimer?: number;
   private carriageSwipe: {
     target: HTMLElement;
     pointerId: number;
@@ -2880,6 +2881,10 @@ export class GameView {
   }
 
   private cancelCarriageSwipe(): void {
+    const swipe = this.carriageSwipe;
+    if (swipe?.target.hasPointerCapture(swipe.pointerId)) {
+      swipe.target.releasePointerCapture(swipe.pointerId);
+    }
     this.resetCarriageCanvasDrag();
     this.carriageSwipe = null;
   }
@@ -2894,6 +2899,15 @@ export class GameView {
     hasSave: boolean,
     activeEvent?: GameEvent,
   ): void {
+    if (state.screen !== "carriage") {
+      this.cancelCarriageSwipe();
+      if (this.carriageShiftTimer !== undefined) {
+        window.clearTimeout(this.carriageShiftTimer);
+        this.carriageShiftTimer = undefined;
+      }
+      this.canvas.classList.remove("carriage-shift-next", "carriage-shift-previous");
+      this.previousCarriageId = undefined;
+    }
     this.cancelGreenCycleDrag();
     this.cancelThermalDrag();
     this.cancelThreatToolDrag();
@@ -2945,7 +2959,11 @@ export class GameView {
         );
         void this.canvas.offsetWidth;
         this.canvas.classList.add(motionClass);
-        window.setTimeout(() => this.canvas.classList.remove(motionClass), 320);
+        if (this.carriageShiftTimer !== undefined) window.clearTimeout(this.carriageShiftTimer);
+        this.carriageShiftTimer = window.setTimeout(() => {
+          this.canvas.classList.remove(motionClass);
+          this.carriageShiftTimer = undefined;
+        }, 320);
       }
       this.previousCarriageId = state.activeCarriageId;
     }

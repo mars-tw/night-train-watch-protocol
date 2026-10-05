@@ -139,7 +139,10 @@ export class SceneRenderer {
   }
 
   public render(state: AppState): void {
-    this.state = state;
+    // App actions mutate their state before an asynchronous save completes.
+    // Freeze the view-selection fields at the last committed render, so the
+    // animation loop cannot paint the next scene into the previous screen.
+    this.state = { ...state };
     this.draw(performance.now());
   }
 
@@ -157,7 +160,7 @@ export class SceneRenderer {
       }
     }
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    if (!state || state.screen === "menu") {
+    if (!state || state.screen === "menu" || state.screen === "result") {
       if (!this.drawMenuHero()) this.drawFallback("menu-hero", time);
       return;
     }
@@ -172,9 +175,7 @@ export class SceneRenderer {
     const whiteFrost = state?.run?.routeId === "R02";
     const greenTide = state?.run?.routeId === "R03";
     const reducedMotion = this.motionIsReduced();
-    const carriageId: CarriageId = state.screen === "result"
-      ? "sleep"
-      : state.activeCarriageId ?? "greenhouse";
+    const carriageId: CarriageId = state.activeCarriageId ?? "greenhouse";
     const carriageArtKey: CarriageArtKey = `v2-carriage-${carriageId}`;
     const artKey: ArtKey = carriageArtKey;
 

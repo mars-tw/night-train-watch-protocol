@@ -1,0 +1,69 @@
+{
+  "version": "2.3.1",
+  "status": "PASS",
+  "assertions": 11,
+  "checks": [
+    "1366: coherent precache has every manifest asset",
+    "1366: a real new game saves the complete v6 envelope",
+    "1366: offline reload restores the same run, not a replacement",
+    "1366: offline scene and visible UI assets render",
+    "1366: three-run median p95 frame interval <=18ms",
+    "390: coherent precache has every manifest asset",
+    "390: a real new game saves the complete v6 envelope",
+    "390: offline reload restores the same run, not a replacement",
+    "390: offline scene and visible UI assets render",
+    "390: three-run median p95 frame interval <=18ms",
+    "release pages have no browser runtime errors"
+  ],
+  "failures": [],
+  "browserErrors": [],
+  "frames": [
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 600
+      },
+      "trials": [
+        {
+          "p95": 16.700000000000273,
+          "samples": 160
+        },
+        {
+          "p95": 16.700000000000728,
+          "samples": 160
+        },
+        {
+          "p95": 16.799999999999272,
+          "samples": 160
+        }
+      ],
+      "medianP95ms": 16.700000000000728,
+      "passed": true,
+      "deviceEvidence": "Windows desktop Chromium at requested viewport; not physical phone"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "trials": [
+        {
+          "p95": 16.700000000000273,
+          "samples": 160
+        },
+        {
+          "p95": 16.700000000000728,
+          "samples": 160
+        },
+        {
+          "p95": 16.700000000000728,
+          "samples": 160
+        }
+      ],
+      "medianP95ms": 16.700000000000728,
+      "passed": true,
+      "deviceEvidence": "Windows desktop Chromium at requested viewport; not physical phone"
+    }
+  ],
+  "physicalPhonePerformance": "Not measured; mobile-size results use the same desktop host"
+}
